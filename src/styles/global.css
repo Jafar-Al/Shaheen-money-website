@@ -481,6 +481,197 @@
   }
 }
 
+/* ── Ledger forms (src/components/forms) ───────────────────────────────
+   Underlined fields with mono labels, choices as ticket rows, the error
+   colour only ever with an icon and words beside it. */
+@layer components {
+  .ledger-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .form-summary {
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-error);
+    border-radius: var(--radius-sm);
+    color: var(--color-error);
+    font-weight: 600;
+  }
+  .form-submit {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding-block-start: 0.5rem;
+  }
+  .form-submit .btn:disabled {
+    cursor: progress;
+    opacity: 0.7;
+  }
+  .form-status {
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .field-label {
+    color: var(--fg-2);
+  }
+  .field-optional {
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .field-control {
+    display: block;
+    inline-size: 100%;
+    min-block-size: 3rem;
+    padding: 0.5rem 0;
+    border: 0;
+    border-block-end: 1px solid var(--line-strong);
+    border-radius: 0;
+    background: transparent;
+    color: var(--fg);
+    font-size: var(--text-body-l);
+    line-height: var(--lh-body);
+    transition: border-color var(--motion-hover) var(--ease-hover);
+  }
+  .field-control:hover {
+    border-block-end-color: var(--fg-2);
+  }
+  .field-control:focus-visible {
+    border-block-end-color: var(--accent);
+  }
+  .field-control[aria-invalid='true'] {
+    border-block-end-color: var(--color-error);
+    border-block-end-width: 2px;
+  }
+  .field-area {
+    min-block-size: 8rem;
+    resize: vertical;
+    padding-block: 0.75rem;
+  }
+  .field-select {
+    position: relative;
+    display: block;
+  }
+  .field-select .field-control {
+    appearance: none;
+    padding-inline-end: 2rem;
+    cursor: pointer;
+  }
+  .field-select-icon {
+    position: absolute;
+    inset-inline-end: 0.25rem;
+    inset-block-start: 50%;
+    translate: 0 -50%;
+    color: var(--fg-2);
+    pointer-events: none;
+  }
+  .field-hint {
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .field-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: var(--text-body-s);
+    font-weight: 600;
+    color: var(--color-error);
+  }
+  .field-error svg {
+    flex: none;
+    margin-block-start: 0.15rem;
+  }
+
+  .consent-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    min-block-size: var(--target-min);
+  }
+  .consent-box {
+    flex: none;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    margin-block-start: 0.1rem;
+    accent-color: var(--color-navy-800);
+    cursor: pointer;
+  }
+  .consent-label {
+    font-size: var(--text-body-s);
+    line-height: var(--lh-body-s);
+    color: var(--fg);
+    cursor: pointer;
+  }
+
+  /* Choices as ticket rows: the whole row is the target. */
+  .tickets {
+    display: flex;
+    flex-direction: column;
+    border-block-start: 1px solid var(--line);
+  }
+  .ticket {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-block-size: 3.5rem;
+    padding-inline: 0.25rem 1rem;
+    border-block-end: 1px solid var(--line);
+    cursor: pointer;
+    transition: background-color var(--motion-hover) var(--ease-hover);
+  }
+  .ticket:hover {
+    background-color: color-mix(in srgb, var(--fg) 4%, transparent);
+  }
+  .ticket input {
+    flex: none;
+    appearance: none;
+    display: grid;
+    place-items: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    margin: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+  }
+  .ticket input::after {
+    content: '';
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-radius: var(--radius-full);
+    background-color: var(--fg);
+    scale: 0;
+    transition: scale var(--motion-micro) var(--ease-out);
+  }
+  .ticket input:checked {
+    border-color: var(--fg);
+  }
+  .ticket input:checked::after {
+    scale: 1;
+  }
+  .ticket:has(input:checked) {
+    background-color: var(--raised);
+  }
+  .ticket-n {
+    font-size: var(--text-label);
+    color: var(--accent);
+  }
+  .ticket-text {
+    font-size: var(--text-body);
+  }
+  @media (forced-colors: active) {
+    .ticket input::after {
+      background-color: CanvasText;
+    }
+  }
+}
+
 /* ── Smart download button + QR dialog ────────────────────────────────── */
 @layer components {
   .dl-button .dl-when-ios,

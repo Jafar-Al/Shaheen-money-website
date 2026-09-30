@@ -1,12 +1,14 @@
 ---
 import Breadcrumbs from './Breadcrumbs.astro';
 import FeatherField from '../art/FeatherField.astro';
+import Emph from './Emph.astro';
 import type { Locale } from '../../i18n/config';
 
 /**
  * The top of every inner page: Paper, a feather field of hairline barbs
  * seeded by the page (so each page has its own, and it never changes), a
- * mono breadcrumb, one H1 in the display face, one lead.
+ * mono breadcrumb, one H1 in the display face (its one emphasised word
+ * marked in the copy), one lead.
  *
  * Replaces the grey band the inner pages used to share: the same system as
  * the homepage, at a quieter volume.
@@ -32,7 +34,7 @@ const { locale, title, lead, crumbs, seed, size = 'l', class: className } = Astr
   <div class="page page-hero-inner">
     <Breadcrumbs locale={locale} items={crumbs} />
     <div class="page-hero-copy">
-      <h1 class:list={['font-display', size === 'l' ? 'text-display-l' : 'text-display-m']}>{title}</h1>
+      <h1 class:list={['font-display', size === 'l' ? 'text-display-l' : 'text-display-m']}><Emph text={title} /></h1>
       {lead && <p class="lead">{lead}</p>}
       <slot />
     </div>
@@ -65,7 +67,6 @@ const { locale, title, lead, crumbs, seed, size = 'l', class: className } = Astr
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    max-inline-size: 22ch;
     padding-block-start: clamp(4rem, 12vw, 10rem);
   }
   .page-hero-copy :global(.lead) {
@@ -75,9 +76,6 @@ const { locale, title, lead, crumbs, seed, size = 'l', class: className } = Astr
     max-inline-size: 18ch;
   }
   @media (width >= 64rem) {
-    .page-hero-copy {
-      max-inline-size: none;
-    }
     .page-hero-copy h1 {
       max-inline-size: 16ch;
     }

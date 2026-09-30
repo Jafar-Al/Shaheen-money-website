@@ -1,9 +1,9 @@
 ---
 import { getEntry, render } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import PageHeader from '../../../components/ui/PageHeader.astro';
-import Section from '../../../components/ui/Section.astro';
-import Notice from '../../../components/ui/Notice.astro';
+import PageHero from '../../../components/ui/PageHero.astro';
+import Stamp from '../../../components/ui/Stamp.astro';
+import Slip from '../../../components/ui/Slip.astro';
 import Gap from '../../../components/ui/Gap.astro';
 import { common } from '../../../copy/common';
 import { legalPage } from '../../../copy/misc';
@@ -18,6 +18,11 @@ export function getStaticPaths() {
   return locales.flatMap((locale) => (['privacy', 'terms', 'cookies'] as const).map((doc) => ({ params: { locale, doc } })));
 }
 
+/**
+ * Legal documents, set for reading: the version and effective date in mono,
+ * a draft stamp while legal review is pending, a table of contents that
+ * stays in view on a wide screen, and a calm long-form measure.
+ */
 const locale = Astro.params.locale as Locale;
 const doc = Astro.params.doc as Doc;
 const f = common[locale].footer;
@@ -28,6 +33,12 @@ const titles: Record<Doc, string> = { privacy: f.privacy, terms: f.terms, cookie
 const entry = await getEntry('legal', `${locale}/${doc}`);
 const rendered = entry ? await render(entry) : null;
 const title = entry?.data.title ?? titles[doc];
+// The contents list is ours: the documents' own lists point at anchors
+// that were never generated, so they are hidden below. Numbers are set in
+// mono here, so a heading's own "1. " is dropped.
+const toc = (rendered?.headings ?? [])
+  .filter((h) => h.depth === 2 && h.slug !== 'table-of-contents')
+  .map((h) => ({ slug: h.slug, text: h.text.replace(/^\d+\.\s*/, '') }));
 ---
 
 <BaseLayout
@@ -37,42 +48,151 @@ const title = entry?.data.title ?? titles[doc];
   description={t.descriptions[doc]}
   noindex={!entry || entry.data.status === 'draft'}
 >
-  <PageHeader locale={locale} title={title} crumbs={[{ label: f.legal }, { label: title }]}>
+  <PageHero locale={locale} title={title} crumbs={[{ label: f.legal }, { label: title }]} seed={`legal-${doc}`} size="m">
     {
       entry && (
-        <p class="text-caption text-fg-2">
+        <p class="micro legal-meta">
           {t.version} <span class="num">{entry.data.version}</span> · {t.effective}{' '}
           <time datetime={entry.data.effectiveFrom.toISOString().slice(0, 10)}>{formatDate(entry.data.effectiveFrom, locale)}</time>
         </p>
       )
     }
-  </PageHeader>
-  <Section container="narrow">
-    {
-      entry && entry.data.status === 'draft' && (
-        <Notice kind="warning" class="mb-10">
-          <p>{ui.draftBanner}</p>
-        </Notice>
-      )
-    }
-    {
-      rendered ? (
-        <div class="prose measure">
-          <rendered.Content />
-        </div>
-      ) : (
-        <div class="flex max-w-2xl flex-col gap-6">
-          <Notice kind="info">
-            <p>
-              {t.pending} <a href={`mailto:${contact.email}`} class="underline" dir="ltr">{contact.email}</a>
+  </PageHero>
+
+  <section class="t-paper grain legal" data-temp="paper">
+    <div class="page rhythm legal-grid">
+      {
+        toc.length > 0 && (
+          <nav class="legal-toc" aria-label={title}>
+            <ol>
+              {toc.map((h, i) => (
+                <li>
+                  <a href={`#${h.slug}`} class="legal-toc-link">
+                    <span class="num">{String(i + 1).padStart(2, '0')}</span>
+                    <span>{h.text}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )
+      }
+      <div class="legal-main">
+        {
+          entry && entry.data.status === 'draft' && (
+            <p class="legal-draft">
+              <Stamp locale={locale} kind="note" tilt={-2} />
+              <span>{ui.draftBanner}</span>
             </p>
-          </Notice>
-          <Gap
-            need={`${titles[doc]} (${locale}). Migrate the current document with \`npm run import:legacy\`, then have legal review it and set status: approved.`}
-            where={`src/content/legal/${locale}/${doc}.md`}
-          />
-        </div>
-      )
-    }
-  </Section>
+          )
+        }
+        {
+          rendered ? (
+            <div class="prose reading">
+              <rendered.Content />
+            </div>
+          ) : (
+            <div class="legal-pending">
+              <Slip no={title}>
+                <p>
+                  {t.pending}{' '}
+                  <a href={`mailto:${contact.email}`} class="ink-link" dir="ltr">
+                    {contact.email}
+                  </a>
+                </p>
+              </Slip>
+              <Gap
+                need={`${titles[doc]} (${locale}). Migrate the current document with \`npm run import:legacy\`, then have legal review it and set status: approved.`}
+                where={`src/content/legal/${locale}/${doc}.md`}
+              />
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </section>
 </BaseLayout>
+
+<style>
+  .legal {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .legal-meta {
+    color: var(--fg-2);
+  }
+  .legal-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 3rem;
+    align-items: start;
+  }
+  .legal-toc {
+    grid-column: 1 / span 3;
+    font-size: var(--text-body-s);
+  }
+  @media (width >= 64rem) {
+    .legal-toc {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 2rem);
+      max-block-size: calc(100vh - var(--header-h) - 4rem);
+      overflow-y: auto;
+    }
+  }
+  .legal-toc ol {
+    border-block-start: 1px solid var(--line);
+  }
+  .legal-toc-link {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding-block: 0.625rem;
+    border-block-end: 1px solid var(--line);
+    color: var(--fg-2);
+  }
+  .legal-toc-link .num {
+    font-size: var(--text-label);
+    color: var(--accent);
+    padding-block-start: 0.15rem;
+  }
+  .legal-toc-link:hover {
+    color: var(--fg);
+  }
+  .legal-main {
+    grid-column: 5 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .legal-grid > .legal-main:first-child {
+    grid-column: 1 / -1;
+  }
+  .legal-draft {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding-block-end: 1.5rem;
+    border-block-end: 1px solid var(--line);
+    color: var(--fg-2);
+  }
+  /* The document's own contents list, replaced by .legal-toc. */
+  .legal-main :global(#table-of-contents),
+  .legal-main :global(#table-of-contents + ol),
+  .legal-main :global(#table-of-contents + ul) {
+    display: none;
+  }
+  .legal-pending {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-inline-size: 36rem;
+  }
+  @media (width < 64rem) {
+    .legal-toc,
+    .legal-main {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

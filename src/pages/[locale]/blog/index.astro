@@ -1,20 +1,35 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import PageHeader from '../../../components/ui/PageHeader.astro';
-import Section from '../../../components/ui/Section.astro';
-import PostCard from '../../../components/blog/PostCard.astro';
+import PageHero from '../../../components/ui/PageHero.astro';
+import IndexRow from '../../../components/ui/IndexRow.astro';
+import FeatherField from '../../../components/art/FeatherField.astro';
 import Gap from '../../../components/ui/Gap.astro';
+import Icon from '../../../components/ui/Icon.astro';
+import TextLink from '../../../components/ui/TextLink.astro';
 import { blog } from '../../../copy/blog';
 import { common } from '../../../copy/common';
-import { getPosts, postSlug } from '../../../lib/blog';
-import { absoluteUrl, href, localeStaticPaths, type Locale } from '../../../i18n/config';
+import { categoryLabel, getPosts, postSlug } from '../../../lib/blog';
+import { formatDate, readingMinutes } from '../../../lib/format';
+import { absoluteUrl, href, localeStaticPaths, otherLocale, type Locale } from '../../../i18n/config';
 import { SITE_URL } from '../../../config/site';
 
+/**
+ * The blog as an editorial index. The newest post leads, with its cover:
+ * an engraved feather generated from its slug (every post has one, none is
+ * stock). The rest follow as numbered rows.
+ */
 export const getStaticPaths = localeStaticPaths;
 
 const locale = Astro.params.locale as Locale;
 const t = blog[locale];
+const ui = common[locale].ui;
 const posts = await getPosts(locale);
+const [lead, ...rest] = posts;
+// Until this language has posts of its own, point to the other one's.
+const other = otherLocale(locale);
+const otherHasPosts = posts.length === 0 && (await getPosts(other)).length > 0;
+const meta = (p: (typeof posts)[number]) =>
+  `${formatDate(p.data.publishedAt, locale)} · ${readingMinutes(p.body ?? '', locale)} ${ui.minRead}`;
 
 const jsonLd = [
   {
@@ -35,26 +50,151 @@ const jsonLd = [
 ---
 
 <BaseLayout locale={locale} path="/blog" title={t.meta.title} description={t.meta.description} jsonLd={jsonLd}>
-  <PageHeader locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.blog.title }]} />
-  <Section>
-    {
-      posts.length > 0 ? (
-        <ul class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
-            <li>
-              <PostCard post={post} locale={locale} headingLevel="h2" />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div class="flex flex-col gap-4">
-          <p class="text-body-lg text-fg-2">{t.empty}</p>
-          <Gap
-            need="Blog posts. Migrate the 11 posts from the current site with `npm run import:legacy` (writes src/content/blog/en/*.md), review each, then translate into src/content/blog/ar/ with the same slug."
-            where="src/content/blog/<locale>/<slug>.md"
-          />
-        </div>
-      )
-    }
-  </Section>
+  <PageHero locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.blog.title }]} seed="blog" />
+
+  <section class="t-paper grain blog" data-temp="paper">
+    <div class="page rhythm">
+      {
+        lead ? (
+          <>
+            <a href={`${href(locale, 'blog')}/${postSlug(lead)}`} class="lead-post">
+              <span class="lead-cover" aria-hidden="true">
+                <FeatherField seed={postSlug(lead)} variant="cover" />
+              </span>
+              <span class="lead-text">
+                <span class="label lead-kicker">{categoryLabel[lead.data.category][locale]}</span>
+                <h2 class="lead-title font-display">{lead.data.title}</h2>
+                <span class="lead-desc">{lead.data.description}</span>
+                <span class="micro lead-meta">{meta(lead)}</span>
+                <span class="lead-go" aria-hidden="true">
+                  <Icon name="arrow-right" size={22} directional />
+                </span>
+              </span>
+            </a>
+            {rest.length > 0 && (
+              <ol class="rest" data-reveal>
+                {rest.map((post, i) => (
+                  <li data-reveal-child>
+                    <IndexRow
+                      n={i + 2}
+                      kicker={categoryLabel[post.data.category][locale]}
+                      title={post.data.title}
+                      text={post.data.description}
+                      meta={meta(post)}
+                      href={`${href(locale, 'blog')}/${postSlug(post)}`}
+                      headingLevel="h2"
+                    >
+                      <FeatherField slot="plate" seed={postSlug(post)} variant="cover" />
+                    </IndexRow>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </>
+        ) : (
+          <div class="blog-empty">
+            <p class="blog-empty-text font-display">{t.empty}</p>
+            {otherHasPosts && (
+              <TextLink href={href(other, 'blog')} hreflang={other} size="lg">
+                {t.otherLanguage}
+              </TextLink>
+            )}
+            <Gap
+              need="Blog posts. Migrate the 11 posts from the current site with `npm run import:legacy` (writes src/content/blog/en/*.md), review each, then translate into src/content/blog/ar/ with the same slug."
+              where="src/content/blog/<locale>/<slug>.md"
+            />
+          </div>
+        )
+      }
+    </div>
+  </section>
 </BaseLayout>
+
+<style>
+  .blog {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .lead-post {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 2rem;
+    align-items: end;
+    padding-block-end: clamp(3rem, 6vw, 5rem);
+    border-block-end: 1px solid var(--line);
+    color: var(--fg);
+  }
+  .lead-cover {
+    grid-column: 1 / span 6;
+    display: block;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--line);
+    background-color: var(--color-paper-100);
+  }
+  .lead-text {
+    grid-column: 7 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .lead-kicker,
+  .lead-meta {
+    color: var(--fg-2);
+  }
+  .lead-title {
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+  }
+  :global(:lang(ar)) .lead-title {
+    font-weight: 500;
+  }
+  .lead-desc {
+    max-inline-size: var(--measure);
+    color: var(--fg-2);
+  }
+  .lead-go {
+    display: grid;
+    place-items: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-full);
+    transition:
+      background-color var(--motion-hover) var(--ease-hover),
+      color var(--motion-hover) var(--ease-hover);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .lead-post:hover .lead-title {
+      text-decoration-line: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.15em;
+    }
+    .lead-post:hover .lead-go {
+      background-color: var(--fg);
+      color: var(--bg);
+    }
+  }
+  .rest {
+    border-block-start: 0;
+  }
+  .rest :global(.index-plate) {
+    border: 1px solid var(--line);
+    background-color: var(--color-paper-100);
+  }
+  .blog-empty {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .blog-empty-text {
+    font-size: var(--text-h3);
+  }
+  @media (width < 64rem) {
+    .lead-cover,
+    .lead-text {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

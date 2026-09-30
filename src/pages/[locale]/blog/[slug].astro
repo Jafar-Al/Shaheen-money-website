@@ -1,12 +1,12 @@
 ---
 import { render } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import Section from '../../../components/ui/Section.astro';
 import Breadcrumbs from '../../../components/ui/Breadcrumbs.astro';
 import DownloadButton from '../../../components/site/DownloadButton.astro';
 import TextLink from '../../../components/ui/TextLink.astro';
-import PostCard from '../../../components/blog/PostCard.astro';
+import IndexRow from '../../../components/ui/IndexRow.astro';
 import Photo from '../../../components/media/Photo.astro';
+import FeatherField from '../../../components/art/FeatherField.astro';
 import { blog } from '../../../copy/blog';
 import { common } from '../../../copy/common';
 import { categoryLabel, getPosts, postLocale, postSlug, type Post } from '../../../lib/blog';
@@ -30,6 +30,11 @@ interface Props {
   hasTwin: boolean;
 }
 
+/**
+ * A post, for reading: its own engraved feather across the top, the title
+ * in the display face, a measure of 68 characters (60 in Arabic), a drop
+ * cap in Latin, and a hairline across the very top that fills as you read.
+ */
 const { post, hasTwin } = Astro.props;
 const locale = Astro.params.locale as Locale;
 const slug = postSlug(post);
@@ -38,9 +43,7 @@ const ui = common[locale].ui;
 const { Content } = await render(post);
 const minutes = readingMinutes(post.body ?? '', locale);
 const path = `/blog/${slug}`;
-const related = (await getPosts(locale))
-  .filter((p) => postSlug(p) !== slug && p.data.category === post.data.category)
-  .slice(0, 2);
+const related = (await getPosts(locale)).filter((p) => postSlug(p) !== slug && p.data.category === post.data.category).slice(0, 2);
 
 const jsonLd = [
   {
@@ -74,76 +77,193 @@ const jsonLd = [
   }}
   jsonLd={jsonLd}
 >
-  <article>
-    <Section tone="subtle" spacing="sm" container="narrow" class="border-b border-line-subtle">
-      <Breadcrumbs
-        locale={locale}
-        items={[{ label: common[locale].nav.blog.title, href: href(locale, 'blog') }, { label: post.data.title }]}
-      />
-      <header class="mt-8 flex flex-col gap-5">
-        <p class="text-label uppercase text-fg-2">{categoryLabel[post.data.category][locale]}</p>
-        <h1 class="text-display-lg font-display">{post.data.title}</h1>
-        <p class="text-body-lg text-fg-2">{post.data.description}</p>
-        <p class="text-caption text-fg-2">
-          {t.by} {post.data.author}
-          <span aria-hidden="true"> · </span>
-          <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt, locale)}</time>
-          {
-            post.data.updatedAt && (
-              <>
-                <span aria-hidden="true"> · </span>
-                {ui.updated} <time datetime={post.data.updatedAt.toISOString()}>{formatDate(post.data.updatedAt, locale)}</time>
-              </>
-            )
-          }
-          <span aria-hidden="true"> · </span>
-          <span class="num">{minutes}</span> {ui.minRead}
-        </p>
-      </header>
-    </Section>
+  <div class="read-progress" aria-hidden="true" data-read-progress><span></span></div>
 
-    {
-      post.data.heroImage && (
-        <div class="container-narrow mt-10">
-          <Photo
-            src={post.data.heroImage}
-            alt={post.data.heroAlt ?? ''}
-            width={960}
-            sizes="(min-width: 64rem) 960px, 92vw"
-            priority
-            class="w-full rounded-lg"
-          />
-        </div>
-      )
-    }
-
-    <Section container="narrow">
-      <div class="prose measure mx-auto">
-        <Content />
+  <article class="post" data-post>
+    <header class="post-head under-header t-paper grain" data-temp="paper">
+      <div class="post-art" aria-hidden="true">
+        <FeatherField seed={slug} variant="strip" follow />
       </div>
-    </Section>
+      <div class="page post-head-inner">
+        <Breadcrumbs locale={locale} items={[{ label: common[locale].nav.blog.title, href: href(locale, 'blog') }, { label: post.data.title }]} />
+        <div class="post-title-block">
+          <p class="label post-kicker">{categoryLabel[post.data.category][locale]}</p>
+          <h1 class="text-display-l font-display post-title">{post.data.title}</h1>
+          <p class="lead">{post.data.description}</p>
+          <p class="micro post-meta">
+            {t.by} {post.data.author}
+            <span aria-hidden="true"> · </span>
+            <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt, locale)}</time>
+            {
+              post.data.updatedAt && (
+                <>
+                  <span aria-hidden="true"> · </span>
+                  {ui.updated} <time datetime={post.data.updatedAt.toISOString()}>{formatDate(post.data.updatedAt, locale)}</time>
+                </>
+              )
+            }
+            <span aria-hidden="true"> · </span>
+            <span class="num">{minutes}</span> {ui.minRead}
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <div class="t-paper post-body" data-temp="paper">
+      {
+        post.data.heroImage && (
+          <div class="page post-image">
+            <Photo
+              src={post.data.heroImage}
+              alt={post.data.heroAlt ?? ''}
+              width={960}
+              sizes="(min-width: 64rem) 960px, 92vw"
+              priority
+              class="post-photo"
+            />
+          </div>
+        )
+      }
+      <div class="page rhythm">
+        <div class="prose prose-dropcap reading post-prose">
+          <Content />
+        </div>
+      </div>
+    </div>
   </article>
 
-  <Section tone="subtle" container="narrow">
-    <div class="flex flex-col items-start gap-4 rounded-lg bg-navy p-8 text-fg-inverse md:p-10" data-surface="dark">
-      <h2 class="text-h2 font-display">{t.cta.title}</h2>
-      <p class="text-body-lg text-fg-inverse-2">{t.cta.body}</p>
-      <DownloadButton locale={locale} tone="dark" />
+  <aside class="t-night grain post-cta" data-temp="night">
+    <div class="page rhythm-dense post-cta-inner">
+      <h2 class="post-cta-title font-display">{t.cta.title}</h2>
+      <p class="lead">{t.cta.body}</p>
+      <DownloadButton locale={locale} />
     </div>
-    {
-      related.length > 0 && (
-        <div class="mt-12 flex flex-col gap-6">
-          <h2 class="text-h2 font-display">{t.related}</h2>
-          <ul class="grid gap-6 md:grid-cols-2">
-            {related.map((p) => (
-              <li>
-                <PostCard post={p} locale={locale} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      )
-    }
-    <TextLink href={href(locale, 'blog')} class="mt-8">{t.backToBlog}</TextLink>
-  </Section>
+  </aside>
+
+  <section class="t-paper post-more" data-temp="paper">
+    <div class="page rhythm">
+      {
+        related.length > 0 && (
+          <div class="post-related">
+            <h2 class="post-related-title font-display">{t.related}</h2>
+            <ol class="post-related-list">
+              {related.map((p, i) => (
+                <li>
+                  <IndexRow
+                    n={i + 1}
+                    kicker={categoryLabel[p.data.category][locale]}
+                    title={p.data.title}
+                    meta={formatDate(p.data.publishedAt, locale)}
+                    href={`${href(locale, 'blog')}/${postSlug(p)}`}
+                  />
+                </li>
+              ))}
+            </ol>
+          </div>
+        )
+      }
+      <TextLink href={href(locale, 'blog')} size="lg">{t.backToBlog}</TextLink>
+    </div>
+  </section>
 </BaseLayout>
+
+<style>
+  .read-progress {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: 60;
+    block-size: 2px;
+    pointer-events: none;
+  }
+  .read-progress span {
+    display: block;
+    block-size: 100%;
+    background-color: var(--color-signal-ink);
+    transform-origin: left;
+    scale: var(--p, 0) 1;
+  }
+  :global([dir='rtl']) .read-progress span {
+    transform-origin: right;
+  }
+  .post-head,
+  .post-body,
+  .post-more {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .post-head {
+    position: relative;
+    overflow: clip;
+    border-block-end: 1px solid var(--line);
+  }
+  .post-art {
+    position: absolute;
+    inset: 0 0 auto;
+    block-size: clamp(9rem, 22vw, 17rem);
+    color: var(--fg);
+  }
+  .post-head-inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(3rem, 9vw, 7rem);
+    padding-block: calc(var(--header-h) + 1.5rem) clamp(3rem, 6vw, 5rem);
+  }
+  .post-title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-inline-size: 60rem;
+    padding-block-start: clamp(4rem, 12vw, 9rem);
+  }
+  .post-kicker,
+  .post-meta {
+    color: var(--fg-2);
+  }
+  .post-title {
+    max-inline-size: 20ch;
+  }
+  .post-image {
+    padding-block-start: 3rem;
+  }
+  .post-image :global(.post-photo) {
+    inline-size: 100%;
+    border-radius: var(--radius-sm);
+  }
+  .post-prose {
+    margin-inline: auto;
+  }
+  .post-cta {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .post-cta-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+  .post-cta-title {
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+  }
+  .post-more :global(.text-link) {
+    margin-block-start: 2rem;
+  }
+  .post-related-title {
+    font-size: var(--text-h3);
+    margin-block-end: 1rem;
+  }
+  .post-related-list {
+    border-block-start: 1px solid var(--line);
+  }
+</style>
+
+<script>
+  import { scene } from '../../../lib/motion/scenes';
+  const article = document.querySelector<HTMLElement>('[data-post]');
+  const bar = document.querySelector<HTMLElement>('[data-read-progress]');
+  if (article && bar) {
+    scene(article, 'pin', (p) => bar.style.setProperty('--p', p.toFixed(4)));
+  }
+</script>

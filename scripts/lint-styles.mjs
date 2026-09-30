@@ -93,8 +93,11 @@ for (const dir of ['src']) {
       }
     });
 
-    if (cyan.test(text) && !darkContext.test(text)) {
-      const i = lines.findIndex((l) => cyan.test(l));
+    // A line may opt out with a reason, `lint-allow signal-on-paper: why`
+    // (the press kit's swatch has to show the colour itself).
+    const cyanLines = lines.filter((l) => cyan.test(l) && !/lint-allow signal-on-paper/.test(l));
+    if (cyanLines.length > 0 && !darkContext.test(text)) {
+      const i = lines.indexOf(cyanLines[0]);
       problems.push({ file: rel, line: i + 1, rule: 'signal-on-paper', match: 'signal', why: 'Signal cyan is for Night only (1.4:1 on paper). Use the accent token or signal-ink.' });
     }
 

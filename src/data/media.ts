@@ -168,43 +168,91 @@ export const brandColours: Array<{ name: string; hex: string; swatch: string; us
   {
     name: 'Navy',
     hex: '#071138',
-    swatch: 'bg-navy',
-    use: { en: 'Primary. Text, dark surfaces, the mark.', ar: 'اللون الأساسي. النصوص والأسطح الداكنة والشعار.' },
+    swatch: 'bg-navy-800',
+    use: { en: 'The brand colour. Text on paper, the mark, bands of ink.', ar: 'لون العلامة. النصوص على الورق والشعار وأشرطة الحبر.' },
   },
   {
-    name: 'Blue',
-    hex: '#1400FF',
-    swatch: 'bg-blue',
-    use: { en: 'Primary actions on light surfaces. Never on navy.', ar: 'الإجراءات الأساسية على الأسطح الفاتحة، ولا تُستخدم على الكحلي.' },
+    name: 'Night',
+    hex: '#060B1C',
+    swatch: 'bg-night-900',
+    use: { en: 'The digital world: the hero, how it works, the close.', ar: 'العالم الرقمي: الواجهة، وكيف بيشتغل، والختام.' },
   },
   {
-    name: 'Cyan',
+    name: 'Paper',
+    hex: '#F6F1E7',
+    swatch: 'bg-paper-50',
+    use: { en: 'The physical world: cash, receipts, every inner page.', ar: 'العالم الملموس: الكاش والإيصالات وكل الصفحات الداخلية.' },
+  },
+  {
+    name: 'Signal',
     hex: '#00E1FF',
-    swatch: 'bg-cyan',
-    use: { en: 'Accents on dark surfaces only.', ar: 'لمسات على الأسطح الداكنة فقط.' },
+    swatch: 'bg-signal', // lint-allow signal-on-paper: the swatch is the colour itself
+    use: { en: 'On Night only, sparingly: live motion, focus, the active route.', ar: 'على الليل فقط وبقلّة: الحركة والتركيز والمسار النشط.' },
   },
   {
-    name: 'White',
-    hex: '#FFFFFF',
-    swatch: 'bg-white',
-    use: { en: 'Light surfaces and the mark on navy.', ar: 'الأسطح الفاتحة والشعار على الكحلي.' },
+    name: 'Signal ink',
+    hex: '#006E86',
+    swatch: 'bg-signal-ink',
+    use: { en: 'The accent on Paper, where Signal would be unreadable.', ar: 'لون التمييز على الورق، حيث لا يُقرأ لون الإشارة.' },
+  },
+  {
+    name: 'Amber',
+    hex: '#F5A623',
+    swatch: 'bg-amber',
+    use: { en: 'Physical cash, on Night. On Paper, Amber ink (#8A5300).', ar: 'الكاش الملموس على الليل. وعلى الورق: الكهرماني الداكن (#8A5300).' },
   },
 ];
 
-export const brandFonts: Array<{ name: string; use: Localized; licence: string }> = [
+/**
+ * The type, each shown in its own face: the specimen is set in the font it
+ * names (`face` picks the class), in the script it is for.
+ */
+export const brandFonts: Array<{
+  name: string;
+  face: 'serif' | 'naskh' | 'sans' | 'plex' | 'mono';
+  sample: string;
+  sampleLang: 'en' | 'ar';
+  use: Localized;
+  licence: string;
+}> = [
   {
-    name: 'Instrument Sans',
-    use: { en: 'Headings, Latin.', ar: 'العناوين، بالحروف اللاتينية.' },
+    name: 'Instrument Serif',
+    face: 'serif',
+    sample: 'Shaheen Money',
+    sampleLang: 'en',
+    use: { en: 'Headlines, Latin. One italic word per headline.', ar: 'العناوين بالحروف اللاتينية، بكلمة مائلة واحدة في كل عنوان.' },
     licence: 'https://openfontlicense.org/',
   },
   {
-    name: 'Inter',
-    use: { en: 'Body text and figures, Latin.', ar: 'النصوص والأرقام، بالحروف اللاتينية.' },
+    name: 'Noto Naskh Arabic',
+    face: 'naskh',
+    sample: 'شاهين موني',
+    sampleLang: 'ar',
+    use: { en: 'Headlines, Arabic (weight 500).', ar: 'العناوين بالعربية (وزن 500).' },
+    licence: 'https://openfontlicense.org/',
+  },
+  {
+    name: 'Instrument Sans',
+    face: 'sans',
+    sample: 'Shaheen Money',
+    sampleLang: 'en',
+    use: { en: 'Interface and body text, Latin.', ar: 'الواجهة والنصوص بالحروف اللاتينية.' },
     licence: 'https://openfontlicense.org/',
   },
   {
     name: 'IBM Plex Sans Arabic',
-    use: { en: 'Everything in Arabic.', ar: 'كل النصوص العربية.' },
+    face: 'plex',
+    sample: 'شاهين موني',
+    sampleLang: 'ar',
+    use: { en: 'Interface and body text, Arabic.', ar: 'الواجهة والنصوص بالعربية.' },
+    licence: 'https://openfontlicense.org/',
+  },
+  {
+    name: 'Geist Mono',
+    face: 'mono',
+    sample: '0123456789',
+    sampleLang: 'en',
+    use: { en: 'Figures, codes, dates, coordinates and sources, in both languages.', ar: 'الأرقام والرموز والتواريخ والإحداثيات والمصادر، باللغتين.' },
     licence: 'https://openfontlicense.org/',
   },
 ];

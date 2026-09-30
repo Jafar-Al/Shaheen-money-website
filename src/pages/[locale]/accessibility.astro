@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PageHeader from '../../components/ui/PageHeader.astro';
-import Section from '../../components/ui/Section.astro';
+import PageHero from '../../components/ui/PageHero.astro';
 import TextLink from '../../components/ui/TextLink.astro';
 import { accessibility } from '../../copy/misc';
 import { common } from '../../copy/common';
@@ -12,33 +11,105 @@ export const getStaticPaths = localeStaticPaths;
 const locale = Astro.params.locale as Locale;
 const t = accessibility[locale];
 /** Update when the statement is reviewed. */
-const reviewed = new Date(Date.UTC(2026, 8, 23));
+const reviewed = new Date(Date.UTC(2026, 9, 1));
 ---
 
 <BaseLayout locale={locale} path="/accessibility" title={t.meta.title} description={t.meta.description}>
-  <PageHeader locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].footer.accessibility }]} />
-  <Section container="narrow">
-    <div class="flex flex-col gap-10">
+  <PageHero locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].footer.accessibility }]} seed="accessibility" />
+  <section class="t-paper grain a11y" data-temp="paper">
+    <div class="page rhythm a11y-inner">
       {
-        t.sections.map((s) => (
-          <section class="flex flex-col gap-3">
-            <h2 class="text-h2 font-display">{s.title}</h2>
-            {s.body.length > 1 ? (
-              <ul class="flex list-disc flex-col gap-2 ps-6 text-body-lg text-fg-2">
-                {s.body.map((line) => (
-                  <li>{line}</li>
-                ))}
-              </ul>
-            ) : (
-              <p class="text-body-lg text-fg-2">{s.body[0]}</p>
-            )}
+        t.sections.map((s, i) => (
+          <section class="a11y-section">
+            <span class="num a11y-n" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h2 class="a11y-title font-display">{s.title}</h2>
+            <div class="a11y-body">
+              {s.body.length > 1 ? (
+                <ul>
+                  {s.body.map((line) => (
+                    <li>{line}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>{s.body[0]}</p>
+              )}
+            </div>
           </section>
         ))
       }
-      <TextLink href={href(locale, 'contact')}>{t.contactCta}</TextLink>
-      <p class="text-caption text-fg-3">
-        {t.reviewed}: <time datetime={reviewed.toISOString().slice(0, 10)}>{formatDate(reviewed, locale)}</time>
-      </p>
+      <div class="a11y-foot">
+        <TextLink href={href(locale, 'contact')} size="lg">{t.contactCta}</TextLink>
+        <p class="micro a11y-date">
+          {t.reviewed}: <time datetime={reviewed.toISOString().slice(0, 10)}>{formatDate(reviewed, locale)}</time>
+        </p>
+      </div>
     </div>
-  </Section>
+  </section>
 </BaseLayout>
+
+<style>
+  .a11y {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .a11y-inner {
+    display: flex;
+    flex-direction: column;
+    max-inline-size: 60rem;
+  }
+  .a11y-section {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: 0.75rem 1rem;
+    padding-block: 2.25rem;
+    border-block-start: 1px solid var(--line);
+  }
+  .a11y-n {
+    grid-row: span 2;
+    padding-block-start: 0.6rem;
+    font-size: var(--text-label);
+    color: var(--accent);
+  }
+  .a11y-title {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+  }
+  .a11y-body {
+    max-inline-size: var(--reading);
+    font-size: var(--text-body-l);
+    line-height: var(--lh-body-l);
+    color: var(--fg-2);
+  }
+  .a11y-body ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .a11y-body li {
+    position: relative;
+    padding-inline-start: 1.5rem;
+  }
+  .a11y-body li::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0.8em;
+    inline-size: 0.75rem;
+    block-size: 1px;
+    background-color: var(--fg-3);
+  }
+  .a11y-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block-start: 2.5rem;
+    border-block-start: 1px solid var(--line);
+  }
+  .a11y-date {
+    color: var(--fg-2);
+  }
+</style>

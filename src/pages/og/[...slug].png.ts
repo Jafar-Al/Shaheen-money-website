@@ -1,5 +1,6 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { renderOg } from '../../lib/og';
+import { plain } from '../../lib/emph';
 import { getPosts, postSlug } from '../../lib/blog';
 import { locales, pages, type Locale, type PageKey } from '../../i18n/config';
 import { common } from '../../copy/common';
@@ -27,7 +28,7 @@ function titleFor(key: PageKey, l: Locale): string {
     cookies: common[l].footer.cookies,
     accessibility: accessibility[l].title,
   };
-  return titles[key];
+  return plain(titles[key]);
 }
 
 export const getStaticPaths = (async () => {

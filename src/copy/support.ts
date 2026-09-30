@@ -48,7 +48,7 @@ export const apply = defineCopy({
       description:
         'Apply to become a Connector, or to partner with Shaheen Money as a company, bank, wallet or payment provider.',
     },
-    title: 'Tell us about your business',
+    title: 'Tell us about your *business*',
     lead: 'One form, whether you run a shop or a company. It takes about two minutes.',
     name: 'Your full name',
     business: 'Business name',
@@ -91,7 +91,7 @@ export const apply = defineCopy({
       description:
         'قدّم طلبك لتصبح موصّلاً، أو لتصبح شريكاً لشاهين موني كشركة أو بنك أو محفظة رقمية أو مزوّد خدمات دفع.',
     },
-    title: 'احكيلنا عن شغلك',
+    title: 'احكيلنا عن *شغلك*',
     lead: 'فورم واحد، سواء عندك محل أو عندك شركة. بتاخد حوالي دقيقتين.',
     name: 'اسمك الكامل',
     business: 'اسم النشاط التجاري',
@@ -135,7 +135,7 @@ export const contactPage = defineCopy({
       title: 'Contact Shaheen Money',
       description: 'Contact Shaheen Money about your account, a transfer, partnerships or press.',
     },
-    title: 'Contact us',
+    title: 'Contact *us*',
     lead: 'Tell us what you need and we’ll pass it to the right team.',
     topic: 'What is this about?',
     topics: {
@@ -171,7 +171,7 @@ export const contactPage = defineCopy({
       title: 'تواصل مع شاهين موني',
       description: 'تواصل مع شاهين موني بخصوص حسابك أو تحويل أو الشراكات أو الإعلام.',
     },
-    title: 'تواصل معنا',
+    title: 'تواصل *معنا*',
     lead: 'أخبرنا بما تحتاجه وسنوصله إلى الفريق المناسب.',
     topic: 'بخصوص ماذا؟',
     topics: {

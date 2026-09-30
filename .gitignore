@@ -30,3 +30,7 @@ motion/.audio/
 # review (design-review/*.md) is tracked.
 design-review/**/*.jpg
 design-review/**/*.png
+
+# Local scratch scripts (one-off captures, debugging).
+*.tmp.mjs
+*.tmp.mts

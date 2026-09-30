@@ -1,9 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PageHeader from '../../components/ui/PageHeader.astro';
-import Section from '../../components/ui/Section.astro';
+import PageHero from '../../components/ui/PageHero.astro';
+import Ledger from '../../components/ui/Ledger.astro';
+import Slip from '../../components/ui/Slip.astro';
+import Stamp from '../../components/ui/Stamp.astro';
 import TextLink from '../../components/ui/TextLink.astro';
-import Icon from '../../components/ui/Icon.astro';
 import BrandIcon from '../../components/ui/BrandIcon.astro';
 import SourceNote from '../../components/ui/SourceNote.astro';
 import Gap from '../../components/ui/Gap.astro';
@@ -14,124 +15,111 @@ import { facts } from '../../data/facts';
 import { showGaps } from '../../lib/gaps';
 import { href, localeStaticPaths, type Locale } from '../../i18n/config';
 
+/**
+ * Security: what we can state today, each with its source (licensing when
+ * it exists; how funds are held; what a digital dollar is), how to protect
+ * an account, what to do about a scam, the only channels that are ours, and
+ * how to report a vulnerability.
+ */
 export const getStaticPaths = localeStaticPaths;
 const locale = Astro.params.locale as Locale;
 const t = security[locale];
 const ui = common[locale].ui;
-const hasTrustFacts = facts.licences.length > 0 || facts.safeguarding !== null || facts.digitalDollar !== null;
 ---
 
 <BaseLayout locale={locale} path="/security" title={t.meta.title} description={t.meta.description}>
-  <PageHeader locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.security }]} />
+  <PageHero locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.security }]} seed="security" />
 
-  {(hasTrustFacts || showGaps) && (
-  <Section>
-    <div class="grid gap-12 lg:grid-cols-3 lg:gap-8">
-      {(facts.licences.length > 0 || showGaps) && (
-      <section aria-labelledby="licensing" class="flex flex-col gap-4 border-t-2 border-navy pt-6">
-        <h2 id="licensing" class="text-h3 font-display">{t.licensing}</h2>
+  <section class="t-paper grain sec" data-temp="paper">
+    <div class="page rhythm sec-facts">
+      {
+        facts.safeguarding && (
+          <article class="sec-lead" aria-labelledby="funds">
+            <h2 id="funds" class="label sec-label">{t.funds}</h2>
+            <p class="sec-statement font-display">{facts.safeguarding.value[locale]}</p>
+            <SourceNote source={facts.safeguarding.source} locale={locale} />
+          </article>
+        )
+      }
+      <div class="sec-side">
         {
-          facts.licences.length > 0 ? (
-            facts.licences.map((l) => (
-              <div class="flex flex-col gap-1 text-body">
-                <p class="font-semibold">{l.regulator[locale]}</p>
-                <p class="text-fg-2">
-                  {l.licenceType[locale]} · <span class="num">{l.number}</span> · {l.jurisdiction[locale]}
-                </p>
-                {l.registerUrl && (
-                  <TextLink href={l.registerUrl} external>
-                    {t.register}
-                  </TextLink>
-                )}
-              </div>
-            ))
-          ) : (
-            <Gap need="Licence / registration: regulator, type, number, jurisdiction, and a link to the public register." />
+          (facts.licences.length > 0 || showGaps) && (
+            <article class="sec-item" aria-labelledby="licensing">
+              <h2 id="licensing" class="label sec-label">{t.licensing}</h2>
+              {facts.licences.length > 0 ? (
+                facts.licences.map((l) => (
+                  <div class="sec-licence">
+                    <p class="font-display sec-licence-name">{l.regulator[locale]}</p>
+                    <p class="sec-muted">
+                      {l.licenceType[locale]} · <span class="num">{l.number}</span> · {l.jurisdiction[locale]}
+                    </p>
+                    {l.registerUrl && (
+                      <TextLink href={l.registerUrl} external>
+                        {t.register}
+                      </TextLink>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <Gap need="Licence / registration: regulator, type, number, jurisdiction, and a link to the public register." />
+              )}
+            </article>
           )
         }
-      </section>
-      )}
-      {(facts.safeguarding || showGaps) && (
-      <section aria-labelledby="funds" class="flex flex-col gap-4 border-t-2 border-line pt-6">
-        <h2 id="funds" class="text-h3 font-display">{t.funds}</h2>
         {
-          facts.safeguarding ? (
-            <>
-              <p class="text-body text-fg-2">{facts.safeguarding.value[locale]}</p>
-              <SourceNote source={facts.safeguarding.source} locale={locale} />
-            </>
-          ) : (
-            <Gap need="How customer funds are held (e.g. 1:1, segregated, at which institution)." />
-          )
-        }
-      </section>
-      )}
-      {(facts.digitalDollar || showGaps) && (
-      <section aria-labelledby="digital-dollar" class="flex flex-col gap-4 border-t-2 border-line pt-6">
-        <h2 id="digital-dollar" class="text-h3 font-display">{t.digitalDollar}</h2>
-        {
-          facts.digitalDollar ? (
-            <>
-              <p class="text-body text-fg-2">{facts.digitalDollar.value[locale]}</p>
+          facts.digitalDollar && (
+            <article class="sec-item" aria-labelledby="digital-dollar">
+              <h2 id="digital-dollar" class="label sec-label">{t.digitalDollar}</h2>
+              <p class="sec-muted">{facts.digitalDollar.value[locale]}</p>
               <SourceNote source={facts.digitalDollar.source} locale={locale} />
-            </>
-          ) : (
-            <Gap need="What a digital dollar is and what backs it." />
+            </article>
           )
         }
-      </section>
-      )}
-    </div>
-  </Section>
-  )}
-
-  <Section tone="subtle" labelledby="account-title">
-    <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
-      <div class="flex flex-col gap-6 lg:col-span-7">
-        <h2 id="account-title" class="text-h2 font-display">{t.accountTitle}</h2>
-        <ul class="flex flex-col gap-4">
-          {
-            t.account.map((tip) => (
-              <li class="flex items-start gap-3 text-body-lg">
-                <Icon name="lock" size={22} class="mt-1 text-fg" />
-                <span>{tip}</span>
-              </li>
-            ))
-          }
-        </ul>
       </div>
-      <aside class="flex flex-col gap-4 self-start rounded-lg border border-line bg-white p-6 shadow-sm lg:col-span-4 lg:col-start-9" data-card>
-        <h2 class="text-h3 font-display">{t.scamTitle}</h2>
-        <p class="text-body text-fg-2">{t.scamBody}</p>
-        <TextLink href={href(locale, 'contact')}>{t.scamCta}</TextLink>
-      </aside>
     </div>
-  </Section>
+  </section>
 
-  <Section labelledby="channels-title">
-    <div class="grid gap-12 lg:grid-cols-2 lg:gap-8">
-      <div class="flex flex-col gap-5">
-        <h2 id="channels-title" class="text-h2 font-display">{t.channelsTitle}</h2>
-        <p class="text-body-lg text-fg-2">{t.channelsBody}</p>
-        <ul class="flex flex-col divide-y divide-line border-y border-line">
+  <section class="t-night grain sec" data-temp="night" aria-labelledby="account-title">
+    <div class="page rhythm sec-grid">
+      <div class="sec-main">
+        <h2 id="account-title" class="sec-h2 font-display">{t.accountTitle}</h2>
+        <Ledger items={t.account.map((tip) => ({ title: tip }))} titleFace="sans" />
+      </div>
+      <Slip as="aside" no={t.scamTitle} class="sec-slip" labelledby="scam-title">
+        <Stamp locale={locale} kind="note" tilt={3} class="sec-stamp" />
+        <h2 id="scam-title" class="sec-slip-title font-display">{t.scamTitle}</h2>
+        <p class="sec-slip-body">{t.scamBody}</p>
+        <TextLink href={href(locale, 'contact')}>{t.scamCta}</TextLink>
+      </Slip>
+    </div>
+  </section>
+
+  <section class="t-paper sec" data-temp="paper" aria-labelledby="channels-title">
+    <div class="page rhythm sec-grid">
+      <div class="sec-main">
+        <h2 id="channels-title" class="sec-h2 font-display">{t.channelsTitle}</h2>
+        <p class="lead">{t.channelsBody}</p>
+        <ul class="channels">
           <li>
-            <a href={`mailto:${contact.email}`} class="flex min-h-12 items-center gap-3 text-body hover:underline">
-              <Icon name="mail" size={20} />
-              <span dir="ltr">{contact.email}</span>
+            <a href={`mailto:${contact.email}`} class="channel">
+              <span class="label channel-kind">{ui.email}</span>
+              <span class="channel-name" dir="ltr">{contact.email}</span>
             </a>
           </li>
           <li>
-            <span class="flex min-h-12 items-center gap-3 text-body">
-              <Icon name="globe" size={20} />
-              <span dir="ltr">shaheen.money</span>
+            <span class="channel">
+              <span class="label channel-kind">{ui.website}</span>
+              <span class="channel-name" dir="ltr">shaheen.money</span>
             </span>
           </li>
           {
             socials.map((s) => (
               <li>
-                <a href={s.href} target="_blank" rel="noopener noreferrer" class="flex min-h-12 items-center gap-3 text-body hover:underline">
-                  <BrandIcon name={s.network} size={20} />
-                  <span>{s.label}</span>
+                <a href={s.href} target="_blank" rel="noopener noreferrer" class="channel">
+                  <span class="channel-kind">
+                    <BrandIcon name={s.network} size={18} />
+                  </span>
+                  <span class="channel-name">{s.label}</span>
                   <span class="sr-only">{ui.opensNewTab}</span>
                 </a>
               </li>
@@ -139,26 +127,139 @@ const hasTrustFacts = facts.licences.length > 0 || facts.safeguarding !== null |
           }
         </ul>
       </div>
-      <div class="flex flex-col gap-10">
-        <section aria-labelledby="report-title" class="flex flex-col gap-4">
-          <h2 id="report-title" class="text-h2 font-display">{t.reportTitle}</h2>
-          <p class="text-body-lg text-fg-2">{t.reportBody(contact.securityEmail)}</p>
+      <div class="sec-aside">
+        <Slip as="section" no="security.txt" class="sec-report" labelledby="report-title">
+          <h2 id="report-title" class="sec-slip-title font-display">{t.reportTitle}</h2>
+          <p class="sec-slip-body">{t.reportBody(contact.securityEmail)}</p>
           <TextLink href="/.well-known/security.txt">{t.reportCta}</TextLink>
-        </section>
-        <section aria-labelledby="site-title" class="flex flex-col gap-4">
-          <h2 id="site-title" class="text-h2 font-display">{t.siteTitle}</h2>
-          <ul class="flex flex-col gap-3">
-            {
-              t.site.map((line) => (
-                <li class="flex items-start gap-3 text-body">
-                  <Icon name="check" size={20} class="mt-0.5 text-navy" />
-                  <span>{line}</span>
-                </li>
-              ))
-            }
-          </ul>
+        </Slip>
+        <section aria-labelledby="site-title" class="sec-site">
+          <h2 id="site-title" class="sec-sub font-display">{t.siteTitle}</h2>
+          <Ledger items={t.site.map((line) => ({ title: line }))} titleFace="sans" />
         </section>
       </div>
     </div>
-  </Section>
+  </section>
 </BaseLayout>
+
+<style>
+  .sec {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .sec-facts,
+  .sec-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 3.5rem;
+    align-items: start;
+  }
+  .sec-lead {
+    grid-column: 1 / span 7;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .sec-statement {
+    font-size: var(--text-h3);
+    line-height: 1.22;
+  }
+  :global(:lang(ar)) .sec-statement {
+    line-height: 1.7;
+  }
+  .sec-side {
+    grid-column: 9 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+  .sec-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-block-start: 1.25rem;
+    border-block-start: 1px solid var(--line);
+  }
+  .sec-label {
+    color: var(--accent);
+  }
+  .sec-muted {
+    color: var(--fg-2);
+  }
+  .sec-licence-name {
+    font-size: var(--text-h4);
+  }
+  .sec-main {
+    grid-column: 1 / span 7;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+  .sec-h2 {
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+    max-inline-size: 16ch;
+  }
+  .sec-grid :global(.sec-slip),
+  .sec-aside {
+    grid-column: 9 / -1;
+  }
+  .sec-grid :global(.sec-slip) {
+    rotate: 1deg;
+  }
+  .sec-stamp {
+    position: absolute;
+    inset-block-start: 0.875rem;
+    inset-inline-end: 1rem;
+  }
+  .sec-slip-title {
+    font-size: var(--text-h3);
+  }
+  .sec-slip-body {
+    margin-block: 0.75rem 1rem;
+  }
+  .sec-aside {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+  .sec-aside :global(.sec-report) {
+    rotate: -1deg;
+  }
+  .sec-sub {
+    font-size: var(--text-h4);
+    margin-block-end: 1rem;
+  }
+  .channels {
+    border-block-start: 1px solid var(--line);
+  }
+  .channel {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    min-block-size: 3.25rem;
+    border-block-end: 1px solid var(--line);
+    color: var(--fg);
+  }
+  a.channel:hover .channel-name {
+    text-decoration-line: underline;
+    text-underline-offset: 0.25em;
+  }
+  .channel-kind {
+    color: var(--fg-2);
+  }
+  .channel-name {
+    font-size: var(--text-body-l);
+  }
+  @media (width < 64rem) {
+    .sec-lead,
+    .sec-side,
+    .sec-main,
+    .sec-grid :global(.sec-slip),
+    .sec-aside {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

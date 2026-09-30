@@ -19,7 +19,7 @@ export const business = defineCopy({
       description:
         'Turn your shop into a cash access point, pay people across borders, or connect your bank, wallet or payment network to Shaheen Money.',
     },
-    title: 'Two ways to build on Shaheen.',
+    title: 'Two ways to *build* on Shaheen.',
     lead:
       'A shop that hands out cash to its neighbourhood, and an institution that connects its rails to ours. Both make the same network worth more.',
     chooser: {
@@ -105,7 +105,7 @@ export const business = defineCopy({
       description:
         'حوّل محلك لنقطة سحب كاش، أو ادفع لناس عبر الحدود، أو اربط بنكك أو محفظتك أو شبكة الدفع عندك مع شاهين موني.',
     },
-    title: 'طريقتين تشتغل فيهم مع شاهين.',
+    title: 'طريقتين *تشتغل* فيهم مع شاهين.',
     lead:
       'محل بيسلّم كاش لأهل حارته، ومؤسسة بتربط أنظمتها بأنظمتنا. الاثنين بيزيدوا قيمة نفس الشبكة.',
     chooser: {
@@ -193,7 +193,7 @@ export const media = defineCopy({
       description:
         'Shaheen Money logos, brand colours, typography and company documents, with the rules for using them, and who to contact for press.',
     },
-    title: 'Media and brand',
+    title: 'Media and *brand*',
     lead:
       'The falcon, the colours and the type, in the files we actually use. Take them from here rather than from a screenshot of the site.',
     logoTitle: 'The mark',
@@ -211,9 +211,10 @@ export const media = defineCopy({
       },
     ],
     coloursTitle: 'Colours',
-    coloursLead: 'Cyan is an accent for dark surfaces only. Brand blue is for light surfaces only. Neither passes contrast on the other.',
+    coloursLead:
+      'Night for the digital world, Paper for the physical one. Signal cyan is an accent on Night only; on Paper it becomes Signal ink. Neither passes contrast on the other surface.',
     typeTitle: 'Typography',
-    typeLead: 'All three are open-licensed, so you can use them in your own layout.',
+    typeLead: 'All five are open-licensed, so you can use them in your own layout.',
     licence: 'Licence',
     docsTitle: 'Company documents',
     pressTitle: 'Press enquiries',
@@ -231,7 +232,7 @@ export const media = defineCopy({
       description:
         'شعارات شاهين موني وألوانها وخطوطها وملفات الشركة، مع قواعد استخدامها، ومع من تتواصل للاستفسارات الصحفية.',
     },
-    title: 'الإعلام والهوية',
+    title: 'الإعلام *والهوية*',
     lead: 'الصقر والألوان والخطوط، بالملفات اللي منستخدمها فعلياً. خذها من هون، مش من صورة للموقع.',
     logoTitle: 'الشعار',
     logoLead:
@@ -251,9 +252,10 @@ export const media = defineCopy({
       },
     ],
     coloursTitle: 'الألوان',
-    coloursLead: 'السماوي لمسة للأسطح الداكنة فقط، والأزرق للأسطح الفاتحة فقط. ولا واحد منهما يحقق التباين المطلوب على الآخر.',
+    coloursLead:
+      'الليل للعالم الرقمي، والورق للعالم الملموس. السماوي لمسة على الليل فقط، وعلى الورق بيصير «حبر الإشارة». ولا واحد منهما يحقق التباين المطلوب على السطح الثاني.',
     typeTitle: 'الخطوط',
-    typeLead: 'الخطوط الثلاثة مفتوحة الترخيص، فبتقدر تستخدمها بتصميمك.',
+    typeLead: 'الخطوط الخمسة مفتوحة الترخيص، فبتقدر تستخدمها بتصميمك.',
     licence: 'الترخيص',
     docsTitle: 'ملفات الشركة',
     pressTitle: 'الاستفسارات الصحفية',

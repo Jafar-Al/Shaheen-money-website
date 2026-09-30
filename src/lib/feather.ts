@@ -26,7 +26,7 @@ export function rng(seed: string): () => number {
   };
 }
 
-type Pt = [number, number];
+export type Pt = [number, number];
 
 export interface FeatherSpec {
   /** Base of the shaft (where the quill would be). */
@@ -51,6 +51,8 @@ export interface Feather {
   barbs: string;
   /** One barb, picked by the seed, for the accent colour. */
   accent: string;
+  /** Where the accent barb ends, and the unit direction it is heading there. */
+  accentTip: { at: Pt; dir: Pt } | null;
 }
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
@@ -96,6 +98,7 @@ export function feather(spec: FeatherSpec): Feather {
   const accentSide = rand() < 0.5 ? 0 : 1;
   const accentIndex = Math.floor(count * (0.35 + rand() * 0.3));
   let accent = '';
+  let accentTip: Feather['accentTip'] = null;
 
   for (let side = 0; side < 2; side++) {
     const sign = side === 0 ? 1 : -1;
@@ -122,8 +125,11 @@ export function feather(spec: FeatherSpec): Feather {
       const end: Pt = [p[0] + dirX * barbLen, p[1] + dirY * barbLen];
       const c: Pt = [p[0] + dirX * barbLen * 0.55 + tx * barbLen * curl, p[1] + dirY * barbLen * 0.55 + ty * barbLen * curl];
       const d = `M${fmt(p)}Q${fmt(c)} ${fmt(end)}`;
-      if (side === accentSide && i === accentIndex) accent = d;
-      else barbs.push(d);
+      if (side === accentSide && i === accentIndex) {
+        accent = d;
+        const l = Math.hypot(end[0] - c[0], end[1] - c[1]) || 1;
+        accentTip = { at: end, dir: [(end[0] - c[0]) / l, (end[1] - c[1]) / l] };
+      } else barbs.push(d);
     }
   }
 
@@ -131,5 +137,6 @@ export function feather(spec: FeatherSpec): Feather {
     rachis: `M${fmt(from)}Q${fmt(ctrl)} ${fmt(to)}`,
     barbs: barbs.join(''),
     accent,
+    accentTip,
   };
 }

@@ -15,7 +15,6 @@ interface Props {
 const { class: className } = Astro.props;
 
 const W = 600;
-const r = (n: number) => Math.round(n * 10) / 10;
 
 // Awning: a scalloped front edge and alternate hatched stripes.
 const awningTop = 92;
@@ -122,6 +121,12 @@ for (let y = 168, row = 0; y < 420; y += 14, row++) {
   .shop path,
   .shop circle {
     fill: none;
+  }
+  /* Paths that draw themselves in (pathLength + dash) keep normal
+     scaling: under non-scaling-stroke, Chromium measures dashes in screen
+     pixels and the draw stops short on any drawing scaled above 1:1. */
+  .shop path:not([data-draw]),
+  .shop circle {
     vector-effect: non-scaling-stroke;
   }
   .shop-line {

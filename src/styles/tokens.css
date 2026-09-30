@@ -215,8 +215,10 @@
 
 /* Arabic: its own display and text faces, deeper line-heights, never any
    tracking. Plex carries Latin inside Arabic text (brand and store names),
-   Geist Mono carries every figure, so money reads the same in both locales. */
-:root:lang(ar) {
+   Geist Mono carries every figure, so money reads the same in both locales.
+   [lang=ar] also covers an Arabic block inside an English page (the 404). */
+:root:lang(ar),
+[lang='ar'] {
   --scale-display-xl: 0.86;
   --lh-display-xl: 1.3;
   --ls-display-xl: 0em;
@@ -261,6 +263,11 @@
   --font-display-stack: var(--font-naskh), var(--font-plex-arabic), ui-serif, serif;
   --font-body-stack: var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
   --font-mono-stack: var(--font-geist-mono), var(--font-plex-arabic), ui-monospace, monospace;
+}
+@layer base {
+  [lang='ar'] {
+    font-family: var(--font-body-stack);
+  }
 }
 
 /* Temperatures. Night is the digital world, Paper the physical one. */

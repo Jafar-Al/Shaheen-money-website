@@ -1,18 +1,23 @@
 ---
 import QRCode from 'qrcode';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import Section from '../../components/ui/Section.astro';
 import Breadcrumbs from '../../components/ui/Breadcrumbs.astro';
 import StoreBadges from '../../components/site/StoreBadges.astro';
-import Icon from '../../components/ui/Icon.astro';
+import Device from '../../components/app/Device.astro';
+import FalconFold from '../../components/home/FalconFold.astro';
+import Slip from '../../components/ui/Slip.astro';
+import Stamp from '../../components/ui/Stamp.astro';
+import Emph from '../../components/ui/Emph.astro';
 import { getApp } from '../../copy/misc';
 import { common } from '../../copy/common';
 import { DOWNLOAD_URL } from '../../config/download';
 import { localeStaticPaths, type Locale } from '../../i18n/config';
 
 /**
- * Where /download sends computers (and anything that is not a phone): both
- * stores, a QR code for the phone, and the official-links warning.
+ * Where /download sends computers (and anything that is not a phone): the
+ * closing scene of the homepage as a page of its own. Both stores, the app
+ * as it is, and the QR code for the phone on a paper slip, with the
+ * official-links warning stamped on it.
  */
 export const getStaticPaths = localeStaticPaths;
 const locale = Astro.params.locale as Locale;
@@ -28,36 +33,132 @@ const qr = (
 ).replace('<svg ', '<svg aria-hidden="true" focusable="false" width="100%" height="100%" ');
 ---
 
-<BaseLayout locale={locale} path="/get-the-app" title={t.meta.title} description={t.meta.description} headerTone="dark">
-  <section data-dark-zone data-surface="dark" class="hero-surface -mt-18 pt-18 text-fg-inverse">
-    <div class="container-page section-y-sm">
-      <Breadcrumbs locale={locale} items={[{ label: common[locale].nav.getApp }]} tone="dark" />
-      <div class="mt-10 flex flex-col items-center gap-6 text-center">
-        <span class="grid size-20 place-items-center rounded-full bg-white text-navy" aria-hidden="true">
-          <svg viewBox="0 0 240 240" width="44" height="44" focusable="false"><use href="#falcon-mark"></use></svg>
-        </span>
-        <h1 class="text-display-lg font-display">{t.title}</h1>
-        <p class="text-body-lg text-fg-inverse-2">{t.lead}</p>
-        <StoreBadges locale={locale} tone="dark" class="justify-center" />
+<BaseLayout locale={locale} path="/get-the-app" title={t.meta.title} description={t.meta.description} temp="night">
+  <section class="app-hero under-header t-night grain" data-temp="night" data-app-hero>
+    <div class="page app-hero-inner">
+      <Breadcrumbs locale={locale} items={[{ label: common[locale].nav.getApp }]} />
+      <div class="app-grid">
+        <div class="app-copy">
+          <FalconFold />
+          <h1 class="text-display-l font-display"><Emph text={t.title} /></h1>
+          <p class="lead">{t.lead}</p>
+          <StoreBadges locale={locale} />
+        </div>
+        <Device locale={locale} class="app-device" />
       </div>
     </div>
   </section>
 
-  <Section>
-    <div class="mx-auto flex max-w-md flex-col items-center gap-6 text-center">
-      <div class="relative size-60 rounded-md bg-white p-3 shadow-sm ring-1 ring-line">
-        <div class="size-full" set:html={qr} />
-        <span class="absolute inset-0 grid place-items-center" aria-hidden="true">
-          <span class="grid size-12 place-items-center rounded-full bg-navy text-white ring-4 ring-white">
+  <section class="t-paper app-scan" data-temp="paper">
+    <div class="page rhythm app-scan-inner">
+      <Slip no="shaheen.money/download" class="app-slip">
+        <div class="app-qr">
+          <div class="app-qr-code" set:html={qr} />
+          <span class="app-qr-mark" aria-hidden="true">
             <svg viewBox="0 0 240 240" width="26" height="26" focusable="false"><use href="#falcon-mark"></use></svg>
           </span>
-        </span>
-      </div>
-      <p class="text-body-lg text-fg-2">{t.scan}</p>
-      <p class="flex items-start gap-2 text-start text-body-sm text-fg-2">
-        <Icon name="shield-check" size={18} class="mt-0.5 text-fg" />
+        </div>
+        <p class="app-scan-text">{t.scan}</p>
+      </Slip>
+      <p class="app-official">
+        <Stamp locale={locale} kind="note" tilt={-2} />
         <span>{t.official}</span>
       </p>
     </div>
-  </Section>
+  </section>
 </BaseLayout>
+
+<style>
+  .app-hero,
+  .app-scan {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .app-hero {
+    overflow: clip;
+  }
+  .app-hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    padding-block: calc(var(--header-h) + 1.5rem) var(--section);
+  }
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 4rem;
+    align-items: center;
+  }
+  .app-copy {
+    grid-column: 1 / span 6;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.75rem;
+  }
+  .app-grid :global(.app-device) {
+    grid-column: 8 / -1;
+  }
+  .app-scan-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+  }
+  .app-scan-inner :global(.app-slip) {
+    inline-size: min(100%, 22rem);
+    rotate: -1.5deg;
+  }
+  .app-qr {
+    position: relative;
+    aspect-ratio: 1;
+    padding: 0.75rem;
+    background-color: #fff;
+  }
+  .app-qr-code {
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  .app-qr-mark {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+  .app-qr-mark svg {
+    padding: 0.625rem;
+    inline-size: 3.25rem;
+    block-size: 3.25rem;
+    border: 4px solid #fff;
+    border-radius: var(--radius-full);
+    background-color: var(--color-navy-800);
+    color: #fff;
+  }
+  .app-scan-text {
+    margin-block-start: 1.25rem;
+    text-align: center;
+  }
+  .app-official {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    max-inline-size: 36rem;
+    text-align: center;
+    color: var(--fg-2);
+  }
+  @media (width < 64rem) {
+    .app-copy,
+    .app-grid :global(.app-device) {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
+
+<script>
+  import { initParallax } from '../../lib/motion/pointer';
+  const hero = document.querySelector<HTMLElement>('[data-app-hero]');
+  if (hero) initParallax(hero);
+</script>

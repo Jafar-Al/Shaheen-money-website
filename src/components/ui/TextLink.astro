@@ -12,6 +12,8 @@ interface Props {
   href: string;
   size?: 'md' | 'lg';
   external?: boolean;
+  /** When the link leads to a page in the other language. */
+  hreflang?: string;
   class?: string;
   [key: `data-${string}`]: string | undefined;
 }

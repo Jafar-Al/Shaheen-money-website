@@ -155,8 +155,8 @@ const year = new Date().getUTCFullYear();
             {office && (
               <p class="footer-office">
                 <bdi dir="ltr">{office.address}</bdi>
-                <span aria-hidden="true"> · </span>
-                <a href={`tel:${office.phone.replace(/[^+\d]/g, '')}`} class="footer-link-inline num">
+                <span aria-hidden="true">{' · '}</span>
+                <a href={`tel:${office.phone.replace(/[^+\d]/g, '')}`} class="footer-link-inline num" dir="ltr">
                   {office.phone}
                 </a>
               </p>
@@ -194,6 +194,12 @@ const year = new Date().getUTCFullYear();
     color: var(--fg);
     opacity: 0.55;
     pointer-events: none;
+  }
+  /* On a phone the plume sits under the copyright line: keep it faint. */
+  @media (width < 48rem) {
+    .footer-plume {
+      opacity: 0.28;
+    }
   }
   .footer-inner {
     position: relative;

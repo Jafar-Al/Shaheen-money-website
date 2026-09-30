@@ -7,7 +7,7 @@ export const security = defineCopy({
       description:
         'Licensing, how customer funds are held, what a digital dollar is, how to spot scams, and how to report a security issue.',
     },
-    title: 'How we protect your money and your data',
+    title: 'How we protect your *money* and your data',
     lead: 'What we can tell you today, what to watch out for, and how to reach us about anything suspicious.',
     licensing: 'Licensing and regulation',
     funds: 'How customer funds are held',
@@ -43,7 +43,7 @@ export const security = defineCopy({
       description:
         'الترخيص، وكيفية حفظ أموال العملاء، وما هو الدولار الرقمي، وكيف تكتشف الاحتيال، وكيف تبلّغ عن مشكلة أمنية.',
     },
-    title: 'كيف نحمي أموالك وبياناتك',
+    title: 'كيف نحمي *أموالك* وبياناتك',
     lead: 'ما يمكننا إخبارك به اليوم، وما يجب الانتباه إليه، وكيف تتواصل معنا بشأن أي أمر مريب.',
     licensing: 'الترخيص والتنظيم',
     funds: 'كيف تُحفظ أموال العملاء',
@@ -81,7 +81,7 @@ export const about = defineCopy({
       description:
         'From Bankey to Empowch to Shaheen Money: building an open financial network that connects North America, Europe and the Middle East.',
     },
-    title: 'Access to money shouldn’t depend on where you were born.',
+    title: 'Access to money shouldn’t depend on *where you were born.*',
     lead:
       'Shaheen Money is building an open financial network that connects North America, Europe and the Middle East, so people can receive, hold, send and cash out money wherever they are.',
     storyTitle: 'How we got here',
@@ -126,7 +126,7 @@ export const about = defineCopy({
       title: 'من نحن | شاهين موني',
       description: 'من Bankey إلى Empowch إلى شاهين موني: نبني شبكة مالية مفتوحة تربط أمريكا الشمالية وأوروبا والشرق الأوسط.',
     },
-    title: 'لا ينبغي أن يتحدّد وصولك إلى المال بمكان ولادتك.',
+    title: 'لا ينبغي أن يتحدّد وصولك إلى المال *بمكان ولادتك.*',
     lead:
       'تبني شاهين موني شبكة مالية مفتوحة تربط أمريكا الشمالية وأوروبا والشرق الأوسط، ليتمكّن الناس من استقبال أموالهم والاحتفاظ بها وإرسالها وسحبها نقداً أينما كانوا.',
     storyTitle: 'كيف وصلنا إلى هنا',

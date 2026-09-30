@@ -1,13 +1,16 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PageHeader from '../../components/ui/PageHeader.astro';
-import Section from '../../components/ui/Section.astro';
-import Steps from '../../components/ui/Steps.astro';
+import PageHero from '../../components/ui/PageHero.astro';
+import Ledger from '../../components/ui/Ledger.astro';
+import Slip from '../../components/ui/Slip.astro';
 import Button from '../../components/ui/Button.astro';
 import TextLink from '../../components/ui/TextLink.astro';
 import SourceNote from '../../components/ui/SourceNote.astro';
+import IndexRow from '../../components/ui/IndexRow.astro';
 import Icon from '../../components/ui/Icon.astro';
 import Gap from '../../components/ui/Gap.astro';
+import ShopCounter from '../../components/art/ShopCounter.astro';
+import Rails from '../../components/art/Rails.astro';
 import { business } from '../../copy/business';
 import { common } from '../../copy/common';
 import { facts } from '../../data/facts';
@@ -17,12 +20,11 @@ import { showGaps } from '../../lib/gaps';
 import { href, localeStaticPaths, type Locale } from '../../i18n/config';
 
 /**
- * Two audiences, one page, and a fork in the first screen so neither has to
- * read the other's half: a shop becoming a Connector, and a company, bank,
- * wallet or payment provider connecting to the network.
- *
- * Both ends of the fork finish at the same application form, which asks
- * what kind of business you are and routes on the answer.
+ * Two audiences, one page, and a fork in the first screen so neither reads
+ * the other's half: two doors, each with its own engraving (a shop's
+ * counter; connected rails). On a desktop the door under the pointer opens
+ * wider. Both halves end at the same application form, which asks what
+ * kind of business you are and routes on the answer.
  */
 export const getStaticPaths = localeStaticPaths;
 const locale = Astro.params.locale as Locale;
@@ -32,211 +34,186 @@ const eligibility = facts.connectorProgram.eligibility;
 const documents = resolvedDocuments.filter((d) => d.download !== null);
 ---
 
-<BaseLayout
-  locale={locale}
-  path="/business"
-  title={t.meta.title}
-  description={t.meta.description}
-  headerTone="dark"
->
-  <PageHeader
-    locale={locale}
-    title={t.title}
-    lead={t.lead}
-    crumbs={[{ label: common[locale].nav.business.title }]}
-    tone="navy"
-  />
+<BaseLayout locale={locale} path="/business" title={t.meta.title} description={t.meta.description}>
+  <PageHero locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.business.title }]} seed="business" />
 
   <!-- The fork. Everything below is one of these two answers. -->
-  <Section spacing="sm" labelledby="chooser-title">
+  <section class="doors-wrap t-paper" data-temp="paper" aria-labelledby="chooser-title">
     <h2 id="chooser-title" class="sr-only">{t.chooser.label}</h2>
-    <div class="grid gap-6 md:grid-cols-2">
-      {
-        (
-          [
-            { id: 'connectors', icon: 'store', ...t.chooser.connector },
-            { id: 'partners', icon: 'building', ...t.chooser.partner },
-          ] as const
-        ).map((card) => (
-          <a
-            href={`#${card.id}`}
-            class="group flex flex-col gap-3 rounded-lg border border-line bg-white p-6 shadow-sm transition duration-150 hover:border-fg md:p-8"
-            data-card
-          >
-            <Icon name={card.icon} size={28} class="text-fg" />
-            <h3 class="text-h2 font-display">{card.title}</h3>
-            <p class="text-body text-fg-2">{card.body}</p>
-            <span class="mt-2 inline-flex items-center gap-2 text-body-sm font-semibold text-blue">
-              {card.cta}
-              <Icon
-                name="arrow-right"
-                size={18}
-                directional
-                class="transition-transform duration-150 group-hover:translate-x-1 rtl:group-hover:-translate-x-1"
-              />
-            </span>
-          </a>
-        ))
-      }
+    <div class="doors">
+      <a href="#connectors" class="door door-shop t-paper">
+        <span class="door-art"><ShopCounter /></span>
+        <span class="door-text">
+          <span class="label door-n">01</span>
+          <span class="door-title font-display">{t.chooser.connector.title}</span>
+          <span class="door-body">{t.chooser.connector.body}</span>
+          <span class="door-cta">
+            {t.chooser.connector.cta}
+            <Icon name="arrow-down" size={18} />
+          </span>
+        </span>
+      </a>
+      <a href="#partners" class="door door-company t-night">
+        <span class="door-art"><Rails /></span>
+        <span class="door-text">
+          <span class="label door-n">02</span>
+          <span class="door-title font-display">{t.chooser.partner.title}</span>
+          <span class="door-body">{t.chooser.partner.body}</span>
+          <span class="door-cta">
+            {t.chooser.partner.cta}
+            <Icon name="arrow-down" size={18} />
+          </span>
+        </span>
+      </a>
     </div>
-  </Section>
+  </section>
 
   <!-- 1. Shops. Keeps id="connector" so old /#connector links still land. -->
-  <Section id="connectors" tone="subtle" labelledby="connectors-title">
-    <div id="connector" class="flex flex-col gap-5">
-      <p class="text-label uppercase text-navy">{t.connectors.label}</p>
-      <h2 id="connectors-title" class="text-h1 font-display">{t.connectors.title}</h2>
-      <p class="measure text-body-lg text-fg-2">{t.connectors.lead}</p>
-    </div>
+  <section id="connectors" class="t-paper grain biz" data-temp="paper" aria-labelledby="connectors-title">
+    <div id="connector" class="page rhythm biz-grid">
+      <header class="biz-head">
+        <p class="label biz-label">{t.connectors.label}</p>
+        <h2 id="connectors-title" class="text-display-l font-display">{t.connectors.title}</h2>
+        <p class="lead">{t.connectors.lead}</p>
+      </header>
 
-    <h3 class="mt-14 text-h2 font-display">{t.connectors.whyTitle}</h3>
-    <ul class="mt-8 grid gap-x-8 gap-y-10 md:grid-cols-3">
-      {
-        t.connectors.why.map((w) => (
-          <li class="flex flex-col gap-3 border-t-2 border-line pt-6">
-            <h4 class="text-h3 font-display">{w.title}</h4>
-            <p class="text-body text-fg-2">{w.body}</p>
-          </li>
-        ))
-      }
-    </ul>
-    <div class="mt-10">
-      {
-        commission ? (
-          <div class="flex flex-col gap-1">
-            <p class="text-h3 font-display">{t.connectors.commission(formatPercent(commission.value, locale))}</p>
-            <SourceNote source={commission.source} locale={locale} />
-          </div>
-        ) : (
-          <Gap need="Commission per cash-out (%), with the date it applies from. The audit ranks this page's economics as the highest-value missing content." />
-        )
-      }
-    </div>
-
-    <div class="mt-16 grid gap-12 lg:grid-cols-12 lg:gap-8">
-      <div class="flex flex-col gap-6 lg:col-span-7">
-        <h3 class="text-h2 font-display">{t.connectors.stepsTitle}</h3>
-        <Steps items={t.connectors.steps} locale={locale} columns={1} emphasize={0} headingLevel="h4" class="gap-y-6" />
+      <div class="biz-block">
+        <h3 class="biz-sub font-display">{t.connectors.whyTitle}</h3>
+        <Ledger items={t.connectors.why.map((w) => ({ title: w.title, body: w.body }))} />
+        {
+          commission ? (
+            <div class="biz-commission">
+              <p class="font-display">{t.connectors.commission(formatPercent(commission.value, locale))}</p>
+              <SourceNote source={commission.source} locale={locale} />
+            </div>
+          ) : (
+            <Gap need="Commission per cash-out (%), with the date it applies from. The audit ranks this page's economics as the highest-value missing content." />
+          )
+        }
       </div>
-      <div class="flex flex-col gap-6 lg:col-span-5">
-        <h3 class="text-h2 font-display">{t.connectors.askTitle}</h3>
-        <ul class="flex flex-col gap-3">
+
+      <div class="biz-block">
+        <h3 class="biz-sub font-display">{t.connectors.stepsTitle}</h3>
+        <ol class="steps" data-reveal>
           {
-            t.connectors.ask.map((item) => (
-              <li class="flex items-start gap-3 text-body">
-                <Icon name="check" size={20} class="mt-1 shrink-0 text-navy" />
+            t.connectors.steps.map((step, i) => (
+              <li class="step" data-reveal-child>
+                <span class="step-n num" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span class="step-rule" aria-hidden="true" />
+                <h4 class="step-title font-display">{step.title}</h4>
+                <p class="step-body">{step.body}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+
+      <Slip as="aside" no={t.connectors.askTitle} class="biz-ask" labelledby="ask-title">
+        <h3 id="ask-title" class="biz-slip-title font-display">{t.connectors.askTitle}</h3>
+        <ol class="check">
+          {
+            t.connectors.ask.map((item, i) => (
+              <li>
+                <span class="num" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
                 <span>{item}</span>
               </li>
             ))
           }
-        </ul>
+        </ol>
         {
           eligibility ? (
             <>
-              <h3 class="mt-4 text-h2 font-display">{t.connectors.eligibilityTitle}</h3>
-              <ul class="flex flex-col gap-3">
-                {eligibility.value.map((line) => (
-                  <li class="flex items-start gap-3 text-body">
-                    <Icon name="check" size={20} class="mt-1 shrink-0 text-navy" />
+              <h3 class="biz-slip-title font-display biz-slip-more">{t.connectors.eligibilityTitle}</h3>
+              <ol class="check">
+                {eligibility.value.map((line, i) => (
+                  <li>
+                    <span class="num" aria-hidden="true">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
                     <span>{line[locale]}</span>
                   </li>
                 ))}
-              </ul>
+              </ol>
               <SourceNote source={eligibility.source} locale={locale} />
             </>
           ) : (
-            showGaps && (
-              <>
-                <h3 class="mt-4 text-h2 font-display">{t.connectors.eligibilityTitle}</h3>
-                <Gap need="Eligibility: which businesses can apply (registration, fixed location, opening hours, cash on hand), per country." />
-              </>
-            )
+            showGaps && <Gap need="Eligibility: which businesses can apply (registration, fixed location, opening hours, cash on hand), per country." />
           )
         }
+      </Slip>
+
+      <div class="biz-cta">
+        <Button href={href(locale, 'businessApply')}>{t.connectors.cta}</Button>
       </div>
     </div>
-
-    <div class="mt-12">
-      <Button href={href(locale, 'businessApply')} size="lg" arrow>{t.connectors.cta}</Button>
-    </div>
-  </Section>
+  </section>
 
   <!-- 2. Companies and institutions. -->
-  <Section id="partners" tone="navy" labelledby="partners-title">
-    <div class="flex flex-col gap-5">
-      <p class="text-label uppercase text-cyan">{t.partners.label}</p>
-      <h2 id="partners-title" class="text-h1 font-display">{t.partners.title}</h2>
-      <p class="measure text-body-lg text-fg-inverse-2">{t.partners.lead}</p>
-    </div>
+  <section id="partners" class="t-night grain biz" data-temp="night" aria-labelledby="partners-title">
+    <div class="page rhythm biz-grid">
+      <header class="biz-head">
+        <p class="label biz-label">{t.partners.label}</p>
+        <h2 id="partners-title" class="text-display-l font-display">{t.partners.title}</h2>
+        <p class="lead">{t.partners.lead}</p>
+      </header>
 
-    <ul class="mt-12 grid gap-x-8 gap-y-10 md:grid-cols-2">
-      {
-        t.partners.offers.map((offer) => (
-          <li class="flex flex-col gap-3 border-t-2 border-line-inverse pt-6">
-            <h3 class="text-h3 font-display">{offer.title}</h3>
-            <p class="text-body text-fg-inverse-2">{offer.body}</p>
-          </li>
-        ))
-      }
-    </ul>
+      <div class="biz-block biz-offers">
+        <Ledger items={t.partners.offers.map((o) => ({ title: o.title, body: o.body }))} />
+      </div>
 
-    <div class="mt-14 grid gap-10 lg:grid-cols-12 lg:gap-8">
-      <div class="flex flex-col gap-6 lg:col-span-7">
-        <h3 class="text-h2 font-display">{t.partners.lookingTitle}</h3>
-        <ul class="flex flex-col gap-3">
+      <Slip as="aside" no={t.partners.lookingTitle} class="biz-ask" labelledby="looking-title">
+        <h3 id="looking-title" class="biz-slip-title font-display">{t.partners.lookingTitle}</h3>
+        <ol class="check">
           {
-            t.partners.looking.map((line) => (
-              <li class="flex items-start gap-3 text-body text-fg-inverse-2">
-                <Icon name="check" size={20} class="mt-1 shrink-0 text-cyan" />
+            t.partners.looking.map((line, i) => (
+              <li>
+                <span class="num" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
                 <span>{line}</span>
               </li>
             ))
           }
-        </ul>
-      </div>
-      <div class="flex flex-col items-start gap-4 self-start rounded-lg border border-line-inverse bg-navy-800 p-6 md:p-8 lg:col-span-5">
-        <Button href={href(locale, 'businessApply')} variant="inverse" arrow>{t.partners.cta}</Button>
-        <p class="flex flex-wrap items-center gap-x-3 text-body text-fg-inverse-2">
+        </ol>
+      </Slip>
+
+      <div class="biz-cta">
+        <Button href={href(locale, 'businessApply')}>{t.partners.cta}</Button>
+        <p class="biz-questions">
           {t.questions}
-          <TextLink href={href(locale, 'contact')} tone="dark">{t.contact}</TextLink>
+          <TextLink href={href(locale, 'contact')}>{t.contact}</TextLink>
         </p>
       </div>
     </div>
-  </Section>
+  </section>
 
   <!-- 3. What a partner, an investor or a journalist asks for next. -->
-  <Section labelledby="materials-title">
-    <div class="grid gap-10 lg:grid-cols-12 lg:gap-8">
-      <header class="flex flex-col gap-4 lg:col-span-5">
-        <p class="text-label uppercase text-navy">{t.materials.label}</p>
-        <h2 id="materials-title" class="text-h1 font-display">{t.materials.title}</h2>
-        <p class="measure text-body-lg text-fg-2">{t.materials.lead}</p>
+  <section class="t-paper biz" data-temp="paper" aria-labelledby="materials-title">
+    <div class="page rhythm biz-grid">
+      <header class="biz-head">
+        <p class="label biz-label">{t.materials.label}</p>
+        <h2 id="materials-title" class="text-display-m font-display">{t.materials.title}</h2>
+        <p class="lead">{t.materials.lead}</p>
         <TextLink href={href(locale, 'media')}>{t.materials.mediaCta}</TextLink>
       </header>
-      <div class="flex flex-col gap-4 lg:col-span-7">
+      <div class="biz-block">
         {
           documents.length > 0 ? (
-            <ul class="flex flex-col gap-4">
-              {documents.map((doc) => (
-                <li>
-                  <a
-                    href={doc.download!.file}
-                    download
-                    class="flex items-center gap-4 rounded-lg border border-line bg-white p-5 shadow-sm transition duration-150 hover:border-fg"
-                    data-card
-                  >
-                    <Icon name="file" size={26} class="shrink-0 text-fg" />
-                    <span class="flex flex-col gap-1">
-                      <span class="text-body font-semibold">{doc.title[locale]}</span>
-                      <span class="text-body-sm text-fg-2">{doc.description[locale]}</span>
-                    </span>
-                    <span class="num ms-auto shrink-0 text-caption text-fg-3">
-                      {doc.download!.format} · {doc.download!.sizeKb} KB
-                    </span>
-                  </a>
-                </li>
+            <div class="docs">
+              {documents.map((doc, i) => (
+                <IndexRow
+                  n={i + 1}
+                  title={doc.title[locale]}
+                  text={doc.description[locale]}
+                  meta={`${doc.download!.format} · ${doc.download!.sizeKb} KB`}
+                  href={doc.download!.file}
+                />
               ))}
-            </ul>
+            </div>
           ) : (
             <Gap
               where="public/media/ + src/data/media.ts"
@@ -246,5 +223,210 @@ const documents = resolvedDocuments.filter((d) => d.download !== null);
         }
       </div>
     </div>
-  </Section>
+  </section>
 </BaseLayout>
+
+<style>
+  section {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+
+  /* ── The two doors ─────────────────────────────────────────────────── */
+  .doors-wrap {
+    border-block-end: 1px solid var(--line);
+  }
+  .doors {
+    display: flex;
+    min-block-size: min(88svh, 52rem);
+  }
+  .door {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1 1 0;
+    gap: 2rem;
+    padding: clamp(2rem, 5vw, 4.5rem) var(--margin);
+    overflow: clip;
+    background-color: var(--bg);
+    color: var(--fg);
+    transition: flex-grow 0.7s var(--ease-out);
+  }
+  .door-art {
+    display: block;
+    max-inline-size: 34rem;
+    opacity: 0.95;
+  }
+  .door-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-inline-size: 30rem;
+  }
+  .door-n {
+    color: var(--accent);
+  }
+  .door-title {
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+  }
+  :global(:lang(ar)) .door-title {
+    font-weight: 500;
+  }
+  .door-body {
+    color: var(--fg-2);
+  }
+  .door-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: var(--target-min);
+    font-weight: 600;
+  }
+  @media (hover: hover) and (pointer: fine) and (width >= 64rem) {
+    .doors:hover .door {
+      flex-grow: 0.75;
+    }
+    .doors .door:hover {
+      flex-grow: 1.35;
+    }
+    .door:hover .door-cta {
+      text-decoration-line: underline;
+      text-underline-offset: 0.3em;
+    }
+  }
+  @media (width < 64rem) {
+    .doors {
+      flex-direction: column;
+      min-block-size: 0;
+    }
+  }
+
+  /* ── Sections ──────────────────────────────────────────────────────── */
+  .biz-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 4rem;
+    align-items: start;
+  }
+  .biz-head {
+    grid-column: 1 / span 7;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .biz-head h2 {
+    max-inline-size: 16ch;
+  }
+  .biz-label {
+    color: var(--accent);
+  }
+  .biz-block {
+    grid-column: 1 / span 7;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+  .biz-sub {
+    font-size: var(--text-h3);
+  }
+  .biz-commission p {
+    font-size: var(--text-h3);
+  }
+  .biz-grid :global(.biz-ask) {
+    grid-column: 9 / -1;
+    grid-row: 2 / span 2;
+    rotate: 1deg;
+  }
+  .biz-slip-title {
+    font-size: var(--text-h4);
+  }
+  .biz-slip-more {
+    margin-block-start: 1.5rem;
+  }
+  .check {
+    display: flex;
+    flex-direction: column;
+    margin-block-start: 0.75rem;
+  }
+  .check li {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding-block: 0.75rem;
+    border-block-start: 1px solid var(--line);
+    font-size: var(--text-body-s);
+  }
+  .check .num {
+    font-size: var(--text-label);
+    color: var(--accent);
+    padding-block-start: 0.2rem;
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  .step {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+  .step-n {
+    font-size: var(--text-label);
+    color: var(--accent);
+  }
+  .step-rule {
+    display: block;
+    block-size: 1px;
+    background-color: var(--line-strong);
+  }
+  .step:first-child .step-rule {
+    block-size: 2px;
+    background-color: var(--fg);
+  }
+  .step-title {
+    font-size: var(--text-h4);
+  }
+  .step-body {
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .biz-cta {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 2rem;
+  }
+  .biz-questions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 0.75rem;
+    color: var(--fg-2);
+  }
+  .docs {
+    border-block-start: 1px solid var(--line);
+  }
+
+  @media (width < 64rem) {
+    .biz-head,
+    .biz-block,
+    .biz-grid :global(.biz-ask) {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    .steps {
+      grid-template-columns: minmax(0, 1fr);
+      padding-inline-start: 1.25rem;
+      border-inline-start: 1px solid var(--line-strong);
+    }
+    .step-rule {
+      display: none;
+    }
+  }
+</style>

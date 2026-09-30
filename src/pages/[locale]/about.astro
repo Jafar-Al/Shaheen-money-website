@@ -1,9 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PageHeader from '../../components/ui/PageHeader.astro';
-import Section from '../../components/ui/Section.astro';
+import PageHero from '../../components/ui/PageHero.astro';
+import Ledger from '../../components/ui/Ledger.astro';
+import IndexRow from '../../components/ui/IndexRow.astro';
 import TextLink from '../../components/ui/TextLink.astro';
-import Photo from '../../components/media/Photo.astro';
+import Plate from '../../components/ui/Plate.astro';
 import Gap from '../../components/ui/Gap.astro';
 import { about } from '../../copy/trust';
 import { common } from '../../copy/common';
@@ -11,6 +12,13 @@ import { facts } from '../../data/facts';
 import { showGaps } from '../../lib/gaps';
 import { href, localeStaticPaths, type Locale } from '../../i18n/config';
 
+/**
+ * About: the story as a timeline (Bankey → Empowch → Shaheen Money, the
+ * present step marked), what we are building as numbered statements on
+ * Night, what we hold to as a ledger, leadership as a typographic index
+ * (photographs only when real and consented, through Plate), and the
+ * company's details.
+ */
 export const getStaticPaths = localeStaticPaths;
 const locale = Astro.params.locale as Locale;
 const t = about[locale];
@@ -19,102 +27,302 @@ const c = facts.company;
 const companyLines = [c.legalName, c.registrationNumber, c.registeredAddress?.[locale], c.jurisdiction?.[locale]].filter(
   (x): x is string => Boolean(x),
 );
+const office = c.office?.value;
+const last = t.chapters.length - 1;
 ---
 
 <BaseLayout locale={locale} path="/about" title={t.meta.title} description={t.meta.description}>
-  <PageHeader locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.about.title }]} />
+  <PageHero locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.about.title }]} seed="about" />
 
-  <Section labelledby="story-title">
-    <h2 id="story-title" class="text-h2 font-display">{t.storyTitle}</h2>
-    <ol class="mt-10 grid gap-x-8 gap-y-10 md:grid-cols-3">
-      {
-        t.chapters.map((ch, i) => (
-          <li class:list={['flex flex-col gap-3 border-t-2 pt-6', i === t.chapters.length - 1 ? 'border-navy' : 'border-line']}>
-            <h3 class="text-h3 font-display" lang={/[a-z]/i.test(ch.name) ? 'en' : undefined}>
-              {ch.name}
-            </h3>
-            <p class="text-body text-fg-2">{ch.body}</p>
-          </li>
-        ))
-      }
-    </ol>
-  </Section>
+  <section class="t-paper about-story" data-temp="paper" aria-labelledby="story-title">
+    <div class="page rhythm">
+      <h2 id="story-title" class="about-h2 font-display">{t.storyTitle}</h2>
+      <ol class="timeline" data-reveal>
+        {
+          t.chapters.map((ch, i) => (
+            <li class:list={['tl-step', i === last && 'tl-now']} data-reveal-child>
+              <span class="tl-mark" aria-hidden="true">
+                <span class="tl-n num">{String(i + 1).padStart(2, '0')}</span>
+                <span class="tl-line" />
+              </span>
+              <h3 class="tl-name font-display" lang={/[a-z]/i.test(ch.name) ? 'en' : undefined}>
+                {ch.name}
+              </h3>
+              <p class="tl-body">{ch.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
 
-  <Section tone="navy" labelledby="mission-title">
-    <div class="grid gap-10 lg:grid-cols-12 lg:gap-8">
-      <h2 id="mission-title" class="text-h1 font-display lg:col-span-5">{t.missionTitle}</h2>
-      <div class="flex flex-col gap-5 lg:col-span-7">
-        {t.mission.map((paragraph) => <p class="measure text-body-lg text-fg-inverse-2">{paragraph}</p>)}
+  <section class="t-night grain about-mission" data-temp="night" aria-labelledby="mission-title">
+    <div class="page rhythm mission-grid">
+      <h2 id="mission-title" class="about-h2 font-display">{t.missionTitle}</h2>
+      <ol class="mission" data-reveal>
+        {
+          t.mission.map((paragraph, i) => (
+            <li class="mission-item" data-reveal-child>
+              <span class="num mission-n" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <p class="mission-text font-display">{paragraph}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="t-paper grain" data-temp="paper" aria-labelledby="principles-title">
+    <div class="page rhythm split">
+      <h2 id="principles-title" class="about-h2 font-display">{t.principlesTitle}</h2>
+      <Ledger items={t.principles.map((p) => ({ title: p.title, body: p.body }))} class="split-main" />
+    </div>
+  </section>
+
+  <section class="t-paper about-people" data-temp="paper" aria-labelledby="leadership-title">
+    <div class="page rhythm split">
+      <h2 id="leadership-title" class="about-h2 font-display">{t.leadershipTitle}</h2>
+      <div class="split-main">
+        <div class="people">
+          {
+            facts.team.map((person, i) => (
+              <div class="person">
+                <Plate src={person.photo} alt={person.name} width={200} ratio="portrait" class="person-photo" />
+                <IndexRow
+                  n={i + 1}
+                  title={locale === 'ar' && person.nameAr ? person.nameAr : person.name}
+                  meta={person.role[locale]}
+                  headingLevel="h3"
+                />
+              </div>
+            ))
+          }
+        </div>
+        {
+          founder && (
+            <figure class="quote">
+              <blockquote class="quote-text font-display">
+                <p>{t.quote}</p>
+              </blockquote>
+              <figcaption class="label quote-by">
+                {locale === 'ar' && founder.nameAr ? founder.nameAr : founder.name} · {founder.role[locale]}
+              </figcaption>
+            </figure>
+          )
+        }
+        <Gap need="Leadership photos (consented) and the Arabic spelling of each name. The founder quote is the wording published on the current About page: confirm it is still what he wants to say." />
       </div>
     </div>
-  </Section>
-
-  <Section tone="subtle" labelledby="principles-title">
-    <h2 id="principles-title" class="text-h2 font-display">{t.principlesTitle}</h2>
-    <dl class="mt-10 grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-      {
-        t.principles.map((p) => (
-          <div class="flex flex-col gap-2">
-            <dt class="text-body-lg font-semibold">{p.title}</dt>
-            <dd class="text-body text-fg-2">{p.body}</dd>
-          </div>
-        ))
-      }
-    </dl>
-  </Section>
-
-  <Section labelledby="leadership-title">
-    <h2 id="leadership-title" class="text-h2 font-display">{t.leadershipTitle}</h2>
-    <ul class="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-      {
-        facts.team.map((person) => (
-          <li class="flex items-center gap-4 border-t-2 border-line pt-6">
-            {person.photo && (
-              <Photo src={person.photo} alt={person.name} width={80} sizes="80px" class="size-20 rounded-full object-cover" />
-            )}
-            <span class="flex flex-col">
-              <span class="text-body-lg font-semibold">{locale === 'ar' && person.nameAr ? person.nameAr : person.name}</span>
-              <span class="text-body-sm text-fg-2">{person.role[locale]}</span>
-            </span>
-          </li>
-        ))
-      }
-    </ul>
-
-    {
-      founder && (
-        <figure class="mt-14 flex flex-col gap-5 border-s-2 border-navy ps-6 md:ps-10">
-          <blockquote class="measure text-h2 font-display text-fg">
-            <p>{t.quote}</p>
-          </blockquote>
-          <figcaption class="text-body text-fg-2">
-            {locale === 'ar' && founder.nameAr ? founder.nameAr : founder.name} · {founder.role[locale]}
-          </figcaption>
-        </figure>
-      )
-    }
-
-    <Gap class="mt-8" need="Leadership photos (consented) and the Arabic spelling of each name. The founder quote on this page is the wording published on the current About page: confirm it is still what he wants to say." />
-  </Section>
+  </section>
 
   {
-    (companyLines.length > 0 || showGaps) && (
-      <Section tone="subtle" labelledby="company-title" spacing="sm">
-        <h2 id="company-title" class="text-h3 font-display">{t.companyTitle}</h2>
-        {companyLines.length > 0 ? (
-          <p class="mt-4 text-body text-fg-2">{companyLines.join(' · ')}</p>
-        ) : (
-          <Gap class="mt-4" need="Registered entity name, company number, registered address and jurisdiction." />
-        )}
-      </Section>
+    (companyLines.length > 0 || office || showGaps) && (
+      <section class="t-paper about-company" data-temp="paper" aria-labelledby="company-title">
+        <div class="page rhythm-dense split">
+          <h2 id="company-title" class="label about-company-title">
+            {t.companyTitle}
+          </h2>
+          <div class="split-main about-company-body">
+            {companyLines.length > 0 && <p>{companyLines.join(' · ')}</p>}
+            {office && (
+              <p>
+                <bdi dir="ltr">{office.address}</bdi> ·{' '}
+                <a href={`tel:${office.phone.replace(/[^+\d]/g, '')}`} class="ink-link num" dir="ltr">
+                  {office.phone}
+                </a>
+              </p>
+            )}
+            {companyLines.length === 0 && <Gap need="Registered entity name, company number, registered address and jurisdiction." />}
+          </div>
+        </div>
+      </section>
     )
   }
 
-  <Section spacing="sm">
-    <div class="flex flex-wrap gap-x-8">
-      <TextLink href={href(locale, 'blog')}>{t.blogCta}</TextLink>
-      <TextLink href={href(locale, 'business')}>{t.businessCta}</TextLink>
-      <TextLink href={href(locale, 'contact')}>{t.contactCta}</TextLink>
+  <section class="t-paper" data-temp="paper">
+    <div class="page about-links">
+      <TextLink href={href(locale, 'blog')} size="lg">{t.blogCta}</TextLink>
+      <TextLink href={href(locale, 'business')} size="lg">{t.businessCta}</TextLink>
+      <TextLink href={href(locale, 'contact')} size="lg">{t.contactCta}</TextLink>
     </div>
-  </Section>
+  </section>
 </BaseLayout>
+
+<style>
+  section {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .about-h2 {
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+    max-inline-size: 14ch;
+  }
+
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2.5rem var(--gutter);
+    margin-block-start: clamp(3rem, 6vw, 5rem);
+  }
+  .tl-step {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .tl-mark {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .tl-n {
+    font-size: var(--text-label);
+    color: var(--fg-2);
+  }
+  .tl-line {
+    flex: 1;
+    block-size: 1px;
+    background-color: var(--line-strong);
+  }
+  .tl-now .tl-n {
+    color: var(--accent);
+  }
+  .tl-now .tl-line {
+    block-size: 2px;
+    background-color: var(--fg);
+  }
+  .tl-name {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+  }
+  .tl-now .tl-name {
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+  }
+  .tl-body {
+    max-inline-size: 36ch;
+    color: var(--fg-2);
+  }
+
+  .mission-grid,
+  .split {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 2.5rem;
+    align-items: start;
+  }
+  .mission-grid > h2,
+  .split > h2 {
+    grid-column: 1 / span 4;
+  }
+  .mission,
+  .split-main,
+  .split :global(.split-main) {
+    grid-column: 6 / -1;
+  }
+  .mission {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+  .mission-item {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: 1rem;
+    padding-block-start: 1.5rem;
+    border-block-start: 1px solid var(--line);
+  }
+  .mission-n {
+    font-size: var(--text-label);
+    color: var(--accent);
+    padding-block-start: 0.5rem;
+  }
+  .mission-text {
+    font-size: var(--text-h3);
+    line-height: 1.22;
+  }
+  :global(:lang(ar)) .mission-text {
+    line-height: 1.6;
+  }
+
+  .people {
+    display: flex;
+    flex-direction: column;
+    border-block-start: 1px solid var(--line);
+  }
+  .person {
+    display: flex;
+    align-items: flex-end;
+    gap: 1.5rem;
+  }
+  .person :global(.person-photo) {
+    inline-size: 9rem;
+    flex: none;
+  }
+  .person :global(.index-row) {
+    flex: 1;
+  }
+  .quote {
+    margin: 3rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .quote-text {
+    font-size: var(--text-h3);
+    line-height: 1.25;
+  }
+  .quote-text p::before {
+    content: '“';
+  }
+  .quote-text p::after {
+    content: '”';
+  }
+  :global(:lang(ar)) .quote-text {
+    line-height: 1.7;
+  }
+  :global(:lang(ar)) .quote-text p::before {
+    content: '«';
+  }
+  :global(:lang(ar)) .quote-text p::after {
+    content: '»';
+  }
+  .quote-by {
+    color: var(--fg-2);
+  }
+
+  .about-company {
+    border-block-start: 1px solid var(--line);
+  }
+  .about-company-title {
+    color: var(--fg-2);
+  }
+  .about-company-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--fg-2);
+  }
+  .about-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 3rem;
+    padding-block: 2rem var(--section);
+  }
+
+  @media (width < 64rem) {
+    .timeline {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .mission-grid > h2,
+    .split > h2,
+    .mission,
+    .split-main,
+    .split :global(.split-main) {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
