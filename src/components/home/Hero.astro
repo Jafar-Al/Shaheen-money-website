@@ -42,7 +42,7 @@ const t = home[locale].hero;
 
 /* The falcon's box is set in CSS below in round percentages of each frame;
    these must be the same numbers as src/lib/atlas.ts FRAMES. */
-const CSS_FALCON = { wide: { x: 50, y: 24, w: 16 }, tall: { x: 30, y: 14, w: 46 } };
+const CSS_FALCON = { wide: { x: 50, y: 17, w: 15 }, tall: { x: 30, y: 14, w: 46 } };
 for (const id of ['wide', 'tall'] as const) {
   const a = FRAMES[id].falcon;
   const b = CSS_FALCON[id];
@@ -85,9 +85,9 @@ const amman = cities.amman;
   <div class="page hero-content">
     <div class="hero-marks">
       <Stamp locale={locale} kind="corridors" tilt={-2} class="hero-stamp" />
-      <p class="hero-ticker label" lang="en" dir="ltr">
-        <span class="num">{coords(amman.lon, amman.lat)}</span>
-        <span class="hero-ticker-city">{amman.name.en}</span>
+      <p class="hero-ticker label">
+        <span class="num" lang="en">{coords(amman.lon, amman.lat)}</span>
+        <span class="hero-ticker-city">{amman.name[locale]}</span>
       </p>
     </div>
 
@@ -111,8 +111,8 @@ const amman = cities.amman;
       <div class="hero-actions">
         <DownloadButton locale={locale} />
         <Button href="#how" variant="line" arrow="down">{t.explore}</Button>
+        <p class="hero-avail label">{t.availability}</p>
       </div>
-      <p class="hero-avail label">{t.availability}</p>
       {
         evidence.length > 0 ? (
           <ul class="hero-evidence">
@@ -148,7 +148,7 @@ const amman = cities.amman;
     position: relative;
     display: flex;
     flex-direction: column;
-    min-block-size: max(100svh, 47.5rem);
+    min-block-size: max(calc(100svh - var(--strip-h)), 40rem);
     overflow: clip;
     background-color: var(--bg);
     color: var(--fg);
@@ -158,36 +158,57 @@ const amman = cities.amman;
     inset: 0;
     container-type: size;
     pointer-events: none;
+    /* The header sits over the top of the map: the art thins out under it. */
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.2) 0, rgb(0 0 0 / 0.2) calc(var(--header-h) - 1.5rem), #000 calc(var(--header-h) + 3rem));
+  }
+  /* Legibility guard: route lines and place names dissolve where the words
+     sit (lower left, or lower right in Arabic). No glow, no box. */
+  .hero-art :global(.atlas-lines) {
+    mask-image: radial-gradient(ellipse 58% 42% at 22% 82%, rgb(0 0 0 / 0.1) 55%, #000 100%);
+  }
+  :global([dir='rtl']) .hero-art :global(.atlas-lines) {
+    mask-image: radial-gradient(ellipse 58% 42% at 78% 82%, rgb(0 0 0 / 0.1) 55%, #000 100%);
   }
   .hero-zoom {
     position: absolute;
     inset: 0;
-    /* Scroll-out: the map closes in on Amman as the hero leaves (--p from
-       the exit scene); every layer scales together, so the routes stay on
-       their cities and the falcon on its city. */
-    scale: calc(1 + var(--p, 0) * 0.25);
     transform-origin: var(--ox) var(--oy);
+  }
+  /* Scroll-out: the map closes in on Amman as the hero leaves (--p from the
+     exit scene); every layer scales together, so the routes stay on their
+     cities and the falcon on its city. The scale is only applied while the
+     hero is actually leaving: at rest it is `none`, which also makes
+     Chromium repaint the SVG labels it can otherwise leave stale after a
+     zoom. */
+  .hero[data-zoom] .hero-zoom {
+    scale: calc(1 + var(--p, 0) * 0.25);
   }
 
   /*
-   * The stages. Each has its frame's aspect ratio and covers the hero
-   * (like background-size: cover), centred. The map, the routes and the
-   * falcon all sit in the same stage box, so a feather tip and the start of
-   * its route are the same point at any size. Physical left/top: the map
-   * does not mirror in Arabic.
+   * The stages. Each has its frame's aspect ratio. On a tablet and up the
+   * stage is sized by the hero's height (so the falcon sits at the same
+   * height on every screen) and slid sideways so Amman is at 66% of the
+   * width; the map, the routes and the graticule run on past the stage's
+   * edges (overflow: visible), so wider screens simply see more of the
+   * world. The map, the routes and the falcon share one stage box, so a
+   * feather tip and the start of its route are the same point at any size.
+   * Physical left/top: the map does not mirror in Arabic.
    */
   .hero-stage {
-    --W: max(100cqw, 160cqh);
-    --H: calc(var(--W) * 0.625);
+    --H: calc(100cqh * 1.05);
+    --W: calc(var(--H) * 1.6);
     position: absolute;
-    left: calc((100cqw - var(--W)) / 2);
-    top: calc((100cqh - var(--H)) / 2);
+    /* 0.628125 is Amman's x in the wide frame (src/lib/atlas.ts). */
+    left: calc(66cqw - var(--W) * 0.628125);
+    top: calc(100cqh * -0.025);
     inline-size: var(--W);
     block-size: var(--H);
   }
   .hero-zoom {
-    --ox: calc((100cqw - max(100cqw, 160cqh)) / 2 + max(100cqw, 160cqh) * 0.6367);
-    --oy: calc((100cqh - max(100cqw, 160cqh) * 0.625) / 2 + max(100cqw, 160cqh) * 0.625 * 0.4811);
+    /* Amman, in the hero: 66% across, and 39.6% down a stage that starts
+       2.5% above the top and is 105% tall. */
+    --ox: 66cqw;
+    --oy: calc(100cqh * (0.396 * 1.05 - 0.025));
   }
   .stage-tall {
     display: none;
@@ -196,8 +217,8 @@ const amman = cities.amman;
   .hero-falcon {
     position: absolute;
     left: 50%;
-    top: 24%;
-    inline-size: 16%;
+    top: 17%;
+    inline-size: 15%;
     transition: translate 1.2s var(--ease-out);
   }
   .hero-falcon :global(.falcon-stage) {
@@ -214,6 +235,7 @@ const amman = cities.amman;
     .hero-stage {
       --W: max(100cqw, 46.51cqh);
       --H: calc(var(--W) * 2.15);
+      left: calc((100cqw - var(--W)) / 2);
       top: calc((100cqh - var(--H)) / 2.6);
     }
     .hero-zoom {
@@ -245,12 +267,13 @@ const amman = cities.amman;
     flex: 1;
     padding-block: calc(var(--header-h) + 1.25rem) 1.5rem;
   }
+  /* The map's own marks stay on the map's side in both languages. */
   .hero-marks {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.75rem;
-    justify-self: end;
+    justify-self: right;
     opacity: 0;
     animation: marks-in 0.8s var(--ease-out) 3.3s forwards;
   }
@@ -282,16 +305,24 @@ const amman = cities.amman;
     flex-direction: column;
     align-items: flex-start;
     gap: 1.5rem;
-    max-inline-size: 62rem;
   }
   .hero-title {
-    font-size: var(--text-display-xl);
+    font-size: min(7.2vw, 13.5svh);
     line-height: var(--lh-display-xl);
     letter-spacing: var(--ls-display-xl);
     color: var(--fg);
   }
   :global(:lang(ar)) .hero-title {
+    font-size: min(6.4vw, 12svh);
     font-weight: 500;
+  }
+  @media (width >= 48rem) and (orientation: portrait) {
+    .hero-title {
+      font-size: 9vw;
+    }
+    :global(:lang(ar)) .hero-title {
+      font-size: 8vw;
+    }
   }
   .hero-line {
     display: block;
@@ -325,10 +356,19 @@ const amman = cities.amman;
   .hero-actions {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.75rem;
   }
   .hero-avail {
+    margin-inline-start: 0.75rem;
     color: var(--fg-3);
+  }
+  /* Where the app shard comes close to the actions, the note moves under them. */
+  @media (width < 80rem) {
+    .hero-avail {
+      flex-basis: 100%;
+      margin-inline-start: 0;
+    }
   }
   .hero-evidence {
     display: flex;
@@ -339,7 +379,7 @@ const amman = cities.amman;
   }
 
   .hero-scroll {
-    display: inline-flex;
+    display: none;
     align-items: center;
     gap: 0.75rem;
     justify-self: start;
@@ -349,6 +389,11 @@ const amman = cities.amman;
   }
   .hero-scroll:hover {
     color: var(--fg);
+  }
+  @media (height >= 50rem) and (width >= 48rem) {
+    .hero-scroll {
+      display: inline-flex;
+    }
   }
   .hero-scroll-rule {
     inline-size: 3rem;
@@ -360,15 +405,13 @@ const amman = cities.amman;
   .hero-shard {
     position: absolute;
     z-index: 1;
-    inset-block-end: -9rem;
+    inset-block-end: -2.25rem;
     inset-inline-end: var(--margin);
-    inline-size: clamp(17rem, 22vw, 22rem);
+    inline-size: clamp(17rem, 21vw, 21rem);
     rotate: -3deg;
     animation: shard-in 0.9s var(--ease-out) 2.55s both;
   }
   :global([dir='rtl']) .hero-shard {
-    inset-inline-end: auto;
-    inset-inline-start: var(--margin);
     rotate: 3deg;
   }
   @keyframes shard-in {
@@ -401,7 +444,7 @@ const amman = cities.amman;
   @media (width < 64rem) {
     .hero-shard {
       inline-size: 16rem;
-      inset-block-end: -11rem;
+      inset-block-end: -8rem;
     }
     .hero-marks {
       display: none;
@@ -450,16 +493,17 @@ const amman = cities.amman;
     /* The app waits below the fold and peeks in as the page moves. */
     .hero-shard {
       inset-block-end: auto;
-      inset-block-start: calc(100% - 2.5rem);
+      inset-block-start: calc(100% + 1.5rem);
       inline-size: 70vw;
-      translate: 0 calc(var(--p, 0) * -9rem);
+      translate: 0 calc(var(--p, 0) * -14rem);
       animation: none;
+    }
+    .hero-avail {
+      margin-inline-start: 0;
+      align-self: center;
     }
   }
   @media (height <= 44rem) and (width >= 48rem) {
-    .hero-title {
-      font-size: var(--text-display-l);
-    }
     .hero-copy {
       gap: 1rem;
     }
@@ -475,7 +519,7 @@ const amman = cities.amman;
   const hero = document.querySelector<HTMLElement>('[data-hero]');
   if (hero) {
     initParallax(hero);
-    if (motionLevel() !== 'reduced') scene(hero, 'exit');
+    if (motionLevel() !== 'reduced') scene(hero, 'exit', (p) => hero.toggleAttribute('data-zoom', p > 0.002));
 
     // The balance receives the +300.00 as the first packet lands.
     const amount = hero.querySelector<HTMLElement>('[data-shard-amount]');

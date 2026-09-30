@@ -13,13 +13,15 @@ interface Props {
   no?: string;
   /** Right of the header row, e.g. a date. */
   meta?: string;
+  /** The meta is data (coordinates, a code): keep it in mono, left to right. */
+  metaData?: boolean;
   as?: 'div' | 'aside' | 'section' | 'figure';
   labelledby?: string;
   class?: string;
   paperClass?: string;
   [key: `data-${string}`]: string | undefined;
 }
-const { no, meta, as: Tag = 'div', labelledby, class: className, paperClass, ...rest } = Astro.props;
+const { no, meta, metaData = false, as: Tag = 'div', labelledby, class: className, paperClass, ...rest } = Astro.props;
 ---
 
 <Tag class:list={['slip', className]} aria-labelledby={labelledby} data-slip {...rest}>
@@ -28,7 +30,11 @@ const { no, meta, as: Tag = 'div', labelledby, class: className, paperClass, ...
       (no || meta) && (
         <div class="slip-head micro">
           {no && <span>{no}</span>}
-          {meta && <span class="slip-meta">{meta}</span>}
+          {meta && (
+            <span class:list={['slip-meta', metaData && 'num']} lang={metaData ? 'en' : undefined}>
+              {meta}
+            </span>
+          )}
         </div>
       )
     }

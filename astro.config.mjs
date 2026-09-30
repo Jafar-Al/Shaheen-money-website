@@ -39,6 +39,9 @@ export default defineConfig({
   redirects: legacyRedirects,
   trailingSlash: 'ignore',
   compressHTML: true,
+  // Scoped styles travel with a `class` passed to a child component, so a
+  // parent can place and size the components it uses (Stamp, Slip, Icon…).
+  scopedStyleStrategy: 'class',
   prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
 
   security: {

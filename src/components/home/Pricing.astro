@@ -1,59 +1,65 @@
 ---
-import Section from '../ui/Section.astro';
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
+import Slip from '../ui/Slip.astro';
+import Stamp from '../ui/Stamp.astro';
 import Gap from '../ui/Gap.astro';
 import SourceNote from '../ui/SourceNote.astro';
 import { home } from '../../copy/home';
 import { facts } from '../../data/facts';
 import { problemStats } from '../../data/stats';
-import { formatPercent, formatUsd } from '../../lib/format';
+import { formatAsOf, formatNumber, formatPercent, formatUsd } from '../../lib/format';
 import type { Locale } from '../../i18n/config';
 
 /**
- * What it costs. Was /pricing.
+ * 05 — What it costs.
  *
- * Order matters here. The schedule comes first because it is the answer to
- * the question the heading asks, and because three lines that all say "no
- * fee" are the strongest thing this page can say; the arithmetic that
- * follows is the argument for why the answer is worth reading twice. The
- * panel carries its own note rather than a bare table, so a short list is
- * never mistaken for a complete one.
+ * The fee statement is a document, so it is set as one: a tall perforated
+ * receipt whose rows print one after another, "No fee" the largest thing on
+ * each line, dated by its source. Beside it, the argument: a transfer's cost
+ * has three parts, drawn as an exploded bar (fee, margin, cash-out, then the
+ * total), and the arithmetic, which a visitor can redo with their own
+ * numbers. The calculator starts on the page's own example and is always
+ * captioned as an illustration, never as our prices.
  *
- * The three parts of a transfer's true cost are ours to explain and always
- * render: that is the argument, and it holds without a single figure of our
- * own. Our fee schedule and the comparison table render only when
- * src/data/facts.ts carries them with a source and an as-of date (audit
- * P-08); until then the section teaches the arithmetic and says plainly
- * that the example is not our prices. "Low fees" is never claimed here
- * without a number behind it.
+ * Our schedule and the comparison render only from src/data/facts.ts, with
+ * a source and a date (audit P-08). "Low fees" is never claimed here.
  */
 interface Props {
   locale: Locale;
+  n: number;
 }
-const { locale } = Astro.props;
+const { locale, n } = Astro.props;
 const t = home[locale].pricing;
 const schedule = facts.pricing.schedule;
 const comparison = facts.pricing.comparison;
 const benchmark = problemStats.find((s) => s.id === 'global-cost');
 
+// The example: $300, a $5 fee, a 2% margin → $5 + $6 = $11, 3.7%.
+const example = { amount: 300, fee: 5, margin: 2 };
+const marginUsd = (example.amount * example.margin) / 100;
+const total = example.fee + marginUsd;
+const share = Math.round((total / example.amount) * 1000) / 10;
+
 const rows =
   comparison?.value.rows.map((r) => {
     const fx = (comparison.value.amountUsd * r.fxMarginPercent) / 100;
-    const total = r.fee + fx;
-    return { ...r, total, totalPct: (total / comparison.value.amountUsd) * 100 };
+    const sum = r.fee + fx;
+    return { ...r, total: sum, totalPct: (sum / comparison.value.amountUsd) * 100 };
   }) ?? [];
 ---
 
-<Section id="pricing" tone="subtle" labelledby="pricing-title">
-  <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
-    <header class="sticky-col flex flex-col gap-5 lg:col-span-5">
-      <p class="text-label uppercase text-navy">{t.label}</p>
-      <h2 id="pricing-title" class="text-h1 font-display">{t.title}</h2>
-      <p class="measure text-body-lg text-fg-2">{t.lead}</p>
+<section id="pricing" class="price t-paper grain" data-temp="paper" aria-labelledby="pricing-title">
+  <div class="page rhythm price-grid">
+    <header class="price-head">
+      <Chapter n={n} label={t.label} />
+      <h2 id="pricing-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
+      <p class="lead">{t.lead}</p>
       {
         benchmark && (
-          <div class="flex flex-col gap-1 border-s-2 border-navy ps-5">
-            <p class="text-body text-fg">
-              {t.benchmark} <span class="num font-semibold">{benchmark.display}</span>.
+          <div class="price-bench">
+            <p>
+              {t.benchmark} <span class="num price-bench-figure">{benchmark.display}</span>.
             </p>
             <SourceNote source={benchmark.source} locale={locale} />
           </div>
@@ -61,106 +67,137 @@ const rows =
       }
     </header>
 
-    <div class="flex flex-col gap-10 lg:col-span-7 lg:ps-10">
+    {
+      schedule ? (
+        <Slip
+          as="section"
+          no={t.scheduleTitle}
+          meta={formatAsOf(schedule.source.asOf, locale)}
+          class="price-receipt"
+          labelledby="price-receipt-title"
+        >
+          <h3 id="price-receipt-title" class="sr-only">
+            {t.scheduleTitle}
+          </h3>
+          <table class="receipt" data-reveal>
+            <caption class="sr-only">{t.scheduleTitle}</caption>
+            <thead class="sr-only">
+              <tr>
+                <th scope="col">{t.item}</th>
+                <th scope="col">{t.fee}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {schedule.value.map((row) => (
+                <tr class="receipt-row" data-reveal-child>
+                  <th scope="row" class="receipt-item">
+                    {row.item[locale]}
+                    {row.note && <span class="receipt-sub">{row.note[locale]}</span>}
+                  </th>
+                  <td class="receipt-fee font-display">{row.fee[locale]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p class="receipt-note">{t.scheduleNote}</p>
+          <SourceNote source={schedule.source} locale={locale} class="receipt-source" />
+        </Slip>
+      ) : (
+        <Gap need="Fee schedule: every fee a customer can be charged, with the date it applies from (audit A.5 #5)." />
+      )
+    }
+
+    <ol class="parts" data-reveal>
       {
-        schedule ? (
-          <div class="schedule flex flex-col gap-6 rounded-lg bg-navy p-6 text-fg-inverse md:p-8" data-surface="dark" data-reveal>
-            <h3 class="text-h3 font-display">{t.scheduleTitle}</h3>
-            <table class="w-full border-collapse text-start">
-              <caption class="sr-only">{t.scheduleTitle}</caption>
-              <thead class="sr-only">
+        t.parts.map((part, i) => (
+          <li class={`part part-${i}`} data-reveal-child>
+            <span class="part-bar" aria-hidden="true" />
+            <span class="part-n num" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h3 class="part-title font-display">{part.title}</h3>
+            <p class="part-body">{part.body}</p>
+          </li>
+        ))
+      }
+      <li class="part part-total" aria-hidden="true">
+        <span class="part-bar" />
+        <span class="part-n num">=</span>
+      </li>
+    </ol>
+
+    <div class="price-calc">
+      <h3 class="price-calc-title font-display">{t.exampleTitle}</h3>
+      <p class="price-calc-text">{t.example}</p>
+      <form class="calc" data-calc aria-labelledby="calc-label" novalidate>
+        <p id="calc-label" class="label calc-label">{t.calc.label}</p>
+        <div class="calc-fields">
+          <label class="calc-field">
+            <span class="label">{t.calc.amount}</span>
+            <span class="calc-input">
+              <span class="num" aria-hidden="true">$</span>
+              <input type="number" inputmode="decimal" min="0" step="1" name="amount" value={example.amount} class="num" dir="ltr" />
+            </span>
+          </label>
+          <label class="calc-field">
+            <span class="label">{t.calc.fee}</span>
+            <span class="calc-input">
+              <span class="num" aria-hidden="true">$</span>
+              <input type="number" inputmode="decimal" min="0" step="0.5" name="fee" value={example.fee} class="num" dir="ltr" />
+            </span>
+          </label>
+          <label class="calc-field">
+            <span class="label">{t.calc.margin}</span>
+            <span class="calc-input">
+              <input type="number" inputmode="decimal" min="0" max="100" step="0.1" name="margin" value={example.margin} class="num" dir="ltr" />
+              <span class="num" aria-hidden="true">%</span>
+            </span>
+          </label>
+        </div>
+        <output class="calc-out" name="result" aria-live="polite">
+          <span class="calc-line num" dir="ltr">
+            <span data-calc-fee>{formatUsd(example.fee, 'en')}</span> + <span data-calc-margin>{formatUsd(marginUsd, 'en')}</span> =
+            <strong data-calc-total>{formatUsd(total, 'en')}</strong>
+          </span>
+          <span class="calc-share">
+            <strong class="num" data-calc-share>{formatNumber(share, locale, Number.isInteger(share) ? 0 : 1)}%</strong>
+            {t.calc.share}
+          </span>
+        </output>
+        <p class="calc-note">
+          <Stamp locale={locale} kind="example" tilt={-2} />
+          <span>{t.exampleNote}</span>
+        </p>
+      </form>
+    </div>
+
+    <div class="price-compare">
+      {
+        comparison ? (
+          <div class="compare">
+            <table>
+              <caption>{t.caption(formatUsd(comparison.value.amountUsd, locale), comparison.value.corridor[locale])}</caption>
+              <thead>
                 <tr>
-                  <th scope="col">{t.item}</th>
+                  <th scope="col">{t.provider}</th>
                   <th scope="col">{t.fee}</th>
+                  <th scope="col">{t.fxMargin}</th>
+                  <th scope="col">{t.totalCost}</th>
                 </tr>
               </thead>
               <tbody>
-                {schedule.value.map((row) => (
-                  <tr data-reveal-child>
-                    <th scope="row" class="py-4 text-start text-body font-normal text-fg-inverse-2">
-                      {row.item[locale]}
-                      {row.note && <span class="block text-caption text-fg-inverse-2">{row.note[locale]}</span>}
-                    </th>
-                    <td class="num py-4 text-end text-h3 font-display text-cyan">{row.fee[locale]}</td>
+                {rows.map((r) => (
+                  <tr class={r.isShaheen ? 'is-us' : undefined}>
+                    <th scope="row">{r.provider[locale]}</th>
+                    <td class="num">{formatUsd(r.fee, locale)}</td>
+                    <td class="num">{formatPercent(r.fxMarginPercent, locale)}</td>
+                    <td class="num">
+                      {formatUsd(Math.round(r.total * 100) / 100, locale)} ({formatPercent(Math.round(r.totalPct * 100) / 100, locale)})
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <p class="text-body-sm text-fg-inverse-2">{t.scheduleNote}</p>
-            <SourceNote source={schedule.source} locale={locale} tone="dark" />
-          </div>
-        ) : (
-          <Gap need="Fee schedule: every fee a customer can be charged (receive, send, pay, cash out, inactivity, FX), with the date it applies from. A launch blocker: 'low fees' cannot be claimed without it (audit A.5 #5)." />
-        )
-      }
-
-      <ol class="grid gap-x-8 gap-y-8 sm:grid-cols-3" data-reveal>
-        {
-          t.parts.map((part, i) => (
-            <li
-              data-reveal-child
-              class:list={['flex flex-col gap-2 border-t-2 pt-5', i === 1 ? 'border-navy' : 'border-line']}
-            >
-              <span class="num text-body-sm font-semibold text-navy">{`0${i + 1}`}</span>
-              <h3 class="text-h3 font-display">{part.title}</h3>
-              <p class="text-body-sm text-fg-2">{part.body}</p>
-            </li>
-          ))
-        }
-      </ol>
-
-      <div class="flex flex-col gap-2 rounded-lg border border-line bg-white p-6 shadow-sm md:p-8" data-card>
-        <h3 class="text-h3 font-display">{t.exampleTitle}</h3>
-        <p class="text-body text-fg-2">{t.example}</p>
-        <p class="text-caption text-fg-3">{t.exampleNote}</p>
-      </div>
-
-      {
-        comparison ? (
-          <div class="flex flex-col gap-3">
-            <div
-              class="overflow-x-auto rounded-lg border border-line bg-white shadow-sm"
-              tabindex="0"
-              role="region"
-              aria-labelledby="pricing-caption"
-            >
-              <table class="w-full min-w-xl border-collapse text-start text-body-sm">
-                <caption id="pricing-caption" class="px-6 py-4 text-start text-body font-semibold">
-                  {t.caption(formatUsd(comparison.value.amountUsd, locale), comparison.value.corridor[locale])}
-                </caption>
-                <thead class="bg-subtle text-fg-2">
-                  <tr>
-                    <th scope="col" class="px-6 py-3 text-start font-semibold">
-                      {t.provider}
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-end font-semibold">
-                      {t.fee}
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-end font-semibold">
-                      {t.fxMargin}
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-end font-semibold">
-                      {t.totalCost}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-line">
-                  {rows.map((r) => (
-                    <tr class={r.isShaheen ? 'bg-success-bg' : undefined}>
-                      <th scope="row" class="px-6 py-4 text-start font-semibold">
-                        {r.provider[locale]}
-                      </th>
-                      <td class="num px-6 py-4 text-end">{formatUsd(r.fee, locale)}</td>
-                      <td class="num px-6 py-4 text-end">{formatPercent(r.fxMarginPercent, locale)}</td>
-                      <td class:list={['num px-6 py-4 text-end font-semibold', r.isShaheen && 'text-success']}>
-                        {formatUsd(Math.round(r.total * 100) / 100, locale)} (
-                        {formatPercent(Math.round(r.totalPct * 100) / 100, locale)})
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
             <SourceNote source={comparison.source} locale={locale} />
           </div>
         ) : (
@@ -169,13 +206,308 @@ const rows =
       }
     </div>
   </div>
-</Section>
+</section>
 
 <style>
-  /* Rules inside the panel are drawn on the dark surface, so they come from
-     the inverse line token rather than the light one the table would
-     otherwise inherit. */
-  .schedule tbody tr + tr {
-    border-block-start: 1px solid var(--color-line-inverse);
+  .price {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .price-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: clamp(3.5rem, 7vw, 6rem);
+    align-items: start;
+  }
+  .price-head {
+    grid-column: 1 / span 6;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+  .price-head h2 {
+    max-inline-size: 12ch;
+  }
+  .price-bench {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-block-start: 1.25rem;
+    border-block-start: 1px solid var(--line);
+  }
+  .price-bench-figure {
+    font-size: 1.25em;
+  }
+
+  /* ── The receipt ─────────────────────────────────────────────────── */
+  .price-grid :global(.price-receipt) {
+    grid-column: 8 / -1;
+    grid-row: 1 / span 2;
+    rotate: 1.2deg;
+  }
+  .receipt {
+    inline-size: 100%;
+    border-collapse: collapse;
+  }
+  .receipt-row {
+    border-block-end: 1px dashed var(--line-strong);
+  }
+  .receipt-item {
+    padding-block: 1.25rem;
+    font-weight: 400;
+    text-align: start;
+    color: var(--fg-2);
+  }
+  .receipt-sub {
+    display: block;
+    font-size: var(--text-body-s);
+  }
+  .receipt-fee {
+    padding-block: 1.25rem;
+    padding-inline-start: 1rem;
+    font-size: var(--text-h3);
+    line-height: 1;
+    text-align: end;
+    white-space: nowrap;
+  }
+  :global(:lang(ar)) .receipt-fee {
+    font-weight: 500;
+  }
+  /* Print: each row arrives in a few hard steps, top to bottom. */
+  .receipt :global([data-reveal-child]) {
+    transition-timing-function: steps(4, end) !important;
+    transition-duration: 0.36s !important;
+  }
+  .receipt-note {
+    margin-block-start: 1.25rem;
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .price-receipt :global(.receipt-source) {
+    margin-block-start: 1rem;
+  }
+
+  /* ── Three parts, exploded ───────────────────────────────────────── */
+  .parts {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) 5rem;
+    column-gap: 0.75rem;
+  }
+  .part {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .part-bar {
+    display: block;
+    block-size: 0.875rem;
+    border: 1px solid var(--fg);
+  }
+  .part-0 .part-bar {
+    background-color: var(--fg);
+  }
+  .part-1 .part-bar {
+    background-image: repeating-linear-gradient(-45deg, var(--fg) 0 1px, transparent 1px 6px);
+  }
+  .part-2 .part-bar {
+    border-color: var(--cash);
+    background-color: color-mix(in srgb, var(--cash) 30%, transparent);
+  }
+  .part-total .part-bar {
+    border-style: dashed;
+  }
+  .part-n {
+    font-size: var(--text-label);
+    color: var(--accent);
+  }
+  .part-title {
+    font-size: var(--text-h4);
+    line-height: var(--lh-h4);
+  }
+  .part-body {
+    max-inline-size: 30ch;
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+
+  /* ── The arithmetic ──────────────────────────────────────────────── */
+  .price-calc {
+    grid-column: 1 / span 7;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .price-calc-title {
+    font-size: var(--text-h3);
+  }
+  .price-calc-text {
+    max-inline-size: var(--measure);
+    color: var(--fg-2);
+  }
+  .calc {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-block-start: 1rem;
+    padding-block-start: 1.5rem;
+    border-block-start: 1px solid var(--line);
+  }
+  .calc-label {
+    color: var(--fg-2);
+  }
+  .calc-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  .calc-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--fg-2);
+  }
+  .calc-input {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    border-block-end: 1px solid var(--line-strong);
+    color: var(--fg);
+    font-size: var(--text-h4);
+  }
+  .calc-input:focus-within {
+    border-block-end-color: var(--accent);
+  }
+  .calc-input input {
+    inline-size: 100%;
+    min-block-size: 3rem;
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
+    border: 0;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+  .calc-input input::-webkit-outer-spin-button,
+  .calc-input input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .calc-input:has(input:focus-visible) {
+    outline: var(--focus-width) solid var(--focus);
+    outline-offset: var(--focus-offset);
+  }
+  .calc-out {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
+  }
+  .calc-line {
+    font-size: var(--text-h4);
+  }
+  .calc-line strong,
+  .calc-share strong {
+    font-weight: 400;
+    color: var(--cash);
+  }
+  .calc-share {
+    color: var(--fg-2);
+  }
+  .calc-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+
+  .price-compare {
+    grid-column: 8 / -1;
+  }
+  .compare table {
+    inline-size: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-body-s);
+  }
+  .compare caption {
+    padding-block-end: 0.75rem;
+    text-align: start;
+    font-weight: 600;
+  }
+  .compare th,
+  .compare td {
+    padding: 0.75rem 0.5rem;
+    border-block-end: 1px solid var(--line);
+    text-align: start;
+  }
+  .compare .is-us td {
+    color: var(--accent);
+  }
+
+  @media (width < 64rem) {
+    .price-head,
+    .price-grid :global(.price-receipt),
+    .price-calc,
+    .price-compare {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    .price-grid :global(.price-receipt) {
+      rotate: 0deg;
+    }
+    .parts {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 2rem;
+      padding-inline-start: 1.25rem;
+      border-inline-start: 1px solid var(--line-strong);
+    }
+    .part-total {
+      display: none;
+    }
+    .calc-fields {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .calc-input input {
+      min-block-size: 3rem;
+    }
   }
 </style>
+
+<script>
+  // Redo the page's arithmetic with any numbers: fee + margin × amount, and
+  // that as a share of the amount. Nothing here is a Shaheen Money price.
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-calc]')) {
+    const lang = document.documentElement.lang === 'ar' ? 'ar-JO-u-nu-latn' : 'en-US';
+    const usd = (n: number) =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
+        maximumFractionDigits: 2,
+      }).format(n);
+    const pct = (n: number) => `${new Intl.NumberFormat(lang, { maximumFractionDigits: 1 }).format(n)}%`;
+    const out = (sel: string) => form.querySelector<HTMLElement>(sel);
+    const read = (name: string) => Math.max(0, Number((form.elements.namedItem(name) as HTMLInputElement | null)?.value) || 0);
+
+    const update = () => {
+      const amount = read('amount');
+      const fee = read('fee');
+      const margin = Math.min(100, read('margin'));
+      const marginUsd = Math.round(amount * margin) / 100;
+      const total = Math.round((fee + marginUsd) * 100) / 100;
+      const feeEl = out('[data-calc-fee]');
+      const marginEl = out('[data-calc-margin]');
+      const totalEl = out('[data-calc-total]');
+      const shareEl = out('[data-calc-share]');
+      if (feeEl) feeEl.textContent = usd(fee);
+      if (marginEl) marginEl.textContent = usd(marginUsd);
+      if (totalEl) totalEl.textContent = usd(total);
+      if (shareEl) shareEl.textContent = amount > 0 ? pct(Math.round((total / amount) * 1000) / 10) : '—';
+    };
+    form.addEventListener('input', update);
+    form.addEventListener('submit', (event) => event.preventDefault());
+  }
+</script>

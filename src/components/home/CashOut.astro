@@ -1,74 +1,415 @@
 ---
-import Section from '../ui/Section.astro';
-import AppScreen from './AppScreen.astro';
-import Steps from '../ui/Steps.astro';
-import Icon from '../ui/Icon.astro';
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
+import Slip from '../ui/Slip.astro';
+import Stamp from '../ui/Stamp.astro';
 import Gap from '../ui/Gap.astro';
 import SourceNote from '../ui/SourceNote.astro';
+import UiShard from '../app/UiShard.astro';
+import FeatherField from '../art/FeatherField.astro';
+import ShopCounter from '../art/ShopCounter.astro';
 import { home } from '../../copy/home';
+import { common } from '../../copy/common';
 import { facts } from '../../data/facts';
 import { formatUsd } from '../../lib/format';
 import type { Locale } from '../../i18n/config';
 
 /**
- * Cash out, the one thing a card or a crypto wallet cannot do for someone
- * without a bank. Was /cash-out.
+ * 03 — Cash out, and the page's turn: digital money becoming physical.
  *
- * The safety list is not decoration: handing cash over a counter is where
- * this product meets fraud, so the three rules that matter are on the
- * homepage rather than buried in a help centre.
+ * The chapter opens on Night. As it scrolls, a pinned stage eases the whole
+ * page from Night to Paper (the temperature is scrubbed, the feathers turn
+ * from signal to ink), and the app's dark code panel flips over, once, into
+ * a paper slip: the same $200.00 and the same 482 719, now a document you
+ * could hand across a counter. It comes to rest on an engraved shop, with
+ * the three steps and the three safety rules on paper beneath it.
  *
- * The collection screen sits under the header rather than beside the steps.
- * It is the step the reader cannot picture — a code shown across a counter
- * — and the column was otherwise empty below the lead.
+ * Without a script, with reduced motion, and on phones there is no pin and
+ * no scrub: Night gives way to Paper at a plain edge, the slip is simply
+ * paper, and on a phone the flip plays once when it comes into view.
  */
 interface Props {
   locale: Locale;
+  n: number;
 }
-const { locale } = Astro.props;
+const { locale, n } = Astro.props;
 const t = home[locale].cashOut;
+const app = home[locale].app.collect;
+const ui = common[locale].ui;
 const minimum = facts.pricing.minCashOutUsd;
 ---
 
-<Section id="cash-out" labelledby="cash-out-title">
-  <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
-    <header class="flex flex-col gap-5 lg:col-span-5">
-      <p class="text-label uppercase text-navy">{t.label}</p>
-      <h2 id="cash-out-title" class="text-h1 font-display">{t.title}</h2>
-      <p class="measure text-body-lg text-fg-2">{t.lead}</p>
-      {
-        minimum ? (
-          <div class="flex flex-col gap-1">
-            <p class="text-h3 font-display">{t.minimum(formatUsd(minimum.value, locale))}</p>
-            <SourceNote source={minimum.source} locale={locale} />
+<section id="cash-out" class="co" aria-labelledby="cash-out-title">
+  <div class="co-night t-night" data-temp="night">
+    <div class="page co-intro">
+      <Chapter n={n} label={t.label} />
+      <h2 id="cash-out-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
+      <p class="lead">{t.lead}</p>
+    </div>
+  </div>
+
+  <div class="co-shift" data-co-shift data-temp="night">
+    <div class="co-sticky">
+      <div class="co-field" aria-hidden="true">
+        <FeatherField seed="cash-out" variant="strip" follow />
+      </div>
+      <div class="co-card-wrap">
+        <div class="co-card" data-co-card>
+          <div class="co-face co-face-app" aria-hidden="true">
+            <UiShard locale={locale} variant="code" stamp={false} />
           </div>
-        ) : (
-          <Gap need="Minimum cash-out amount in USD, with the date it applies from." />
-        )
-      }
+          <div class="co-face co-face-paper">
+            <Slip no={app.title} class="co-slip">
+              <p class="co-amount num">
+                <bdi>{app.amount}</bdi>
+              </p>
+              <p class="co-at">{app.at}</p>
+              <p class="co-code-label label">{app.codeLabel}</p>
+              <p class="co-code num" lang="en" dir="ltr">{app.code}</p>
+              <p class="co-note">{app.note}</p>
+            </Slip>
+          </div>
+        </div>
+        <Stamp locale={locale} kind="illustrative" tilt={-3} class="co-stamp" />
+      </div>
+    </div>
+  </div>
 
-      <AppScreen locale={locale} variant="collect" class="app-screen-on-light mt-2 lg:items-start" />
-    </header>
+  <div class="co-paper t-paper grain" data-temp="paper">
+    <div class="page co-grid">
+      <div class="co-shop">
+        <ShopCounter />
+      </div>
 
-    <div class="flex flex-col gap-12 lg:col-span-7 lg:ps-10">
-      <Steps items={t.steps} locale={locale} columns={3} emphasize={2} />
-
-      <div class="flex flex-col gap-4 rounded-lg bg-subtle p-6 md:p-8">
-        <h3 class="flex items-center gap-2 text-h3 font-display">
-          <Icon name="shield-check" size={22} class="text-fg" />
-          {t.safetyTitle}
-        </h3>
-        <ul class="flex flex-col gap-3">
+      <div class="co-steps">
+        <ol class="co-timeline" data-reveal>
           {
-            t.safety.map((line) => (
-              <li class="flex items-start gap-3 text-body text-fg-2">
-                <Icon name="check" size={20} class="mt-1 shrink-0 text-navy" />
+            t.steps.map((step, i) => (
+              <li class="co-tl-item" data-reveal-child>
+                <span class="co-tl-n num" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span class="co-tl-rule" aria-hidden="true" />
+                <h3 class="co-tl-title">{step.title}</h3>
+                <p class="co-tl-body">{step.body}</p>
+              </li>
+            ))
+          }
+        </ol>
+        {
+          minimum ? (
+            <div class="co-minimum">
+              <p class="co-minimum-text font-display">{t.minimum(formatUsd(minimum.value, locale))}</p>
+              <SourceNote source={minimum.source} locale={locale} />
+            </div>
+          ) : (
+            <Gap need="Minimum cash-out amount in USD, with the date it applies from." />
+          )
+        }
+        <p class="co-hint label">
+          {ui.illustrative} · {ui.illustrativeHint}
+        </p>
+      </div>
+
+      <Slip as="aside" no={t.safetyTitle} class="co-safe" labelledby="co-safe-title">
+        <Stamp locale={locale} kind="note" tilt={2} class="co-safe-stamp" />
+        <h3 id="co-safe-title" class="co-safe-title font-display">{t.safetyTitle}</h3>
+        <ol class="co-safe-list">
+          {
+            t.safety.map((line, i) => (
+              <li>
+                <span class="num" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
                 <span>{line}</span>
               </li>
             ))
           }
-        </ul>
-      </div>
+        </ol>
+      </Slip>
     </div>
   </div>
-</Section>
+</section>
+
+<style>
+  /* The temperature, registered so it can be transitioned as well as
+     scrubbed: 0 is Night, 1 is Paper. */
+  @property --t {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+  }
+  .co-night {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .co-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    padding-block: var(--section) clamp(3rem, 6vw, 5rem);
+  }
+  .co-intro h2 {
+    max-inline-size: 15ch;
+  }
+
+  /* ── The turn ──────────────────────────────────────────────────────── */
+  .co-shift {
+    --t: 1;
+    position: relative;
+    /* Resting state (no script): a plain edge from Night to Paper. */
+    background: linear-gradient(var(--color-night-900) 0 38%, var(--color-paper-50) 38% 100%);
+  }
+  .co-sticky {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-block-size: 36rem;
+    overflow: clip;
+    padding-block: 4rem;
+  }
+  .co-field {
+    position: absolute;
+    inset: 12% 0 auto;
+    block-size: 60%;
+    color: color-mix(in oklab, var(--color-chalk) calc((1 - var(--t)) * 100%), var(--color-ink));
+    --accent: color-mix(in oklab, var(--color-signal) calc((1 - var(--t)) * 100%), var(--color-signal-ink));
+  }
+  .co-card-wrap {
+    position: relative;
+    inline-size: min(24rem, 86vw);
+    perspective: 1600px;
+  }
+  .co-card {
+    position: relative;
+    display: grid;
+    transform-style: preserve-3d;
+    transition: rotate 0.9s var(--ease-out);
+  }
+  .co-face {
+    grid-area: 1 / 1;
+    backface-visibility: hidden;
+  }
+  /* Resting state: the paper face. The flip is the script's to run. */
+  .co-face-app {
+    display: none;
+  }
+  .co-card.is-armed .co-face-app {
+    display: block;
+    align-self: center;
+  }
+  .co-card.is-armed .co-face-paper {
+    rotate: y 180deg;
+  }
+  .co-card.is-armed.is-flipped {
+    rotate: y 180deg;
+  }
+  .co-stamp {
+    position: absolute;
+    inset-block-start: -1rem;
+    inset-inline-end: -1.5rem;
+    z-index: 2;
+    --stamp-ink: color-mix(in oklab, var(--color-signal) calc((1 - var(--t)) * 100%), var(--color-signal-ink));
+  }
+
+  /* The slip itself. */
+  .co-slip {
+    rotate: -1.5deg;
+  }
+  .co-amount {
+    font-size: clamp(2.75rem, 5vw, 3.75rem);
+    line-height: 1;
+    text-decoration-line: underline;
+    text-decoration-color: var(--cash);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.18em;
+  }
+  .co-at {
+    margin-block-start: 0.75rem;
+    color: var(--fg-2);
+  }
+  .co-code-label {
+    margin-block-start: 1.75rem;
+    color: var(--fg-2);
+  }
+  .co-code {
+    margin-block-start: 0.25rem;
+    font-size: clamp(3rem, 6vw, 4.25rem);
+    line-height: 1;
+    letter-spacing: 0.06em;
+  }
+  .co-note {
+    margin-block-start: 1.5rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px dashed var(--line-strong);
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+
+  /* Scrubbed (desktop, full or lite motion): the stage pins and the
+     temperature follows --t, set from the scroll by the script below. */
+  .co-shift[data-scene] {
+    block-size: 170vh;
+    background: color-mix(in oklab, var(--color-night-900) calc((1 - var(--t)) * 100%), var(--color-paper-50));
+  }
+  .co-shift[data-scene] .co-sticky {
+    position: sticky;
+    inset-block-start: var(--header-h);
+    min-block-size: calc(100vh - var(--header-h));
+  }
+  /* Phones and small tablets: no pin; the turn plays once, in view. */
+  .co-shift[data-fade] {
+    background: color-mix(in oklab, var(--color-night-900) calc((1 - var(--t)) * 100%), var(--color-paper-50));
+    transition: --t 0.9s var(--ease-in-out);
+  }
+
+  /* ── Paper ─────────────────────────────────────────────────────────── */
+  .co-paper {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .co-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 4rem;
+    padding-block: clamp(3rem, 6vw, 5rem) var(--section);
+  }
+  .co-shop {
+    grid-column: 1 / span 6;
+    grid-row: 1 / span 2;
+    align-self: end;
+  }
+  .co-steps {
+    grid-column: 7 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+  .co-timeline {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  .co-tl-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+  .co-tl-n {
+    font-size: var(--text-label);
+    color: var(--accent);
+  }
+  .co-tl-rule {
+    display: block;
+    block-size: 1px;
+    background-color: var(--line-strong);
+  }
+  .co-tl-item:last-child .co-tl-rule {
+    background-color: var(--cash);
+    block-size: 2px;
+  }
+  .co-tl-title {
+    font-size: var(--text-h4);
+    line-height: var(--lh-h4);
+  }
+  .co-tl-body {
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .co-minimum-text {
+    font-size: var(--text-h3);
+  }
+  .co-hint {
+    color: var(--fg-3);
+  }
+  .co-safe {
+    grid-column: 8 / -1;
+    rotate: 1deg;
+  }
+  .co-safe-stamp {
+    position: absolute;
+    inset-block-start: 0.875rem;
+    inset-inline-end: 1rem;
+  }
+  .co-safe-title {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+  }
+  .co-safe-list {
+    display: flex;
+    flex-direction: column;
+    margin-block-start: 1rem;
+  }
+  .co-safe-list li {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding-block: 0.75rem;
+    border-block-start: 1px solid var(--line);
+    font-size: var(--text-body-s);
+  }
+  .co-safe-list .num {
+    font-size: var(--text-label);
+    color: var(--accent);
+    padding-block-start: 0.2rem;
+  }
+
+  @media (width < 64rem) {
+    .co-shop,
+    .co-steps,
+    .co-safe {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    .co-shop {
+      max-inline-size: 34rem;
+    }
+    .co-timeline {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.75rem;
+      padding-inline-start: 1.25rem;
+      border-inline-start: 1px solid var(--line-strong);
+    }
+    .co-tl-rule {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { scene } from '../../lib/motion/scenes';
+  import { motionLevel, scrubbing } from '../../lib/motion/level';
+
+  const shift = document.querySelector<HTMLElement>('[data-co-shift]');
+  const card = shift?.querySelector<HTMLElement>('[data-co-card]');
+  if (shift && card && motionLevel() !== 'reduced') {
+    card.classList.add('is-armed');
+    shift.style.setProperty('--t', '0');
+    if (scrubbing()) {
+      shift.dataset.scene = '';
+      scene(shift, 'pin', (p) => {
+        // Night holds, turns over the middle of the track, then Paper holds.
+        const t = Math.min(1, Math.max(0, (p - 0.18) / 0.5));
+        shift.style.setProperty('--t', t.toFixed(3));
+        shift.dataset.temp = t > 0.5 ? 'paper' : 'night';
+        if (t > 0.45) card.classList.add('is-flipped');
+      });
+    } else if ('IntersectionObserver' in window) {
+      // No pin, no scrub: the slip turns over once when it is well in view,
+      // and the page warms to Paper behind it.
+      shift.dataset.fade = '';
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry?.isIntersecting) return;
+          card.classList.add('is-flipped');
+          shift.style.setProperty('--t', '1');
+          shift.dataset.temp = 'paper';
+          io.disconnect();
+        },
+        { threshold: 0.6 },
+      );
+      io.observe(card);
+    }
+  }
+</script>

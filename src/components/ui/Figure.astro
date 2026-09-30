@@ -1,4 +1,5 @@
 ---
+import { figureHTML } from '../../lib/figure';
 import SourceNote from './SourceNote.astro';
 import FootnoteRef from './FootnoteRef.astro';
 import { common } from '../../copy/common';
@@ -29,7 +30,7 @@ const t = common[locale].ui;
 <figure class:list={['figure', className]} data-reveal>
   <p class="figure-num num">
     <span class="sr-only">{display}</span>
-    <span aria-hidden="true" data-count={display}>{display}</span><FootnoteRef n={n} label={t.source} />
+    <span aria-hidden="true" data-count={display} data-count-punct set:html={figureHTML(display)} /><FootnoteRef n={n} label={t.source} />
   </p>
   <figcaption class="figure-label">{label}</figcaption>
   <SourceNote source={stat.source} locale={locale} n={n} class="figure-source" />

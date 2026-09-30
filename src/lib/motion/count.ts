@@ -8,8 +8,10 @@
  */
 import { motionLevel } from './level';
 import { onReveal } from './reveal';
+import { figureHTML } from '../figure';
 
 const DURATION = 700;
+
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
 
 export function countUp(el: HTMLElement, from = 0, duration = DURATION): Promise<void> {
@@ -32,13 +34,18 @@ export function countUp(el: HTMLElement, from = 0, duration = DURATION): Promise
 
   return new Promise((resolve) => {
     const start = performance.now();
+    const html = el.hasAttribute('data-count-punct');
+    const set = (value: string) => {
+      if (html) el.innerHTML = figureHTML(value);
+      else el.textContent = value;
+    };
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / duration);
-      el.textContent = t < 1 ? format(from + (target - from) * easeOut(t)) : final;
+      set(t < 1 ? format(from + (target - from) * easeOut(t)) : final);
       if (t < 1) requestAnimationFrame(step);
       else resolve();
     };
-    el.textContent = format(from);
+    set(format(from));
     requestAnimationFrame(step);
   });
 }

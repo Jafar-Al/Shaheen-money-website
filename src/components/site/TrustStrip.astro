@@ -26,6 +26,11 @@ const ratings = [
   facts.ratings.android && `${formatNumber(facts.ratings.android.value.score, locale, 1)} Google Play`,
 ].filter(Boolean);
 if (ratings.length) items.push(ratings.join(' · '));
+/** "Self-custodial — we never hold your money": a phone keeps the first phrase. */
+const parts = (item: string) => {
+  const m = item.match(/^(.+?)(\s[—–]\s|،\s)(.+)$/);
+  return m ? { head: m[1]!, sep: m[2]!, tail: m[3]! } : { head: item, sep: '', tail: '' };
+};
 ---
 
 {
@@ -33,9 +38,22 @@ if (ratings.length) items.push(ratings.join(' · '));
     <aside aria-label={t.trust.label} class="strip t-night" data-site-strip data-temp="night">
       <div class="page strip-row label">
         <ul class="strip-items">
-          {items.map((item, i) => (
-            <li class:list={['strip-item', i > 0 && 'strip-more']}>{item}</li>
-          ))}
+          {items.map((item, i) => {
+            const { head, sep, tail } = parts(item);
+            return (
+              <li class:list={['strip-item', i > 0 && 'strip-more']}>
+                <span>
+                  {head}
+                  {tail && (
+                    <span class="strip-tail">
+                      {sep}
+                      {tail}
+                    </span>
+                  )}
+                </span>
+              </li>
+            );
+          })}
         </ul>
         <a href={href(locale, 'security')} class="strip-link">
           {t.trust.protect}
@@ -80,17 +98,32 @@ if (ratings.length) items.push(ratings.join(' · '));
     border-radius: var(--radius-full);
     background-color: var(--accent);
   }
-  .strip-more {
+  .strip-more,
+  .strip-tail {
     display: none;
   }
   @media (width >= 48rem) {
     .strip-more {
       display: flex;
     }
+    .strip-tail {
+      display: inline;
+    }
+  }
+  @media (width < 30rem) {
+    .strip-row {
+      gap: 0.75rem;
+      font-size: 0.6875rem;
+      letter-spacing: 0.04em;
+    }
+    .strip-item::before {
+      display: none;
+    }
   }
   .strip-link {
     display: inline-flex;
     flex: none;
+    white-space: nowrap;
     align-items: center;
     gap: 0.375rem;
     min-block-size: var(--strip-h);

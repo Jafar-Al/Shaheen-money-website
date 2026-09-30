@@ -74,8 +74,8 @@ for (const [width, height] of viewports) {
   const page = await context.newPage();
   for (const path of paths) {
     await page.goto(base + path, { waitUntil: 'networkidle' });
-    // The hero's entrance runs about three seconds; capture its resting state.
-    await page.waitForTimeout(3200);
+    // The hero's entrance runs about four seconds; capture its resting state.
+    await page.waitForTimeout(4600);
     await page.screenshot({ path: join(out, `${slug(path)}@${width}.jpg`), type: 'jpeg', quality: 70 });
     count++;
     if (full && (width === 390 || width === 1440)) {

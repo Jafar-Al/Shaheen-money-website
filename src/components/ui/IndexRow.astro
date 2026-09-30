@@ -10,6 +10,8 @@
  */
 interface Props {
   n?: number;
+  /** A mono label over the title, e.g. a post's category. */
+  kicker?: string;
   title: string;
   text?: string;
   meta?: string;
@@ -19,7 +21,7 @@ interface Props {
   titleLang?: string;
   class?: string;
 }
-const { n, title, text, meta, href, headingLevel = 'h3', size = 'md', titleLang, class: className } = Astro.props;
+const { n, kicker, title, text, meta, href, headingLevel = 'h3', size = 'md', titleLang, class: className } = Astro.props;
 const Heading = headingLevel;
 const Tag = href ? 'a' : 'div';
 const hasPlate = Astro.slots.has('plate');
@@ -28,6 +30,7 @@ const hasPlate = Astro.slots.has('plate');
 <Tag href={href} class:list={['index-row', `index-row-${size}`, href && 'index-row-link', className]}>
   {n !== undefined && <span class="index-n num" aria-hidden="true">{String(n).padStart(2, '0')}</span>}
   <span class="index-main">
+    {kicker && <span class="label index-kicker">{kicker}</span>}
     <Heading class="index-title" lang={titleLang}>{title}</Heading>
     {text && <span class="index-text">{text}</span>}
   </span>
@@ -66,6 +69,9 @@ const hasPlate = Astro.slots.has('plate');
     flex-direction: column;
     gap: 0.5rem;
     transition: translate var(--motion-standard) var(--ease-out);
+  }
+  .index-kicker {
+    color: var(--fg-2);
   }
   .index-title {
     font-family: var(--font-display);

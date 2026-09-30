@@ -28,15 +28,15 @@ const tilts: Record<string, string> = { '-3': 'tilt-n3', '-2': 'tilt-n2', '-1': 
 
 <style>
   .stamp {
-    --stamp-ink: var(--accent);
+    --stamp-ink-default: var(--accent);
     display: inline-flex;
     align-items: center;
     padding: 0.3em 0.65em 0.28em;
-    border: 1.5px solid var(--stamp-ink);
+    border: 1.5px solid var(--stamp-ink, var(--stamp-ink-default));
     border-radius: var(--radius-sm);
-    outline: 1px solid color-mix(in srgb, var(--stamp-ink) 55%, transparent);
+    outline: 1px solid color-mix(in srgb, var(--stamp-ink, var(--stamp-ink-default)) 55%, transparent);
     outline-offset: -4px;
-    color: var(--stamp-ink);
+    color: var(--stamp-ink, var(--stamp-ink-default));
     font-family: var(--font-mono);
     font-size: var(--text-micro);
     line-height: 1.2;
@@ -51,7 +51,7 @@ const tilts: Record<string, string> = { '-3': 'tilt-n3', '-2': 'tilt-n2', '-1': 
   .stamp-example,
   .stamp-corridors,
   .stamp-corridor {
-    --stamp-ink: var(--cash);
+    --stamp-ink-default: var(--cash);
   }
   :global(:lang(ar)) .stamp {
     padding: 0.25em 0.7em 0.35em;

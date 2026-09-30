@@ -51,9 +51,9 @@ export const FRAMES: Record<FrameId, FrameSpec> = {
   wide: {
     w: 1600,
     h: 1000,
-    falcon: { x: 50, y: 24, w: 16 },
+    falcon: { x: 50, y: 17, w: 15 },
     centreLon: 24,
-    scale: 800,
+    scale: 720,
     corridors: heroCorridors,
     named: ['london', 'paris', 'berlin', 'cairo', 'riyadh', 'dubai', 'nairobi', 'mumbai'],
   },

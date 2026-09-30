@@ -36,7 +36,7 @@ export const home = defineCopy({
     },
     why: {
       label: 'Why Shaheen',
-      title: 'Sending money home still costs too much.',
+      title: 'Sending money home still costs *too much.*',
       lead:
         'Families who depend on money from abroad lose part of every transfer to fees and exchange-rate markups. Many have no account to receive it into at all.',
       cost: {
@@ -54,7 +54,7 @@ export const home = defineCopy({
     /* was /how-it-works */
     steps: {
       label: 'How it works',
-      title: 'From a transfer abroad to cash in your hand.',
+      title: 'From a transfer abroad to cash in *your hand.*',
       lead: 'Four steps, and you choose where to stop.',
       items: [
         {
@@ -97,7 +97,7 @@ export const home = defineCopy({
     /* was /cash-out */
     cashOut: {
       label: 'Cash out',
-      title: 'Your money leaves the app at a shop you already know.',
+      title: 'Your money leaves the app at a shop you *already know.*',
       lead:
         'Connectors are local businesses in the Shaheen network. They hand over cash to Shaheen Money users, so a digital balance becomes money in your hand.',
       steps: [
@@ -115,7 +115,7 @@ export const home = defineCopy({
     },
     network: {
       label: 'The network',
-      title: 'Cities apart. Connected by Shaheen.',
+      title: 'Cities apart. *Connected* by Shaheen.',
       lead:
         'Between the city where someone earns and the town where their family lives, Shaheen carries the money across the border. A Connector near home hands it over as cash.',
       caption: 'Example corridors. Ask us about your country and we will tell you what is available today.',
@@ -134,7 +134,7 @@ export const home = defineCopy({
     /* was /pricing */
     pricing: {
       label: 'What it costs',
-      title: 'See the full cost before you send.',
+      title: 'See the full cost *before* you send.',
       lead: 'The cost of a transfer is more than the fee on the screen. It has three parts.',
       parts: [
         { title: 'The fee', body: 'What the provider charges upfront. The easy part to see.' },
@@ -148,6 +148,17 @@ export const home = defineCopy({
       example:
         'Sending $300 with a $5 fee and an exchange rate 2% below the mid-market rate costs $5 + $6 = $11. That is 3.7% of what you sent.',
       exampleNote: 'An illustration of the arithmetic, not our prices.',
+      /* The worked example as a small calculator (same numbers by default). */
+      calc: {
+        label: 'Try it with your numbers',
+        amount: 'You send',
+        fee: 'Upfront fee',
+        margin: 'Rate margin',
+        feePart: 'Fee',
+        marginPart: 'Margin',
+        total: 'Total cost',
+        share: 'of what you sent',
+      },
       benchmark: 'For reference, the global average cost of sending money is',
       scheduleTitle: 'What we charge',
       /* The list is three lines long and every line says nothing. Without
@@ -172,10 +183,12 @@ export const home = defineCopy({
     /* was /help */
     faq: {
       label: 'Questions',
-      title: 'The things people ask us most.',
+      title: 'The things people ask us *most.*',
       stillTitle: 'Still need help?',
       stillBody: 'Tell us what happened and we’ll get back to you.',
       stillCta: 'Contact us',
+      filterLabel: 'Filter the questions',
+      filterEmpty: 'No question matches that. Try another word, or contact us.',
       items: [
         {
           q: 'What is Shaheen Money?',
@@ -215,7 +228,7 @@ export const home = defineCopy({
     },
     blog: {
       label: 'From the blog',
-      title: 'Thinking about access, trust and money.',
+      title: 'Thinking about access, trust and *money.*',
       all: 'All posts',
     },
     /**
@@ -254,7 +267,7 @@ export const home = defineCopy({
       },
     },
     final: {
-      title: 'Your money. Anywhere.',
+      title: 'Your money. *Anywhere.*',
       lead: 'Receive from abroad, send anywhere, and cash out close to home.',
       coverage: 'Talk to us',
       connector: 'Run a shop? Become a Connector',
@@ -281,7 +294,7 @@ export const home = defineCopy({
     },
     why: {
       label: 'ليش شاهين',
-      title: 'لسّا إرسال المصاري للأهل مكلف كتير.',
+      title: 'لسّا إرسال المصاري للأهل *مكلف كتير.*',
       lead:
         'العائلات اللي بتعتمد على مصاري من برّا بتخسر جزء من كل حوالة على الرسوم وفروقات سعر الصرف، وكتير منهم ما عندهم حساب يستقبلوا عليه أصلاً.',
       cost: {
@@ -298,7 +311,7 @@ export const home = defineCopy({
     },
     steps: {
       label: 'كيف بيشتغل',
-      title: 'من حوالة بالخارج لكاش بإيدك.',
+      title: 'من حوالة بالخارج لكاش *بإيدك.*',
       lead: 'أربع خطوات، وإنت بتقرر وين بدك توقف.',
       items: [
         {
@@ -340,7 +353,7 @@ export const home = defineCopy({
     },
     cashOut: {
       label: 'السحب النقدي',
-      title: 'مصاريك بتطلع من التطبيق عند محل بتعرفه.',
+      title: 'مصاريك بتطلع من التطبيق عند محل *بتعرفه.*',
       lead:
         'الموصّلون محلات من الحي ضمن شبكة شاهين، بيسلّموا الكاش لمستخدمي شاهين موني. هيك الرصيد الرقمي بيصير مصاري بإيدك.',
       steps: [
@@ -358,7 +371,7 @@ export const home = defineCopy({
     },
     network: {
       label: 'الشبكة',
-      title: 'مدن بعيدة، وشاهين بيوصلها ببعض.',
+      title: 'مدن بعيدة، وشاهين *بيوصلها* ببعض.',
       lead:
         'بين المدينة اللي حدا بيشتغل فيها والبلد اللي أهله عايشين فيه، شاهين بيوصّل المصاري عبر الحدود، وموصّل قريب من البيت بيسلّمها كاش.',
       caption: 'أمثلة على مسارات التحويل. اسألنا عن بلدك ومنقلك شو المتاح اليوم.',
@@ -376,7 +389,7 @@ export const home = defineCopy({
     },
     pricing: {
       label: 'الكلفة',
-      title: 'اعرف الكلفة الكاملة قبل ما تبعت.',
+      title: 'اعرف الكلفة الكاملة *قبل* ما تبعت.',
       lead: 'كلفة التحويل أكتر من الرقم اللي بتشوفه على الشاشة، وإلها ثلاث أجزاء.',
       parts: [
         { title: 'الرسوم', body: 'اللي بياخده مقدّم الخدمة مباشرة، وهو الجزء الأسهل ما تشوفه.' },
@@ -390,6 +403,16 @@ export const home = defineCopy({
       example:
         'إرسال 300 دولار برسوم 5 دولارات وسعر صرف أقل من سعر السوق الوسطي بنسبة 2% بيكلّف 5 + 6 = 11 دولار، يعني 3.7% من المبلغ اللي بعتّه.',
       exampleNote: 'توضيح للحسبة بس، مش أسعارنا.',
+      calc: {
+        label: 'جرّبها بأرقامك',
+        amount: 'المبلغ اللي بتبعته',
+        fee: 'الرسوم المقدّمة',
+        margin: 'هامش سعر الصرف',
+        feePart: 'الرسوم',
+        marginPart: 'الهامش',
+        total: 'الكلفة الإجمالية',
+        share: 'من المبلغ اللي بعتّه',
+      },
       benchmark: 'للمقارنة، المتوسط العالمي لكلفة إرسال الأموال هو',
       scheduleTitle: 'شو بناخذ',
       scheduleNote:
@@ -410,10 +433,12 @@ export const home = defineCopy({
     },
     faq: {
       label: 'أسئلة',
-      title: 'أكتر إشي بيسألونا عنه.',
+      title: 'أكتر إشي *بيسألونا* عنه.',
       stillTitle: 'لسّا بتحتاج مساعدة؟',
       stillBody: 'احكيلنا شو صار ومنرجعلك.',
       stillCta: 'تواصل معنا',
+      filterLabel: 'ابحث في الأسئلة',
+      filterEmpty: 'ما في سؤال بيطابق هالكلمة. جرّب كلمة ثانية، أو تواصل معنا.',
       items: [
         {
           q: 'شو هو شاهين موني؟',
@@ -453,7 +478,7 @@ export const home = defineCopy({
     },
     blog: {
       label: 'من المدونة',
-      title: 'أفكار عن الوصول والثقة والمال.',
+      title: 'أفكار عن الوصول والثقة *والمال.*',
       all: 'كل المقالات',
     },
     app: {
@@ -482,7 +507,7 @@ export const home = defineCopy({
       },
     },
     final: {
-      title: 'فلوسك. وين ما كنت.',
+      title: 'فلوسك. *وين ما كنت.*',
       lead: 'استقبل من برّا، ابعت لأي مكان، واسحب كاش قريب منك.',
       coverage: 'احكي معنا',
       connector: 'عندك محل؟ صير موصّل',

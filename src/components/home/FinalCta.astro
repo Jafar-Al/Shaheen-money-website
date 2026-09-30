@@ -1,71 +1,121 @@
 ---
-import Section from '../ui/Section.astro';
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
+import TextLink from '../ui/TextLink.astro';
 import DownloadButton from '../site/DownloadButton.astro';
-import AppScreen from './AppScreen.astro';
+import StoreBadges from '../site/StoreBadges.astro';
+import Device from '../app/Device.astro';
+import FalconFold from './FalconFold.astro';
+import FeatherField from '../art/FeatherField.astro';
 import { home } from '../../copy/home';
+import { common } from '../../copy/common';
 import { href, type Locale } from '../../i18n/config';
 
 /**
- * Close for the reader: the same single download button (primary), then
- * talking to us and becoming a Connector.
- * id="download" keeps old /#download links working.
- *
- * Navy, and the only other place on the page the wallet itself appears.
- * The page opens on the night side of the planet and had been ending on
- * the palest band it owns, which reads as running out rather than
- * arriving; closing on the same field it opened with makes the two ends
- * of the page answer each other, and puts the product beside the button
- * at the one moment the reader is deciding whether to press it.
+ * 08 — Download: the close, and the bookend to the first screen. The page
+ * returns to Night, the falcon comes back and folds into its resting mark,
+ * and the app is shown whole for the first and only time, in a matte device.
+ * The same single download button as the hero, then talking to us and
+ * becoming a Connector. id="download" keeps old /#download links working.
  */
 interface Props {
   locale: Locale;
+  n: number;
 }
-const { locale } = Astro.props;
+const { locale, n } = Astro.props;
 const t = home[locale].final;
 ---
 
-<Section tone="navy" id="download" labelledby="final-title" spacing="lg" class="final">
-  <div class="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
-    <div class="flex flex-col items-center gap-6 text-center lg:col-span-7 lg:items-start lg:text-start">
-      <span class="grid size-14 place-items-center rounded-full bg-white text-navy" aria-hidden="true">
-        <svg viewBox="0 0 240 240" width="30" height="30" focusable="false"><use href="#falcon-mark"></use></svg>
-      </span>
-      <h2 id="final-title" class="text-display-lg font-display">{t.title}</h2>
-      <p class="measure text-body-lg text-fg-inverse-2">{t.lead}</p>
-
-      <DownloadButton locale={locale} size="lg" tone="dark" class="mt-2" />
-
-      <div class="mt-2 flex flex-wrap items-center justify-center gap-x-8 gap-y-1 lg:justify-start">
-        <a
-          href={href(locale, 'contact')}
-          class="inline-flex min-h-11 items-center text-body-sm font-semibold text-fg-inverse underline underline-offset-4"
-        >
-          {t.coverage}
-        </a>
-        <a
-          href={href(locale, 'business')}
-          class="inline-flex min-h-11 items-center text-body-sm text-fg-inverse-2 underline underline-offset-4 hover:text-fg-inverse"
-        >
-          {t.connector}
-        </a>
+<section id="download" class="close t-night grain" data-temp="night" aria-labelledby="final-title" data-close>
+  <div class="close-field" aria-hidden="true">
+    <FeatherField seed="download" variant="strip" follow />
+  </div>
+  <div class="page rhythm-airy close-grid">
+    <div class="close-copy">
+      <FalconFold />
+      <Chapter n={n} label={common[locale].nav.getApp} />
+      <h2 id="final-title" class="text-display-xl font-display close-title"><Emph text={t.title} /></h2>
+      <p class="lead">{t.lead}</p>
+      <div class="close-actions">
+        <DownloadButton locale={locale} />
+        <StoreBadges locale={locale} />
+      </div>
+      <div class="close-links">
+        <TextLink href={href(locale, 'contact')}>{t.coverage}</TextLink>
+        <TextLink href={href(locale, 'business')}>{t.connector}</TextLink>
       </div>
     </div>
-
-    <div class="lg:col-span-5">
-      <AppScreen locale={locale} variant="wallet" />
-    </div>
+    <Device locale={locale} class="close-device" />
   </div>
-</Section>
+</section>
 
 <style>
-  /* The same light source as the hero, on the opposite edge, so the page
-     closes on a field that rhymes with the one it opened on instead of
-     repeating it exactly. */
-  .final {
-    background-image: radial-gradient(
-      56% 60% at 88% 4%,
-      color-mix(in srgb, var(--color-navy-600) 85%, transparent),
-      transparent 70%
-    );
+  .close {
+    position: relative;
+    overflow: clip;
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .close-field {
+    position: absolute;
+    inset: auto 0 0;
+    block-size: 60%;
+    opacity: 0.5;
+    color: var(--fg);
+    pointer-events: none;
+  }
+  .close-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 4rem;
+    align-items: center;
+  }
+  .close-copy {
+    grid-column: 1 / span 7;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.75rem;
+  }
+  .close-title {
+    font-size: min(8vw, 8rem);
+    line-height: var(--lh-display-xl);
+  }
+  :global(:lang(ar)) .close-title {
+    font-size: min(7vw, 7rem);
+  }
+  .close-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+  }
+  .close-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 2rem;
+  }
+  .close-grid :global(.close-device) {
+    grid-column: 8 / -1;
+  }
+  @media (width < 64rem) {
+    .close-copy,
+    .close-grid :global(.close-device) {
+      grid-column: 1 / -1;
+    }
+    .close-title {
+      font-size: 13vw;
+    }
+    :global(:lang(ar)) .close-title {
+      font-size: 11vw;
+    }
   }
 </style>
+
+<script>
+  import { initParallax } from '../../lib/motion/pointer';
+  const close = document.querySelector<HTMLElement>('[data-close]');
+  if (close) initParallax(close);
+</script>

@@ -1,0 +1,142 @@
+---
+import UiShard from './UiShard.astro';
+import Stamp from '../ui/Stamp.astro';
+import { common } from '../../copy/common';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * The only full device on the site: a matte handset, thin frame, no gloss,
+ * no reflections, tilted a few degrees, holding the app's home screen as it
+ * is (Cash Balance, the four actions, the Marketplace · Home · History bar).
+ * On a precise pointer it leans with the pointer (a few pixels, never a
+ * spin). Stamped Illustrative, with the sample-screen line beneath it.
+ */
+interface Props {
+  locale: Locale;
+  class?: string;
+}
+const { locale, class: className } = Astro.props;
+const ui = common[locale].ui;
+---
+
+<figure class:list={['device-wrap', className]}>
+  <div class="device-tilt" data-parallax="-8">
+    <div class="device">
+      <div class="device-screen">
+        <div class="device-status" aria-hidden="true">
+          <span class="num">9:41</span>
+          <span class="device-island"></span>
+          <span class="device-bars"><i></i><i></i><i></i><i></i></span>
+        </div>
+        <UiShard locale={locale} variant="home" stamp={false} class="device-app" />
+        <span class="device-home" aria-hidden="true"></span>
+      </div>
+    </div>
+    <Stamp locale={locale} kind="illustrative" tilt={-4} class="device-stamp" />
+  </div>
+  <figcaption class="device-caption label">{ui.illustrativeHint}</figcaption>
+</figure>
+
+<style>
+  .device-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 0;
+    perspective: 1800px;
+  }
+  .device-tilt {
+    position: relative;
+    inline-size: min(100%, 21rem);
+    rotate: 3deg;
+    transition: translate 1.2s var(--ease-out);
+  }
+  /* A physical object: its radius is a handset's, stated once, here. */
+  .device {
+    padding: 0.625rem;
+    border-radius: 3rem;
+    background-color: #0d1322;
+    outline: 1px solid rgb(255 255 255 / 0.12);
+    outline-offset: -1px;
+  }
+  .device-screen {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: clip;
+    aspect-ratio: 9 / 19.2;
+    border-radius: 2.45rem;
+    background-color: var(--color-app-blue);
+  }
+  .device-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.6rem 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+  }
+  .device-island {
+    inline-size: 5.5rem;
+    block-size: 1.5rem;
+    border-radius: var(--radius-full);
+    background-color: #000;
+  }
+  .device-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+  }
+  .device-bars i {
+    inline-size: 3px;
+    background: #fff;
+    border-radius: 1px;
+  }
+  .device-bars i:nth-child(1) { block-size: 4px; }
+  .device-bars i:nth-child(2) { block-size: 6px; }
+  .device-bars i:nth-child(3) { block-size: 8px; }
+  .device-bars i:nth-child(4) { block-size: 10px; }
+  .device-app {
+    flex: 1;
+  }
+  .device-app :global(.shard-screen) {
+    outline: 0;
+    border-radius: 0;
+    block-size: 100%;
+  }
+  .device-home {
+    position: absolute;
+    inset-block-end: 0.5rem;
+    inset-inline: 35%;
+    block-size: 4px;
+    border-radius: var(--radius-full);
+    background-color: #fff;
+  }
+  .device-stamp {
+    position: absolute;
+    inset-block-start: 1.5rem;
+    inset-inline-end: -1.75rem;
+    background-color: var(--bg);
+  }
+  .device-caption {
+    max-inline-size: 26ch;
+    text-align: center;
+    color: var(--fg-2);
+  }
+  @media (width < 48rem) {
+    .device-tilt {
+      rotate: 0deg;
+      inline-size: min(100%, 18rem);
+    }
+  }
+  @media (forced-colors: active) {
+    .device,
+    .device-screen {
+      forced-color-adjust: none;
+      background: Canvas;
+      outline: 1px solid CanvasText;
+    }
+  }
+</style>

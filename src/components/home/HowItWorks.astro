@@ -1,83 +1,441 @@
 ---
-import Section from '../ui/Section.astro';
-import Journey from './Journey.astro';
-import Icon from '../ui/Icon.astro';
-import Gap from '../ui/Gap.astro';
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
+import Ledger from '../ui/Ledger.astro';
+import IndexRow from '../ui/IndexRow.astro';
 import SourceNote from '../ui/SourceNote.astro';
+import Gap from '../ui/Gap.astro';
+import UiShard from '../app/UiShard.astro';
 import { home } from '../../copy/home';
+import { common } from '../../copy/common';
 import { facts } from '../../data/facts';
 import type { Locale } from '../../i18n/config';
 
 /**
- * What the app does, said once, for the visitor who wants to understand
- * before installing anything. Carries what used to be /how-it-works: the
- * four steps, the three things worth knowing, and who it is for.
+ * 02 — How it works: one transfer, four moves.
  *
- * The four steps are drawn as one connected journey (Journey.astro): money
- * enters at the first node and leaves as cash at the last, which is the
- * whole argument, so the line that carries it is the picture.
+ * On a desktop the section pins while it scrolls (a sticky stage inside a
+ * tall track, native scrolling throughout) and the app acts the steps out
+ * beside the words: +300.00 lands from abroad; the balance holds in USDc;
+ * Send and Pay take it to 1,176.50; a 200.00 cash-out leaves 976.50 and
+ * brings up the code that the next chapter is about. The amounts are one
+ * example told across the page, and every screen is stamped Illustrative.
  *
- * No mock app screens and no invented transactions: the old site's
- * "+ $1,240.00 from a client in Berlin" cards were props, and a wallet that
- * shows people fake balances has not earned the first install.
+ * Without JavaScript, with reduced motion, and on phones, nothing pins: the
+ * markup's resting state is the final state, and on a phone every step
+ * carries its own screen. Then the three things worth knowing, the note on
+ * what a digital dollar is (sourced), and who it is for, as an index.
  */
 interface Props {
   locale: Locale;
+  n: number;
+  /** Footnote number for the digital-dollar source. */
+  footnote: number;
 }
-const { locale } = Astro.props;
+const { locale, n, footnote } = Astro.props;
 const t = home[locale].steps;
+const app = home[locale].app;
+const ui = common[locale].ui;
 const dollar = facts.digitalDollar;
 ---
 
-<Section id="how" tone="subtle" labelledby="how-title">
-  <header class="flex max-w-2xl flex-col gap-5">
-    <p class="text-label uppercase text-navy">{t.label}</p>
-    <h2 id="how-title" class="text-h1 font-display">{t.title}</h2>
-    <p class="measure text-body-lg text-fg-2">{t.lead}</p>
-  </header>
+<section id="how" class="how t-night" data-temp="night" aria-labelledby="how-title">
+  <div class="page how-intro">
+    <Chapter n={n} label={t.label} />
+    <h2 id="how-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
+    <p class="lead">{t.lead}</p>
+  </div>
 
-  <Journey items={t.items} locale={locale} class="mt-12" />
+  <div class="how-track" data-how data-step="3">
+    <div class="how-sticky">
+      <div class="page how-scene">
+        <div class="how-steps-col">
+        <div class="how-rail" aria-hidden="true"><span class="how-rail-fill"></span></div>
+        <ol class="how-steps">
+          {
+            t.items.map((item, i) => (
+              <li class="how-step" data-step-item={i}>
+                <span class="how-step-n num" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <div class="how-step-text">
+                  <h3 class="how-step-title">{item.title}</h3>
+                  <p class="how-step-body">{item.body}</p>
+                </div>
+                <div class="how-step-shard">
+                  {i === 0 && <UiShard locale={locale} variant="balance" incoming />}
+                  {i === 1 && <UiShard locale={locale} variant="balance" amount="balance" class="how-hold" />}
+                  {i === 2 && <UiShard locale={locale} variant="history" rows={[0, 1, 2]} />}
+                  {i === 3 && <UiShard locale={locale} variant="code" />}
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+        </div>
 
-  <div class="mt-16 grid gap-10 lg:grid-cols-12 lg:gap-8" data-reveal>
-    <div class="flex flex-col gap-6 lg:col-span-7">
-      <h3 class="text-h3 font-display">{t.goodToKnow}</h3>
-      <ul class="flex flex-col gap-5">
-        {
-          t.facts.map((f) => (
-            <li class="flex items-start gap-3">
-              <Icon name="check" size={22} class="mt-1 shrink-0 text-navy" />
-              <span class="flex flex-col gap-1">
-                <span class="text-body font-semibold">{f.title}</span>
-                <span class="text-body-sm text-fg-2">{f.body}</span>
-              </span>
-            </li>
-          ))
-        }
-      </ul>
+        <div class="how-stage" aria-hidden="true">
+          <div class="how-layer how-layer-balance">
+            <UiShard locale={locale} variant="balance" incoming amount="balanceAfterCash" data-how-balance="" />
+            <p class="how-tag label">{t.facts[0]?.title}</p>
+          </div>
+          <div class="how-layer how-layer-actions">
+            <UiShard locale={locale} variant="actions" stamp={false} />
+          </div>
+          <div class="how-layer how-layer-history">
+            <UiShard locale={locale} variant="history" rows={[0, 1, 2, 3]} stamp={false} />
+          </div>
+          <div class="how-layer how-layer-code">
+            <UiShard locale={locale} variant="code" stampTilt={3} />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page how-after">
+    <div class="how-know">
+      <h3 class="how-sub font-display">{t.goodToKnow}</h3>
+      <Ledger items={t.facts.map((f) => ({ title: f.title, body: f.body }))} />
       {
         dollar ? (
-          <div class="flex flex-col gap-2 border-s-2 border-navy ps-5">
-            <p class="measure text-body text-fg">{dollar.value[locale]}</p>
-            <SourceNote source={dollar.source} locale={locale} />
-          </div>
+          <aside class="how-note" data-reveal>
+            <p class="label how-note-kicker">{ui.note}</p>
+            <p class="how-note-text">{dollar.value[locale]}</p>
+            <SourceNote source={dollar.source} locale={locale} n={footnote} />
+          </aside>
         ) : (
-          <Gap need="What a digital dollar is and what backs it, in one paragraph, in both languages. The single most asked question about the product, and a launch blocker (audit B.2)." />
+          <Gap need="What a digital dollar is and what backs it, in one paragraph, in both languages (audit B.2)." />
         )
       }
     </div>
-
-    <div class="flex flex-col gap-6 rounded-lg border border-line bg-white p-6 shadow-sm md:p-8 lg:col-span-5" data-card>
-      <h3 class="text-h3 font-display">{t.audiencesTitle}</h3>
-      <ul class="flex flex-col gap-5">
+    <div class="how-who">
+      <h3 class="how-sub font-display">{t.audiencesTitle}</h3>
+      <div class="how-who-list" data-reveal>
         {
-          t.audiences.map((a) => (
-            <li class="flex flex-col gap-1">
-              <span class="text-body font-semibold">{a.title}</span>
-              <span class="text-body-sm text-fg-2">{a.body}</span>
-            </li>
+          t.audiences.map((a, i) => (
+            <div data-reveal-child>
+              <IndexRow n={i + 1} title={a.title} text={a.body} headingLevel="h4" />
+            </div>
           ))
         }
-      </ul>
+      </div>
     </div>
   </div>
-</Section>
+</section>
+
+<style>
+  .how {
+    position: relative;
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .how-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    padding-block-start: var(--section);
+  }
+  .how-intro h2 {
+    max-inline-size: 16ch;
+  }
+
+  /* ── The scene ─────────────────────────────────────────────────────── */
+  .how-scene {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    padding-block: clamp(3rem, 6vw, 5rem);
+  }
+  .how-steps-col {
+    grid-column: 1 / span 5;
+    position: relative;
+  }
+  .how-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    padding-inline-start: 2rem;
+  }
+  .how-step {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: 0.25rem 1rem;
+    transition:
+      opacity var(--motion-standard) var(--ease-out),
+      translate var(--motion-standard) var(--ease-out);
+  }
+  .how-step-n {
+    padding-block-start: 0.6rem;
+    font-size: var(--text-label);
+    color: var(--accent);
+  }
+  .how-step-title {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+  }
+  .how-step-body {
+    margin-block-start: 0.5rem;
+    max-inline-size: 38ch;
+    color: var(--fg-2);
+  }
+  .how-step-shard {
+    display: none;
+  }
+
+  .how-rail {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: 1px;
+    background-color: var(--line);
+  }
+  .how-rail-fill {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    background-color: var(--accent);
+    transform-origin: top;
+    scale: 1 var(--p, 1);
+  }
+
+  .how-stage {
+    grid-column: 7 / -1;
+    position: relative;
+    min-block-size: 36rem;
+    perspective: 1400px;
+  }
+  .how-layer {
+    position: absolute;
+    transition:
+      opacity 0.6s var(--ease-out),
+      translate 0.7s var(--ease-out),
+      rotate 0.7s var(--ease-out);
+  }
+  .how-layer-balance {
+    inset-block-start: 0;
+    inset-inline-start: 4%;
+    inline-size: 52%;
+    z-index: 3;
+    rotate: -2deg;
+  }
+  .how-layer-actions {
+    inset-block-start: 10%;
+    inset-inline-end: 0;
+    inline-size: 44%;
+    z-index: 1;
+    rotate: 3deg;
+  }
+  .how-layer-history {
+    inset-block-start: 52%;
+    inset-inline-start: 0;
+    inline-size: 56%;
+    z-index: 2;
+    rotate: 1.5deg;
+  }
+  .how-layer-code {
+    inset-block-start: 46%;
+    inset-inline-end: 2%;
+    inline-size: 42%;
+    z-index: 4;
+    rotate: -3deg;
+  }
+  .how-tag {
+    position: absolute;
+    inset-block-start: 58%;
+    inset-inline-end: -8%;
+    padding: 0.4rem 0.7rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-paper-50);
+    color: var(--color-ink);
+    rotate: 4deg;
+    white-space: nowrap;
+  }
+  :global(:lang(ar)) .how-tag {
+    color: var(--color-ink);
+  }
+
+  /*
+   * Scene states. The markup rests on the final state (data-step="3") so
+   * nothing is hidden without a script; the script only turns the pinning
+   * on (data-scene) and moves data-step as the track scrolls.
+   */
+  .how-track[data-scene] {
+    block-size: 330vh;
+  }
+  .how-track[data-scene] .how-sticky {
+    position: sticky;
+    inset-block-start: var(--header-h);
+    display: flex;
+    align-items: center;
+    min-block-size: calc(100vh - var(--header-h));
+  }
+  .how-track[data-scene] .how-scene {
+    inline-size: 100%;
+  }
+  .how-track[data-scene] .how-step {
+    opacity: 0.32;
+  }
+  .how-track[data-scene][data-step='0'] [data-step-item='0'],
+  .how-track[data-scene][data-step='1'] [data-step-item='1'],
+  .how-track[data-scene][data-step='2'] [data-step-item='2'],
+  .how-track[data-scene][data-step='3'] [data-step-item='3'] {
+    opacity: 1;
+    translate: calc(6px * var(--dir)) 0;
+  }
+
+  /* Step 0: the transfer arrives. Actions, history and code wait. */
+  .how-track[data-step='0'] .how-layer-actions,
+  .how-track[data-step='0'] .how-layer-history,
+  .how-track[data-step='0'] .how-layer-code,
+  .how-track[data-step='1'] .how-layer-actions,
+  .how-track[data-step='1'] .how-layer-history,
+  .how-track[data-step='1'] .how-layer-code,
+  .how-track[data-step='2'] .how-layer-code {
+    opacity: 0;
+    translate: 0 2rem;
+  }
+  .how-track[data-step='0'] .how-tag,
+  .how-track[data-step='2'] .how-tag,
+  .how-track[data-step='3'] .how-tag {
+    opacity: 0;
+  }
+  .how-tag {
+    transition: opacity 0.5s var(--ease-out);
+  }
+  /* Step 1: the balance holds, in dollars. */
+  .how-track[data-step='1'] .how-layer-balance {
+    rotate: 0deg;
+    translate: 0 1.5rem;
+  }
+  .how-track[data-step='1'] :global(.app-currency) {
+    outline: 2px solid var(--color-app-cyan);
+    outline-offset: 3px;
+  }
+  /* History rows arrive with their step. */
+  .how-layer-history :global(.app-row) {
+    transition: opacity 0.5s var(--ease-out);
+  }
+  .how-track[data-step='0'] .how-layer-history :global([data-row='1']),
+  .how-track[data-step='0'] .how-layer-history :global([data-row='2']),
+  .how-track[data-step='0'] .how-layer-history :global([data-row='3']),
+  .how-track[data-step='1'] .how-layer-history :global([data-row='1']),
+  .how-track[data-step='1'] .how-layer-history :global([data-row='2']),
+  .how-track[data-step='1'] .how-layer-history :global([data-row='3']),
+  .how-track[data-step='2'] .how-layer-history :global([data-row='3']) {
+    opacity: 0;
+  }
+  /* Step 2: Send is pressed. */
+  .how-track[data-step='2'] :global([data-tile='send']) {
+    outline: 2px solid var(--color-app-cyan);
+    outline-offset: -2px;
+  }
+  /* Step 3: the cash-out and its code. */
+  .how-track[data-step='3'] .how-layer-code :global(.app-code-value) {
+    animation: code-glint 1.2s var(--ease-out) 0.2s both;
+  }
+  @keyframes code-glint {
+    0% {
+      opacity: 0.2;
+      letter-spacing: 0.3em;
+    }
+    100% {
+      opacity: 1;
+      letter-spacing: 0.08em;
+    }
+  }
+
+  /* ── After the scene ───────────────────────────────────────────────── */
+  .how-after {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 4rem;
+    padding-block: clamp(3rem, 6vw, 6rem) var(--section);
+  }
+  .how-know {
+    grid-column: 1 / span 6;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .how-who {
+    grid-column: 8 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .how-sub {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+  }
+  .how-note {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-block-start: 1.5rem;
+    border-block-start: 1px solid var(--line);
+  }
+  .how-note-kicker {
+    color: var(--accent);
+  }
+  .how-note-text {
+    max-inline-size: var(--measure);
+    color: var(--fg-2);
+  }
+  .how-who-list {
+    border-block-start: 1px solid var(--line);
+  }
+
+  /* ── Tablet and phone: a stack, each step with its own screen ─────── */
+  @media (width < 64rem) {
+    .how-stage {
+      display: none;
+    }
+    .how-steps-col {
+      grid-column: 1 / -1;
+    }
+    .how-steps {
+      gap: 4rem;
+      padding-inline-start: 1.25rem;
+    }
+    .how-step-shard {
+      display: block;
+      grid-column: 2;
+      max-inline-size: 22rem;
+      margin-block-start: 1.75rem;
+    }
+    .how-know,
+    .how-who {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
+
+<script>
+  import { scene } from '../../lib/motion/scenes';
+  import { scrubbing } from '../../lib/motion/level';
+  import { countUp } from '../../lib/motion/count';
+
+  const track = document.querySelector<HTMLElement>('[data-how]');
+  if (track && scrubbing()) {
+    track.dataset.scene = '';
+    track.dataset.step = '0';
+    const amount = track.querySelector<HTMLElement>('[data-how-balance] [data-shard-amount]');
+    // What the balance reads at each step (the copy's example amounts).
+    const figures = ['1,240.00', '1,240.00', '1,176.50', '976.50'];
+    if (amount) amount.textContent = figures[0]!;
+    let step = 0;
+    scene(track, 'pin', (p) => {
+      const next = Math.min(3, Math.floor(p * 4.4));
+      if (next === step) return;
+      const from = Number((figures[step] ?? '0').replaceAll(',', ''));
+      step = next;
+      track.dataset.step = String(step);
+      if (amount && figures[step] !== amount.textContent) {
+        amount.dataset.count = figures[step]!;
+        void countUp(amount, from, 500);
+      }
+    });
+  }
+</script>

@@ -1,0 +1,14 @@
+---
+/**
+ * Renders copy with its one emphasised word: "costs *too much.*" sets
+ * "too much." in the display face's italic (Latin) or with the accent stroke
+ * (Arabic, which has no italic). The markers live in src/copy so the choice
+ * of word is made once, per language, by whoever writes the line.
+ */
+interface Props {
+  text: string;
+}
+const parts = Astro.props.text.split(/\*(.+?)\*/);
+---
+
+{parts.map((part, i) => (i % 2 === 1 ? <em class="emph">{part}</em> : part))}

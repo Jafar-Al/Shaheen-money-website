@@ -1,37 +1,97 @@
 ---
-import Section from '../ui/Section.astro';
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
 import TextLink from '../ui/TextLink.astro';
-import PostCard from '../blog/PostCard.astro';
+import IndexRow from '../ui/IndexRow.astro';
+import FeatherField from '../art/FeatherField.astro';
 import { home } from '../../copy/home';
-import { getPosts } from '../../lib/blog';
+import { common } from '../../copy/common';
+import { categoryLabel, getPosts, postSlug } from '../../lib/blog';
+import { formatDate, readingMinutes } from '../../lib/format';
 import { href, type Locale } from '../../i18n/config';
 
-/** Audit M.3: the homepage links to the three most recent posts. */
+/**
+ * 07 — From the blog (audit M.3: the homepage links the three newest posts).
+ * An editorial index, not a row of cards: number, category, the title in
+ * the display face, the date at the end. On a pointer that can hover, each
+ * row's cover slides in beside it: an engraved feather generated from the
+ * post's own slug, so every post has one and none is stock.
+ */
 interface Props {
   locale: Locale;
+  n: number;
 }
-const { locale } = Astro.props;
+const { locale, n } = Astro.props;
 const t = home[locale].blog;
+const ui = common[locale].ui;
 const posts = (await getPosts(locale)).slice(0, 3);
 ---
 
 {
   posts.length > 0 && (
-    <Section tone="subtle" labelledby="blog-title">
-      <div class="flex flex-wrap items-end justify-between gap-6">
-        <header class="flex flex-col gap-4">
-          <p class="text-label uppercase text-navy">{t.label}</p>
-          <h2 id="blog-title" class="text-h1 font-display">{t.title}</h2>
+    <section class="posts t-paper grain" data-temp="paper" aria-labelledby="blog-title">
+      <div class="page rhythm posts-inner">
+        <header class="posts-head">
+          <div class="posts-head-text">
+            <Chapter n={n} label={t.label} />
+            <h2 id="blog-title" class="text-display-l font-display">
+              <Emph text={t.title} />
+            </h2>
+          </div>
+          <TextLink href={href(locale, 'blog')}>{t.all}</TextLink>
         </header>
-        <TextLink href={href(locale, 'blog')}>{t.all}</TextLink>
+        <ol class="posts-list" data-reveal>
+          {posts.map((post, i) => (
+            <li data-reveal-child>
+              <IndexRow
+                n={i + 1}
+                kicker={categoryLabel[post.data.category][locale]}
+                title={post.data.title}
+                text={post.data.description}
+                meta={`${formatDate(post.data.publishedAt, locale)} · ${readingMinutes(post.body ?? '', locale)} ${ui.minRead}`}
+                href={`${href(locale, 'blog')}/${postSlug(post)}`}
+                size="lg"
+              >
+                <FeatherField slot="plate" seed={postSlug(post)} variant="cover" />
+              </IndexRow>
+            </li>
+          ))}
+        </ol>
       </div>
-      <ul class="mt-10 grid gap-6 md:grid-cols-3">
-        {posts.map((post) => (
-          <li>
-            <PostCard post={post} locale={locale} />
-          </li>
-        ))}
-      </ul>
-    </Section>
+    </section>
   )
 }
+
+<style>
+  .posts {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .posts-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+  .posts-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+  .posts-head-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+  .posts-head h2 {
+    max-inline-size: 16ch;
+  }
+  .posts-list {
+    border-block-start: 1px solid var(--line);
+  }
+  .posts-list :global(.index-plate) {
+    border: 1px solid var(--line);
+    background-color: var(--color-paper-100);
+  }
+</style>

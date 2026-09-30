@@ -1,81 +1,372 @@
 ---
-import Section from '../ui/Section.astro';
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
 import Button from '../ui/Button.astro';
 import TextLink from '../ui/TextLink.astro';
+import Stamp from '../ui/Stamp.astro';
 import Gap from '../ui/Gap.astro';
 import SourceNote from '../ui/SourceNote.astro';
 import Globe from './Globe.astro';
 import { home } from '../../copy/home';
+import { common } from '../../copy/common';
 import { facts } from '../../data/facts';
+import { cities, corridors, type CityKey } from '../../data/network-map';
+import { globeGeometry, GLOBE_SIZE } from '../../lib/globe';
+import { coords } from '../../lib/atlas';
 import { formatAsOf, formatNumber, formatPercent } from '../../lib/format';
 import { href, type Locale } from '../../i18n/config';
 
 /**
- * The network. Replaces the old "Live network activity — $1.2M moved today"
- * string, which was hardcoded and never changed: figures appear only when
- * sourced and dated, and nothing is called "live". The globe shows example
- * corridors and says so. Keeps ids "network" and "connector" so old links land.
+ * 04 — The network, on Paper.
  *
- * The globe itself is real geography (Natural Earth) with great-circle
- * corridors between real city coordinates, drawn at build time. Adding a
- * city to it is a coverage claim, so src/data/network-map.ts only grows by
- * corridors between cities already on the map.
+ * The globe (Globe.astro) is shown exactly as it is: a night plate set into
+ * the paper page, the digital network seen from the physical world. Around
+ * it, the cities: choosing one (pointer, keyboard or touch) lights its
+ * example corridors on an overlay drawn from the globe's own geometry
+ * (src/lib/globe.ts), and a mono line names them. Nothing is claimed about
+ * times, fees or availability; the caption says what these are.
+ *
+ * Then the invitation to shop owners, as a full-width band of ink.
+ * Keeps ids "network" and "connector" so old links land.
  */
 interface Props {
   locale: Locale;
+  n: number;
 }
-const { locale } = Astro.props;
+const { locale, n } = Astro.props;
 const t = home[locale].network;
+const ui = common[locale].ui;
 const { activeConnectors, countries } = facts.network;
 const commission = facts.connectorProgram.commissionPercent;
+
+const g = globeGeometry(locale);
+const used = [...new Set(corridors.flat())] as CityKey[];
+const name = (k: CityKey) => cities[k].name[locale];
+const arrow = locale === 'ar' ? '←' : '→';
+const corridorList = corridors.map(([a, b], i) => ({ i, a, b, label: `${name(a)} ${arrow} ${name(b)}` }));
 ---
 
-<Section tone="navy" id="network" labelledby="network-title" class="overflow-clip">
-  <div class="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
-    <div class="flex flex-col gap-6 lg:col-span-5">
-      <p class="text-label uppercase text-cyan">{t.label}</p>
-      <h2 id="network-title" class="text-display-lg font-display">{t.title}</h2>
-      <p class="measure text-body-lg text-fg-inverse-2">{t.lead}</p>
+<section id="network" class="net t-paper grain" data-temp="paper" aria-labelledby="network-title">
+  <div class="page rhythm net-grid">
+    <header class="net-head">
+      <Chapter n={n} label={t.label} />
+      <h2 id="network-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
+      <p class="lead">{t.lead}</p>
       {
         activeConnectors && countries ? (
-          <div class="flex flex-col gap-2 border-s-2 border-cyan ps-5">
-            <p class="text-h3 font-display">
+          <div class="net-figures">
+            <p class="font-display net-figures-text">
               {t.figures(
                 formatNumber(activeConnectors.value, locale),
                 formatNumber(countries.value, locale),
                 formatAsOf(activeConnectors.source.asOf, locale),
               )}
             </p>
-            <SourceNote source={activeConnectors.source} locale={locale} tone="dark" />
+            <SourceNote source={activeConnectors.source} locale={locale} />
           </div>
         ) : (
-          <Gap tone="dark" need="Network figures: active Connectors and countries, with as-of month and source. Never labelled 'live' unless fetched at request time." />
+          <Gap need="Network figures: active Connectors and countries, with as-of month and source. Never labelled 'live' unless fetched at request time." />
         )
       }
-      <TextLink href={href(locale, 'contact')} tone="dark">{t.coverageCta}</TextLink>
+      <TextLink href={href(locale, 'contact')} size="lg">{t.coverageCta}</TextLink>
+    </header>
 
-      <div id="connector" class="mt-4 flex flex-col gap-4 rounded-lg border border-line-inverse bg-navy-800 p-6 md:p-8">
-        <p class="text-label uppercase text-cyan">{t.merchant.label}</p>
-        <h3 class="text-h2 font-display">{t.merchant.title}</h3>
-        <p class="text-body text-fg-inverse-2">{t.merchant.body}</p>
-        {
-          commission ? (
-            <div class="flex flex-col gap-1">
-              <p class="text-h3 font-display">{t.merchant.commission(formatPercent(commission.value, locale))}</p>
-              <SourceNote source={commission.source} locale={locale} tone="dark" />
-            </div>
-          ) : (
-            <Gap tone="dark" need="Connector commission (% per cash-out), with the date it applies from." />
-          )
-        }
-        <Button href={href(locale, 'business')} variant="inverse" arrow class="self-start">
-          {t.merchant.cta}
-        </Button>
+    <div class="net-map" data-net>
+      <div class="net-globe">
+        <Globe locale={locale} label={t.globeLabel} class="net-globe-figure" />
+        <svg class="net-overlay" viewBox={`0 0 ${GLOBE_SIZE} ${GLOBE_SIZE}`} aria-hidden="true" focusable="false">
+          {
+            corridorList.map((c) => (
+              <path class="net-hl" d={g.routes[c.i]} data-from={c.a} data-to={c.b} pathLength="1000" />
+            ))
+          }
+        </svg>
       </div>
-    </div>
 
-    <Globe locale={locale} label={t.globeLabel} class="mx-auto w-full max-w-2xl lg:col-span-7 lg:max-w-none lg:-me-16">
-      <figcaption class="mt-4 text-center text-caption text-fg-inverse-2">{t.caption}</figcaption>
-    </Globe>
+      <div class="net-legend">
+        <Stamp locale={locale} kind="corridors" tilt={-2} />
+        <p class="net-readout" data-net-readout aria-live="polite">
+          <span data-net-default>{t.caption}</span>
+        </p>
+      </div>
+
+      <ul class="net-cities" aria-label={t.globeLabel}>
+        {
+          used.map((k) => (
+            <li>
+              <button
+                type="button"
+                class="net-city"
+                data-city={k}
+                data-corridors={corridorList
+                  .filter((c) => c.a === k || c.b === k)
+                  .map((c) => c.label)
+                  .join(' · ')}
+                aria-pressed="false"
+              >
+                <span class="net-city-name">{name(k)}</span>
+                <span class="net-city-coords num" lang="en">
+                  {coords(cities[k].lon, cities[k].lat)}
+                </span>
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="sr-only" data-net-suffix>{ui.stamp.corridors}</p>
+    </div>
   </div>
-</Section>
+
+  <div id="connector" class="net-band t-night" data-temp="night">
+    <div class="page net-band-inner">
+      <p class="label net-band-label">{t.merchant.label}</p>
+      <h3 class="net-band-title font-display">{t.merchant.title}</h3>
+      <p class="net-band-body">{t.merchant.body}</p>
+      {
+        commission ? (
+          <div class="net-band-commission">
+            <p class="font-display">{t.merchant.commission(formatPercent(commission.value, locale))}</p>
+            <SourceNote source={commission.source} locale={locale} />
+          </div>
+        ) : (
+          <Gap need="Connector commission (% per cash-out), with the date it applies from." />
+        )
+      }
+      <Button href={href(locale, 'business')}>{t.merchant.cta}</Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .net {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .net-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 3rem;
+    align-items: start;
+  }
+  .net-head {
+    grid-column: 1 / span 5;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.75rem;
+  }
+  .net-head h2 {
+    max-inline-size: 12ch;
+  }
+  .net-figures-text {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+  }
+
+  .net-map {
+    grid-column: 6 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .net-globe {
+    position: relative;
+    inline-size: min(100%, 44rem);
+    margin-inline: auto;
+  }
+  .net-overlay {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 0;
+    inline-size: 100%;
+    aspect-ratio: 1;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .net-hl {
+    fill: none;
+    stroke: var(--color-amber);
+    stroke-width: 3.2;
+    stroke-linecap: round;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    opacity: 0;
+    transition:
+      stroke-dashoffset 0.9s var(--ease-out),
+      opacity 0.3s var(--ease-hover);
+  }
+  .net-hl.is-on {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  .net-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+  }
+  .net-readout {
+    flex: 1 1 20rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    line-height: 1.6;
+    color: var(--fg-2);
+    min-block-size: 3.2em;
+  }
+  :global(:lang(ar)) .net-readout {
+    font-family: var(--font-sans);
+    font-size: var(--text-body-s);
+  }
+
+  .net-cities {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    border-block-start: 1px solid var(--line);
+  }
+  .net-city {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    inline-size: 100%;
+    min-block-size: var(--target-min);
+    padding-block: 0.75rem;
+    padding-inline: 0 1rem;
+    border-block-end: 1px solid var(--line);
+    text-align: start;
+    color: var(--fg);
+    cursor: pointer;
+    transition: color var(--motion-hover) var(--ease-hover);
+  }
+  .net-city-name {
+    font-family: var(--font-display);
+    font-size: var(--text-h4);
+    line-height: 1.2;
+  }
+  :global(:lang(ar)) .net-city-name {
+    font-weight: 500;
+  }
+  .net-city-coords {
+    font-size: var(--text-micro);
+    letter-spacing: 0.04em;
+    color: var(--fg-3);
+  }
+  .net-city[aria-pressed='true'] .net-city-name,
+  .net-city:hover .net-city-name {
+    color: var(--cash);
+  }
+
+  /* ── The Connector band ──────────────────────────────────────────── */
+  .net-band {
+    background-color: var(--color-navy-800);
+    color: var(--fg);
+  }
+  .net-band-inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 1.5rem;
+    align-items: end;
+    padding-block: clamp(4rem, 8vw, 7rem);
+  }
+  .net-band-label {
+    grid-column: 1 / -1;
+    color: var(--accent);
+  }
+  .net-band-title {
+    grid-column: 1 / span 7;
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+  }
+  :global(:lang(ar)) .net-band-title {
+    font-weight: 500;
+  }
+  .net-band-body {
+    grid-column: 8 / -1;
+    color: var(--fg-2);
+    max-inline-size: 36ch;
+  }
+  .net-band-inner :global([data-gap]),
+  .net-band-commission {
+    grid-column: 1 / span 7;
+  }
+  .net-band-inner :global(.btn) {
+    grid-column: 8 / -1;
+    justify-self: start;
+  }
+
+  @media (width < 64rem) {
+    .net-head,
+    .net-map,
+    .net-band-title,
+    .net-band-body,
+    .net-band-inner :global(.btn) {
+      grid-column: 1 / -1;
+    }
+    /* Phones: the cities become a row of chips that scrolls sideways. */
+    .net-cities {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      padding-block: 0.25rem 0.75rem;
+      border: 0;
+      margin-inline: calc(-1 * var(--margin));
+      padding-inline: var(--margin);
+      scrollbar-width: none;
+    }
+    .net-cities li {
+      flex: none;
+      scroll-snap-align: start;
+    }
+    .net-city {
+      padding: 0.625rem 1rem;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-full);
+    }
+    .net-city-coords {
+      display: none;
+    }
+    .net-city-name {
+      font-size: var(--text-body);
+    }
+  }
+</style>
+
+<script>
+  // Choosing a city lights its corridors and names them; choosing it again,
+  // or another city, moves the light. Pointer hover previews on devices
+  // that can hover; keyboard and touch use the button.
+  const root = document.querySelector<HTMLElement>('[data-net]');
+  if (root) {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-city]')];
+    const paths = [...root.querySelectorAll<SVGPathElement>('.net-hl')];
+    const readout = root.querySelector<HTMLElement>('[data-net-readout]');
+    const fallback = readout?.innerHTML ?? '';
+    const suffix = root.querySelector('[data-net-suffix]')?.textContent ?? '';
+    let pinned: string | null = null;
+
+    const show = (city: string | null) => {
+      for (const p of paths) p.classList.toggle('is-on', city !== null && (p.dataset.from === city || p.dataset.to === city));
+      for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.city === pinned));
+      if (!readout) return;
+      const button = buttons.find((b) => b.dataset.city === city);
+      if (city && button) readout.textContent = `${button.dataset.corridors} · ${suffix}`;
+      else readout.innerHTML = fallback;
+    };
+
+    for (const button of buttons) {
+      button.addEventListener('click', () => {
+        pinned = pinned === button.dataset.city ? null : (button.dataset.city ?? null);
+        show(pinned);
+      });
+      if (matchMedia('(hover: hover)').matches) {
+        button.addEventListener('pointerenter', () => show(button.dataset.city ?? null));
+        button.addEventListener('pointerleave', () => show(pinned));
+      }
+    }
+  }
+</script>

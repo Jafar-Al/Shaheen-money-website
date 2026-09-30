@@ -14,11 +14,29 @@ import { home } from '../../copy/home';
 import { brand, SITE_URL, stores } from '../../config/site';
 import { facts } from '../../data/facts';
 import { localeStaticPaths, type Locale } from '../../i18n/config';
+import { getPosts } from '../../lib/blog';
 
 export const getStaticPaths = localeStaticPaths;
 
 const locale = Astro.params.locale as Locale;
 const t = home[locale];
+
+// The page is one story in numbered chapters; the hero counts them. A
+// chapter only exists when it has something true to show.
+const hasVoices = facts.testimonials.length > 0 || Boolean(facts.ratings.ios || facts.ratings.android);
+const hasPosts = (await getPosts(locale)).length > 0;
+const order = [
+  'why',
+  'how',
+  'cashOut',
+  'network',
+  'pricing',
+  ...(hasVoices ? ['voices'] : []),
+  'faq',
+  ...(hasPosts ? ['blog'] : []),
+  'download',
+];
+const ch = (key: string) => order.indexOf(key) + 1;
 
 const ratings = [facts.ratings.ios, facts.ratings.android].filter((r) => r !== null);
 const aggregate =
@@ -77,17 +95,15 @@ const jsonLd = [
   jsonLd={jsonLd}
 >
   <!-- 1. For the visitor who came to download: the whole job, first screen. -->
-  <Hero locale={locale} chapters={9} />
+  <Hero locale={locale} chapters={order.length} />
   <!-- 2. For the visitor who wants to understand first, in the order they ask. -->
-  <!--HOLD
-  <WhyShaheen locale={locale} />
-  <HowItWorks locale={locale} />
-  <CashOut locale={locale} />
-  <Network locale={locale} />
-  <Pricing locale={locale} />
-  <Proof locale={locale} />
-  <HomeFaq locale={locale} />
-  <LatestPosts locale={locale} />
-  <FinalCta locale={locale} />
-  HOLD-->
+  <WhyShaheen locale={locale} n={ch('why')} />
+  <HowItWorks locale={locale} n={ch('how')} footnote={4} />
+  <CashOut locale={locale} n={ch('cashOut')} />
+  <Network locale={locale} n={ch('network')} />
+  <Pricing locale={locale} n={ch('pricing')} />
+  <Proof locale={locale} n={ch('voices')} />
+  <HomeFaq locale={locale} n={ch('faq')} />
+  <LatestPosts locale={locale} n={ch('blog')} />
+  <FinalCta locale={locale} n={ch('download')} />
 </BaseLayout>

@@ -1,24 +1,28 @@
 ---
-import Section from '../ui/Section.astro';
-import Faq from '../ui/Faq.astro';
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
+import Accordion from '../ui/Accordion.astro';
+import Slip from '../ui/Slip.astro';
 import Button from '../ui/Button.astro';
 import { home } from '../../copy/home';
 import { common } from '../../copy/common';
 import { href, type Locale, type PageKey } from '../../i18n/config';
 
 /**
- * The questions we are asked most. Was /help.
+ * 06 — The questions we are asked most. Was /help.
  *
- * Native <details>, so it works with the keyboard and a screen reader
- * without a line of JavaScript, and the answers are in the HTML whether or
- * not anyone opens them. The page emits matching FAQPage structured data
- * (see index.astro), which is only honest because the answer a search
- * engine reads is the answer a visitor reads.
+ * Native <details>: keyboard and screen-reader support without a line of
+ * JavaScript, and the answers are in the HTML whether or not anyone opens
+ * them. The page emits matching FAQPage structured data (index.astro),
+ * which is honest only because the answer a search engine reads is the
+ * answer a visitor reads. A small filter narrows the list as you type
+ * (enhancement only: nothing is hidden without it).
  */
 interface Props {
   locale: Locale;
+  n: number;
 }
-const { locale } = Astro.props;
+const { locale, n } = Astro.props;
 const t = home[locale].faq;
 const nav = common[locale].nav;
 
@@ -36,20 +40,126 @@ const items = t.items.map((item) => ({
 }));
 ---
 
-<Section id="faq" labelledby="faq-title">
-  <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
-    <header class="sticky-col flex flex-col gap-5 lg:col-span-4">
-      <p class="text-label uppercase text-navy">{t.label}</p>
-      <h2 id="faq-title" class="text-h1 font-display">{t.title}</h2>
-      <div class="mt-2 flex flex-col items-start gap-3 rounded-lg bg-subtle p-6">
-        <h3 class="text-h3 font-display">{t.stillTitle}</h3>
-        <p class="text-body text-fg-2">{t.stillBody}</p>
-        <Button href={href(locale, 'contact')} variant="secondary" arrow>{t.stillCta}</Button>
-      </div>
+<section id="faq" class="faq t-paper grain" data-temp="paper" aria-labelledby="faq-title">
+  <div class="page rhythm faq-grid">
+    <header class="faq-head">
+      <Chapter n={n} label={t.label} />
+      <h2 id="faq-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
+      <Slip as="aside" no={t.stillTitle} class="faq-help" labelledby="faq-help-title">
+        <h3 id="faq-help-title" class="faq-help-title font-display">{t.stillTitle}</h3>
+        <p class="faq-help-body">{t.stillBody}</p>
+        <Button href={href(locale, 'contact')}>{t.stillCta}</Button>
+      </Slip>
     </header>
 
-    <div class="lg:col-span-8">
-      <Faq items={items} />
+    <div class="faq-list" data-faq>
+      <label class="faq-filter" hidden data-faq-filter>
+        <span class="label">{t.filterLabel}</span>
+        <input type="search" autocomplete="off" enterkeyhint="search" />
+      </label>
+      <Accordion items={items} />
+      <p class="faq-empty" hidden data-faq-empty aria-live="polite">{t.filterEmpty}</p>
     </div>
   </div>
-</Section>
+</section>
+
+<style>
+  .faq {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .faq-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 3rem;
+    align-items: start;
+  }
+  .faq-head {
+    grid-column: 1 / span 4;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+  @media (width >= 64rem) {
+    .faq-head {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 2rem);
+    }
+  }
+  .faq-head h2 {
+    max-inline-size: 10ch;
+  }
+  .faq-grid :global(.faq-help) {
+    margin-block-start: 1rem;
+    rotate: -1deg;
+  }
+  .faq-help-title {
+    font-size: var(--text-h3);
+  }
+  .faq-help-body {
+    margin-block: 0.75rem 1.25rem;
+    color: var(--fg-2);
+  }
+  .faq-list {
+    grid-column: 6 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .faq-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--fg-2);
+  }
+  .faq-filter input {
+    min-block-size: 3rem;
+    border: 0;
+    border-block-end: 1px solid var(--line-strong);
+    background: transparent;
+    color: var(--fg);
+    font-size: var(--text-body-l);
+    outline: none;
+  }
+  .faq-filter input:focus-visible {
+    border-block-end-color: var(--accent);
+    outline: var(--focus-width) solid var(--focus);
+    outline-offset: var(--focus-offset);
+  }
+  .faq-empty {
+    color: var(--fg-2);
+  }
+  @media (width < 64rem) {
+    .faq-head,
+    .faq-list {
+      grid-column: 1 / -1;
+    }
+    .faq-grid :global(.faq-help) {
+      order: 2;
+    }
+  }
+</style>
+
+<script>
+  // Filter: an enhancement only. Without it every question is listed.
+  const root = document.querySelector<HTMLElement>('[data-faq]');
+  const label = root?.querySelector<HTMLElement>('[data-faq-filter]');
+  const input = label?.querySelector('input');
+  const empty = root?.querySelector<HTMLElement>('[data-faq-empty]');
+  if (root && label && input && empty) {
+    label.hidden = false;
+    const items = [...root.querySelectorAll<HTMLDetailsElement>('[data-acc-item]')];
+    const text = items.map((d) => d.textContent?.toLocaleLowerCase() ?? '');
+    input.addEventListener('input', () => {
+      const words = input.value.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      items.forEach((item, i) => {
+        const match = words.every((w) => text[i]!.includes(w));
+        item.hidden = !match;
+        if (match) shown++;
+      });
+      empty.hidden = shown > 0;
+    });
+  }
+</script>

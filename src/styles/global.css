@@ -191,6 +191,11 @@
     font-weight: 400;
   }
 
+  /* Punctuation inside a mono figure: "6.36%", not "6 . 36%". */
+  .fig-punct {
+    margin-inline: -0.2em;
+  }
+
   .lead {
     font-size: var(--text-body-l);
     line-height: var(--lh-body-l);
@@ -207,8 +212,9 @@
     font-style: normal;
     text-decoration-line: underline;
     text-decoration-color: var(--accent);
-    text-decoration-thickness: 0.055em;
-    text-underline-offset: 0.42em;
+    text-decoration-thickness: max(2px, 0.028em);
+    text-underline-offset: 0.34em;
+    text-decoration-skip-ink: none;
   }
 
   /* Links inside running text. */

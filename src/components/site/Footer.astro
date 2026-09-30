@@ -105,7 +105,7 @@ const year = new Date().getUTCFullYear();
         <StoreBadges locale={locale} />
       </div>
 
-      <Slip as="aside" no={t.ui.note} class="footer-warning" data-no-print>
+      <Slip as="aside" no="shaheen.money" class="footer-warning" data-no-print>
         <Stamp locale={locale} kind="note" tilt={-3} class="footer-stamp" />
         <p class="footer-warning-text">{f.officialApps}</p>
       </Slip>
@@ -225,6 +225,7 @@ const year = new Date().getUTCFullYear();
     align-items: center;
   }
   .footer-tagline {
+    text-wrap: balance;
     font-size: var(--text-display-m);
     line-height: var(--lh-display-m);
     letter-spacing: var(--ls-display-m);
