@@ -82,6 +82,15 @@ export const common = defineCopy({
     ui: {
       illustrative: 'Illustrative',
       illustrativeHint: 'Sample screen. Names and amounts are examples.',
+      /* Rubber-stamp labels: the honesty layer as a designed object. */
+      stamp: {
+        example: 'Example',
+        corridors: 'Example corridors',
+        corridor: 'Example corridor',
+        sourced: 'Sourced',
+        note: 'Note',
+      },
+      note: 'Note',
       source: 'Source',
       asOf: 'As of',
       opensNewTab: '(opens in a new tab)',
@@ -164,6 +173,14 @@ export const common = defineCopy({
     ui: {
       illustrative: 'مثال توضيحي',
       illustrativeHint: 'شاشة نموذجية. الأسماء والمبالغ أمثلة فقط.',
+      stamp: {
+        example: 'مثال',
+        corridors: 'أمثلة على مسارات',
+        corridor: 'مسار على سبيل المثال',
+        sourced: 'بمصدر موثّق',
+        note: 'ملاحظة',
+      },
+      note: 'ملاحظة',
       source: 'المصدر',
       asOf: 'حتى تاريخ',
       opensNewTab: '(يفتح في نافذة جديدة)',

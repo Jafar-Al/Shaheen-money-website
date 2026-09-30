@@ -219,26 +219,31 @@ export const home = defineCopy({
       all: 'All posts',
     },
     /**
-     * Labels on the illustrative app screens (components/home/AppScreen).
-     * Figures here are examples and are marked as such on the page: the
-     * screens show what the product does, they do not report real balances.
+     * Labels on the app, drawn in code (components/app). The screens follow
+     * the real app (the owner's screenshots, 30 Sep 2026): Cash Balance, the
+     * USDc selector, Add Funds · Withdraw · Send · Request, and the
+     * Marketplace · Home · History bar. Every figure is an example and every
+     * screen carries the "Illustrative" stamp: they show what the app does,
+     * never what anyone holds. The amounts are one story told across the
+     * page: 940.00, then +300.00 from abroad makes 1,240.00; sending and
+     * paying take it to 1,176.50; a 200.00 cash-out leaves 976.50.
      */
     app: {
-      wallet: {
-        balance: 'Your balance',
-        amount: '$1,240.00',
-        kind: 'Digital dollars',
-        send: 'Send',
-        cashOut: 'Cash out',
-        activity: 'Recent',
-        rows: [
-          { label: 'Received', meta: 'From abroad', amount: '+$300.00' },
-          { label: 'Cash out', meta: 'At a Connector', amount: '−$200.00' },
-          { label: 'Sent', meta: 'To another wallet', amount: '−$45.00' },
-          { label: 'Paid', meta: 'From your balance', amount: '−$18.50' },
-        ],
-        tabs: ['Wallet', 'Activity', 'Profile'],
-      },
+      balanceLabel: 'Cash Balance',
+      currency: 'USDc',
+      balanceBefore: '940.00',
+      balance: '1,240.00',
+      balanceAfterSpend: '1,176.50',
+      balanceAfterCash: '976.50',
+      actions: { add: 'Add Funds', withdraw: 'Withdraw', send: 'Send', request: 'Request', swap: 'Swap' },
+      tabs: ['Marketplace', 'Home', 'History'],
+      historyTitle: 'History',
+      rows: [
+        { label: 'Received', meta: 'From abroad', amount: '+300.00', kind: 'in' },
+        { label: 'Sent', meta: 'To another wallet', amount: '−45.00', kind: 'out' },
+        { label: 'Paid', meta: 'From your balance', amount: '−18.50', kind: 'out' },
+        { label: 'Cash out', meta: 'At a Connector', amount: '−200.00', kind: 'cash' },
+      ],
       collect: {
         title: 'Collect your cash',
         at: 'At a Connector near you',
@@ -452,21 +457,21 @@ export const home = defineCopy({
       all: 'كل المقالات',
     },
     app: {
-      wallet: {
-        balance: 'رصيدك',
-        amount: '$1,240.00',
-        kind: 'دولارات رقمية',
-        send: 'ابعث',
-        cashOut: 'اسحب كاش',
-        activity: 'آخر الحركات',
-        rows: [
-          { label: 'استلمت', meta: 'من برّا', amount: '+$300.00' },
-          { label: 'سحب كاش', meta: 'عند موصّل', amount: '−$200.00' },
-          { label: 'بعثت', meta: 'لمحفظة ثانية', amount: '−$45.00' },
-          { label: 'دفعت', meta: 'من رصيدك', amount: '−$18.50' },
-        ],
-        tabs: ['المحفظة', 'الحركات', 'حسابي'],
-      },
+      balanceLabel: 'الرصيد النقدي',
+      currency: 'USDc',
+      balanceBefore: '940.00',
+      balance: '1,240.00',
+      balanceAfterSpend: '1,176.50',
+      balanceAfterCash: '976.50',
+      actions: { add: 'إضافة رصيد', withdraw: 'سحب', send: 'إرسال', request: 'طلب', swap: 'تبديل' },
+      tabs: ['السوق', 'الرئيسية', 'السجل'],
+      historyTitle: 'السجل',
+      rows: [
+        { label: 'استلمت', meta: 'من برّا', amount: '+300.00', kind: 'in' },
+        { label: 'بعثت', meta: 'لمحفظة ثانية', amount: '−45.00', kind: 'out' },
+        { label: 'دفعت', meta: 'من رصيدك', amount: '−18.50', kind: 'out' },
+        { label: 'سحب كاش', meta: 'عند موصّل', amount: '−200.00', kind: 'cash' },
+      ],
       collect: {
         title: 'استلم كاشك',
         at: 'عند موصّل قريب منك',

@@ -7,7 +7,7 @@ interface Props {
   class?: string;
   /** Accessible name. Omit for decorative icons next to visible text. */
   label?: string;
-  /** Mirror in RTL — for directional glyphs such as arrows. */
+  /** Mirror in RTL: for directional glyphs such as arrows. */
   directional?: boolean;
 }
 
@@ -21,9 +21,9 @@ const { name, size = 20, class: className, label, directional = false } = Astro.
   height={size}
   fill="none"
   stroke="currentColor"
-  stroke-width="1.75"
-  stroke-linecap="round"
-  stroke-linejoin="round"
+  stroke-width="1.5"
+  stroke-linecap="butt"
+  stroke-linejoin="miter"
   focusable="false"
   class:list={['shrink-0', directional && 'rtl:-scale-x-100', className]}
   role={label ? 'img' : undefined}

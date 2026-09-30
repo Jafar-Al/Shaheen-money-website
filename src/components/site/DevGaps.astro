@@ -1,0 +1,68 @@
+---
+import { showGaps } from '../../lib/gaps';
+
+/**
+ * Development only: one small badge in the corner that counts the page's
+ * content gaps and shows or hides their markers. `?todo=1` opens with them
+ * shown. Production builds render nothing here and ship no script for it.
+ */
+---
+
+{
+  showGaps && (
+    <button type="button" class="dev-gaps" data-dev-gaps lang="en" dir="ltr" aria-pressed="false">
+      <span class="dev-gaps-dot" aria-hidden="true" />
+      <span data-dev-gaps-count>0</span> content gaps
+    </button>
+  )
+}
+
+<script>
+  // Inert unless the badge was rendered (development and gap-preview builds).
+  const button = document.querySelector<HTMLButtonElement>('[data-dev-gaps]');
+  if (button) {
+    const gaps = document.querySelectorAll('[data-gap]').length;
+    const count = button.querySelector('[data-dev-gaps-count]');
+    if (count) count.textContent = String(gaps);
+    if (!gaps) button.hidden = true;
+    const set = (on: boolean) => {
+      document.documentElement.toggleAttribute('data-todo', on);
+      button.setAttribute('aria-pressed', String(on));
+    };
+    set(new URLSearchParams(location.search).get('todo') === '1');
+    button.addEventListener('click', () => set(!document.documentElement.hasAttribute('data-todo')));
+  }
+</script>
+
+<style>
+  .dev-gaps {
+    position: fixed;
+    inset-block-end: 12px;
+    inset-inline-start: 12px;
+    z-index: 90;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: 2rem;
+    padding-inline: 0.75rem;
+    border: 1px dashed var(--color-amber);
+    border-radius: var(--radius-full);
+    background: var(--color-night-950);
+    color: var(--color-amber);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+  .dev-gaps:hover,
+  .dev-gaps[aria-pressed='true'] {
+    opacity: 1;
+  }
+  .dev-gaps-dot {
+    inline-size: 6px;
+    block-size: 6px;
+    border-radius: var(--radius-full);
+    background: var(--color-amber);
+  }
+</style>

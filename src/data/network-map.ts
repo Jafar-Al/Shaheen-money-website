@@ -65,5 +65,13 @@ export const corridors: Array<[CityKey, CityKey]> = [
   ['dubai', 'nairobi'],
 ];
 
+/**
+ * The five routes the hero's falcon arrives on: each feather of the mark is
+ * drawn out along the great circle from one of these cities to Amman. Only
+ * cities already on the map (a new line between two of them is not a
+ * coverage claim); captioned "Example corridors" wherever they are drawn.
+ */
+export const heroCorridors = ['toronto', 'newYork', 'london', 'paris', 'berlin'] as const satisfies readonly CityKey[];
+
 /** Where the globe faces: between the Atlantic and the Gulf. */
 export const globeCenter = { lon: 5, lat: 28 };

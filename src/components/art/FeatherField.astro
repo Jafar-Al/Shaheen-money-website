@@ -1,0 +1,148 @@
+---
+import { feather, rng, type FeatherSpec } from '../../lib/feather';
+
+/**
+ * A feather field: engraved hairline feathers, generated at build time from
+ * a seed (src/lib/feather.ts). The recurring texture of the site, derived
+ * from the falcon's own feathers: a strip across the top of every inner
+ * page, a cover for every blog post, a cropped plume in the footer.
+ *
+ * One barb in each feather is drawn in the accent colour: the "active
+ * feather", the route. It strokes itself in when the field is revealed.
+ *
+ * Decorative: aria-hidden, dropped in forced-colours mode ([data-art]).
+ */
+interface Props {
+  seed: string;
+  variant: 'strip' | 'cover' | 'corner' | 'single';
+  /** Point the plume in the reading direction (mirrors in Arabic). */
+  follow?: boolean;
+  class?: string;
+}
+const { seed, variant, follow = false, class: className } = Astro.props;
+const r = rng(`${variant}:${seed}`);
+const vary = (base: number, spread: number) => base + (r() - 0.5) * 2 * spread;
+
+let viewBox: string;
+const specs: FeatherSpec[] = [];
+
+if (variant === 'strip') {
+  viewBox = '0 0 1600 420';
+  specs.push({
+    from: [vary(-120, 60), vary(360, 40)],
+    to: [vary(1690, 40), vary(110, 50)],
+    bow: vary(0.05, 0.03),
+    width: [vary(150, 25), vary(80, 20)],
+    barbs: 160,
+    angle: vary(28, 4),
+    curl: 0.14,
+    seed: `${seed}-a`,
+  });
+  specs.push({
+    from: [vary(700, 200), vary(470, 20)],
+    to: [vary(1640, 40), vary(300, 50)],
+    bow: vary(-0.04, 0.02),
+    width: [vary(40, 10), vary(28, 8)],
+    barbs: 70,
+    angle: vary(32, 4),
+    curl: 0.12,
+    seed: `${seed}-b`,
+  });
+} else if (variant === 'cover') {
+  viewBox = '0 0 400 300';
+  const fromY = vary(300, 30);
+  specs.push({
+    from: [vary(20, 20), fromY],
+    to: [vary(385, 20), vary(40, 30)],
+    bow: vary(0.07, 0.05),
+    width: [vary(78, 18), vary(48, 12)],
+    barbs: 72,
+    angle: vary(34, 6),
+    curl: vary(0.18, 0.06),
+    seed,
+  });
+} else if (variant === 'corner') {
+  viewBox = '0 0 900 900';
+  specs.push({
+    from: [vary(980, 30), vary(1010, 30)],
+    to: [vary(110, 40), vary(120, 60)],
+    bow: vary(0.07, 0.03),
+    width: [vary(250, 30), vary(150, 25)],
+    barbs: 150,
+    angle: vary(30, 3),
+    curl: 0.16,
+    seed,
+  });
+} else {
+  viewBox = '0 0 600 600';
+  specs.push({
+    from: [80, 560],
+    to: [540, 60],
+    bow: 0.06,
+    width: [110, 64],
+    barbs: 110,
+    angle: 32,
+    curl: 0.16,
+    seed,
+  });
+}
+
+const feathers = specs.map(feather);
+---
+
+<svg
+  class:list={['feather-field', `feather-${variant}`, follow && 'feather-follow', className]}
+  viewBox={viewBox}
+  preserveAspectRatio={variant === 'corner' ? 'xMaxYMax slice' : 'xMidYMid slice'}
+  aria-hidden="true"
+  focusable="false"
+  data-art
+  data-reveal
+>
+  {
+    feathers.map((f) => (
+      <g>
+        <path class="ff-barbs" d={f.barbs} />
+        <path class="ff-rachis" d={f.rachis} />
+        {f.accent && <path class="ff-accent" d={f.accent} pathLength="1" data-draw />}
+      </g>
+    ))
+  }
+</svg>
+
+<style>
+  .feather-field {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    color: var(--fg);
+    overflow: hidden;
+  }
+  /* A plume points the way the page reads; geography is never mirrored,
+     but this is not geography. */
+  :global([dir='rtl']) .feather-follow {
+    scale: -1 1;
+  }
+  path {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+  }
+  .ff-barbs {
+    stroke: currentColor;
+    stroke-width: 0.6;
+    stroke-opacity: 0.34;
+  }
+  .ff-rachis {
+    stroke: currentColor;
+    stroke-width: 1.1;
+    stroke-opacity: 0.6;
+  }
+  .ff-accent {
+    stroke: var(--accent);
+    stroke-width: 1.4;
+  }
+  .feather-cover .ff-barbs {
+    stroke-width: 0.75;
+    stroke-opacity: 0.42;
+  }
+</style>

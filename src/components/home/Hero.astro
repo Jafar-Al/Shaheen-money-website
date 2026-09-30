@@ -1,131 +1,493 @@
 ---
 import FalconFlight from './FalconFlight.astro';
-import HeroBackdrop from './HeroBackdrop.astro';
+import HeroAtlas from './HeroAtlas.astro';
+import UiShard from '../app/UiShard.astro';
 import DownloadButton from '../site/DownloadButton.astro';
 import Button from '../ui/Button.astro';
-import Icon from '../ui/Icon.astro';
+import Stamp from '../ui/Stamp.astro';
 import Gap from '../ui/Gap.astro';
 import { home } from '../../copy/home';
 import { facts } from '../../data/facts';
+import { FRAMES } from '../../lib/atlas';
 import { formatNumber, formatUsd } from '../../lib/format';
 import { href, type Locale } from '../../i18n/config';
+import { cities } from '../../data/network-map';
+import { coords } from '../../lib/atlas';
 
 /**
- * The first screen, for both visitors at once.
+ * The first screen: "The Unfurl".
  *
- * The one who came to download never has to read: falcon, one slogan, one
- * button that knows the device. The one who wants to understand first gets
- * a one-line answer to "what is this" and a second, quieter control that
- * takes them to the explanation further down, so neither has to scroll past
- * the other's content.
+ * The falcon (FalconFlight.astro, untouched) stoops in from the upper left
+ * and lands on Amman on an engraved, borderless map. As it settles, each
+ * of its five feathers draws out into the great circle it flew in on —
+ * Toronto, New York, London, Paris, Berlin — and the first transfer runs
+ * down a route into the falcon: the balance beside it takes +300.00.
  *
- * The slogan and both controls are static and usable from the first frame;
- * only the falcon moves (FalconFlight.astro), and the backdrop behind it is
- * inert build-time geometry (HeroBackdrop.astro).
+ * The headline, the line under it and both controls are in the HTML and
+ * visible from the first frame (no script, no wait on the art): LCP is the
+ * headline. Everything behind them is decorative, aria-hidden, and dropped
+ * in forced colours. Reduced motion renders the final state.
+ *
+ * Composition: art across the top band, words across the bottom. In
+ * Arabic the words move to the right and the app to the left; the map does
+ * not mirror, because geography does not.
  */
 interface Props {
   locale: Locale;
+  /** How many chapters the page has: the scroll cue counts them. */
+  chapters: number;
 }
-const { locale } = Astro.props;
+const { locale, chapters } = Astro.props;
 const t = home[locale].hero;
+
+/* The falcon's box is set in CSS below in round percentages of each frame;
+   these must be the same numbers as src/lib/atlas.ts FRAMES. */
+const CSS_FALCON = { wide: { x: 50, y: 24, w: 16 }, tall: { x: 30, y: 14, w: 46 } };
+for (const id of ['wide', 'tall'] as const) {
+  const a = FRAMES[id].falcon;
+  const b = CSS_FALCON[id];
+  if (a.x !== b.x || a.y !== b.y || a.w !== b.w) {
+    throw new Error(`Hero: the falcon box for the ${id} frame differs between src/lib/atlas.ts and Hero.astro's CSS.`);
+  }
+}
 
 const evidence: Array<{ label: string; href: string }> = [];
 if (facts.network.countries)
-  evidence.push({
-    label: t.evidence.countries(formatNumber(facts.network.countries.value, locale)),
-    href: href(locale, 'contact'),
-  });
+  evidence.push({ label: t.evidence.countries(formatNumber(facts.network.countries.value, locale)), href: href(locale, 'contact') });
 if (facts.pricing.minCashOutUsd)
   evidence.push({ label: t.evidence.minCashOut(formatUsd(facts.pricing.minCashOutUsd.value, locale)), href: '#pricing' });
 if (facts.network.activeConnectors)
   evidence.push({ label: t.evidence.connectors(formatNumber(facts.network.activeConnectors.value, locale)), href: '#network' });
 if (facts.pricing.noFxMargin) evidence.push({ label: t.evidence.noFxMargin, href: '#pricing' });
+
+/** "Money without borders." → ["Money without ", "borders."]: the last word is the emphasised one. */
+const split = (line: string) => {
+  const i = line.lastIndexOf(' ');
+  return [line.slice(0, i + 1), line.slice(i + 1)] as const;
+};
+const amman = cities.amman;
 ---
 
-<section
-  data-dark-zone
-  data-surface="dark"
-  aria-labelledby="hero-title"
-  class="relative -mt-18 flex min-h-hero flex-col overflow-clip bg-navy pt-18 text-fg-inverse"
->
-  <HeroBackdrop />
-
-  <div class="hero-stack container-page relative flex grow flex-col items-center justify-center gap-7 py-12 text-center">
-    <FalconFlight />
-    <h1 id="hero-title" class="text-display-xl font-display">
-      {
-        t.title.map((line, i) => (
-          <span class="block text-balance">
-            {line}
-            {i < t.title.length - 1 && ' '}
-          </span>
-        ))
-      }
-    </h1>
-    <p class="measure text-balance text-body-lg text-fg-inverse-2">{t.subtitle}</p>
-
-    <div class="flex flex-col items-center gap-3">
-      <div class="flex flex-col items-center gap-3 sm:flex-row">
-        <DownloadButton locale={locale} tone="dark" size="lg" />
-        <Button href="#how" variant="inverse-secondary" size="lg">
-          {t.explore}
-          <Icon name="chevron-down" size={18} />
-        </Button>
+<section class="hero t-night under-header" data-temp="night" aria-labelledby="hero-title" data-hero>
+  <div class="hero-art" aria-hidden="true" data-art data-ambient>
+    <div class="hero-zoom">
+      <div class="hero-stage stage-wide"><HeroAtlas frame="wide" locale={locale} /></div>
+      <div class="hero-stage stage-tall"><HeroAtlas frame="tall" locale={locale} /></div>
+      <div class="hero-stage stage-falcon">
+        <div class="hero-falcon" data-parallax="6">
+          <FalconFlight />
+        </div>
       </div>
-      <p class="text-caption text-fg-inverse-2">{t.availability}</p>
     </div>
-
-    {
-      evidence.length > 0 ? (
-        <ul class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-body-sm">
-          {evidence.map((e) => (
-            <li>
-              <a
-                href={e.href}
-                class="inline-flex min-h-6 items-center gap-2 text-fg-inverse-2 underline-offset-4 hover:text-fg-inverse hover:underline"
-              >
-                <Icon name="check" size={16} class="text-cyan" />
-                {e.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <Gap
-          tone="dark"
-          class="max-w-xl text-start"
-          need="Optional evidence row under the button: countries live, minimum cash-out, active Connectors, FX policy. Each sourced and dated; unsourced items never render."
-        />
-      )
-    }
+    <div class="hero-vignette"></div>
   </div>
 
-  <a
-    href="#why"
-    class="relative mx-auto mb-6 inline-flex min-h-11 items-center gap-2 px-3 text-body-sm text-fg-inverse-2 underline-offset-4 hover:text-fg-inverse hover:underline"
-  >
-    {t.more}
-    <Icon name="chevron-down" size={18} />
-  </a>
+  <div class="page hero-content">
+    <div class="hero-marks">
+      <Stamp locale={locale} kind="corridors" tilt={-2} class="hero-stamp" />
+      <p class="hero-ticker label" lang="en" dir="ltr">
+        <span class="num">{coords(amman.lon, amman.lat)}</span>
+        <span class="hero-ticker-city">{amman.name.en}</span>
+      </p>
+    </div>
+
+    <div class="hero-copy">
+      <h1 id="hero-title" class="hero-title">
+        {
+          t.title.map((line, i) => {
+            const [lead, word] = split(line);
+            return (
+              <span class={`hero-line hero-line-${i}`}>
+                <span class="hero-line-inner">
+                  {lead}
+                  <em class="emph">{word}</em>
+                </span>{' '}
+              </span>
+            );
+          })
+        }
+      </h1>
+      <p class="hero-sub">{t.subtitle}</p>
+      <div class="hero-actions">
+        <DownloadButton locale={locale} />
+        <Button href="#how" variant="line" arrow="down">{t.explore}</Button>
+      </div>
+      <p class="hero-avail label">{t.availability}</p>
+      {
+        evidence.length > 0 ? (
+          <ul class="hero-evidence">
+            {evidence.map((e) => (
+              <li>
+                <a href={e.href} class="ink-link">
+                  {e.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Gap need="Optional evidence row under the buttons: countries live, minimum cash-out, active Connectors, FX policy. Each sourced and dated; unsourced items never render." />
+        )
+      }
+    </div>
+
+    <a href="#why" class="hero-scroll label">
+      <span>{t.more}</span>
+      <span class="hero-scroll-rule" aria-hidden="true"></span>
+      <span class="num" aria-hidden="true">01/{String(chapters).padStart(2, '0')}</span>
+    </a>
+  </div>
+
+  <div class="hero-shard" data-hero-shard>
+    <UiShard locale={locale} variant="balance" incoming stampTilt={-4} />
+  </div>
 </section>
 
 <style>
+  /* ── Frame ─────────────────────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-block-size: max(100svh, 47.5rem);
+    overflow: clip;
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .hero-art {
+    position: absolute;
+    inset: 0;
+    container-type: size;
+    pointer-events: none;
+  }
+  .hero-zoom {
+    position: absolute;
+    inset: 0;
+    /* Scroll-out: the map closes in on Amman as the hero leaves (--p from
+       the exit scene); every layer scales together, so the routes stay on
+       their cities and the falcon on its city. */
+    scale: calc(1 + var(--p, 0) * 0.25);
+    transform-origin: var(--ox) var(--oy);
+  }
+
   /*
-   * Short viewports: a 320x568 phone, or any phone in landscape. Everything
-   * the visitor came for - the mark, the slogan, and the button that knows
-   * their device - has to survive inside the first screen, so the rhythm
-   * tightens and the headline steps down one size on the scale. Tokens
-   * only; no new type sizes are invented here.
+   * The stages. Each has its frame's aspect ratio and covers the hero
+   * (like background-size: cover), centred. The map, the routes and the
+   * falcon all sit in the same stage box, so a feather tip and the start of
+   * its route are the same point at any size. Physical left/top: the map
+   * does not mirror in Arabic.
    */
-  @media (height <= 44rem) {
-    .hero-stack {
-      gap: calc(var(--spacing) * 3);
-      padding-block: calc(var(--spacing) * 5);
+  .hero-stage {
+    --W: max(100cqw, 160cqh);
+    --H: calc(var(--W) * 0.625);
+    position: absolute;
+    left: calc((100cqw - var(--W)) / 2);
+    top: calc((100cqh - var(--H)) / 2);
+    inline-size: var(--W);
+    block-size: var(--H);
+  }
+  .hero-zoom {
+    --ox: calc((100cqw - max(100cqw, 160cqh)) / 2 + max(100cqw, 160cqh) * 0.6367);
+    --oy: calc((100cqh - max(100cqw, 160cqh) * 0.625) / 2 + max(100cqw, 160cqh) * 0.625 * 0.4811);
+  }
+  .stage-tall {
+    display: none;
+  }
+  /* Falcon: the same round numbers as FRAMES.wide.falcon in src/lib/atlas.ts. */
+  .hero-falcon {
+    position: absolute;
+    left: 50%;
+    top: 24%;
+    inline-size: 16%;
+    transition: translate 1.2s var(--ease-out);
+  }
+  .hero-falcon :global(.falcon-stage) {
+    inline-size: 100%;
+  }
+
+  @media (width < 48rem) {
+    .stage-wide {
+      display: none;
     }
-    .hero-stack :global(#hero-title) {
-      font-size: var(--text-display-lg);
-      line-height: var(--lh-display-lg);
-      letter-spacing: var(--ls-display-lg);
+    .stage-tall {
+      display: block;
+    }
+    .hero-stage {
+      --W: max(100cqw, 46.51cqh);
+      --H: calc(var(--W) * 2.15);
+      top: calc((100cqh - var(--H)) / 2.6);
+    }
+    .hero-zoom {
+      --ox: calc((100cqw - max(100cqw, 46.51cqh)) / 2 + max(100cqw, 46.51cqh) * 0.6929);
+      --oy: calc((100cqh - max(100cqw, 46.51cqh) * 2.15) / 2.6 + max(100cqw, 46.51cqh) * 2.15 * 0.3415);
+    }
+    /* Falcon: FRAMES.tall.falcon. */
+    .hero-falcon {
+      left: 30%;
+      top: 14%;
+      inline-size: 46%;
+    }
+  }
+
+  /* Keeps the words legible where they cross the map: a quiet darkening
+     at the foot of the frame, no glow and no box. */
+  .hero-vignette {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 70%, transparent) 24%, transparent 52%);
+  }
+
+  /* ── Words ─────────────────────────────────────────────────────────── */
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    flex: 1;
+    padding-block: calc(var(--header-h) + 1.25rem) 1.5rem;
+  }
+  .hero-marks {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.75rem;
+    justify-self: end;
+    opacity: 0;
+    animation: marks-in 0.8s var(--ease-out) 3.3s forwards;
+  }
+  :global([dir='rtl']) .hero-marks {
+    align-items: flex-start;
+  }
+  @keyframes marks-in {
+    from {
+      opacity: 0;
+      translate: 0 -6px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+  .hero-ticker {
+    display: flex;
+    gap: 0.75rem;
+    color: var(--fg-2);
+  }
+  .hero-ticker-city {
+    color: var(--accent);
+  }
+
+  .hero-copy {
+    align-self: end;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    max-inline-size: 62rem;
+  }
+  .hero-title {
+    font-size: var(--text-display-xl);
+    line-height: var(--lh-display-xl);
+    letter-spacing: var(--ls-display-xl);
+    color: var(--fg);
+  }
+  :global(:lang(ar)) .hero-title {
+    font-weight: 500;
+  }
+  .hero-line {
+    display: block;
+    clip-path: inset(-0.3em -0.1em -0.35em);
+  }
+  .hero-line-inner {
+    display: inline-block;
+    animation: line-up 1s var(--ease-out) both;
+  }
+  .hero-line-1 .hero-line-inner {
+    animation-delay: 0.12s;
+  }
+  /* Visible from the first frame (the headline is the page's largest
+     paint): the lines rise into place, they never appear from nothing. */
+  @keyframes line-up {
+    from {
+      opacity: 0.35;
+      translate: 0 0.3em;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+  .hero-sub {
+    max-inline-size: 34rem;
+    font-size: var(--text-body-l);
+    line-height: var(--lh-body-l);
+    color: var(--fg-2);
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .hero-avail {
+    color: var(--fg-3);
+  }
+  .hero-evidence {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+
+  .hero-scroll {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    justify-self: start;
+    min-block-size: var(--target-min);
+    margin-block-start: 1.5rem;
+    color: var(--fg-2);
+  }
+  .hero-scroll:hover {
+    color: var(--fg);
+  }
+  .hero-scroll-rule {
+    inline-size: 3rem;
+    block-size: 1px;
+    background-color: var(--line-strong);
+  }
+
+  /* ── The app, beside the falcon ────────────────────────────────────── */
+  .hero-shard {
+    position: absolute;
+    z-index: 1;
+    inset-block-end: -9rem;
+    inset-inline-end: var(--margin);
+    inline-size: clamp(17rem, 22vw, 22rem);
+    rotate: -3deg;
+    animation: shard-in 0.9s var(--ease-out) 2.55s both;
+  }
+  :global([dir='rtl']) .hero-shard {
+    inset-inline-end: auto;
+    inset-inline-start: var(--margin);
+    rotate: 3deg;
+  }
+  @keyframes shard-in {
+    from {
+      opacity: 0;
+      translate: 0 2.5rem;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+  /* The +300.00 row lands when the first packet reaches the falcon. Its
+     space is reserved from the start: transform and opacity only. */
+  .hero-shard :global([data-shard-incoming]) {
+    animation: row-land 0.7s var(--ease-out) 3.35s both;
+  }
+  @keyframes row-land {
+    from {
+      opacity: 0;
+      translate: 0 -0.75rem;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  /* ── Tablet and phone ──────────────────────────────────────────────── */
+  @media (width < 64rem) {
+    .hero-shard {
+      inline-size: 16rem;
+      inset-block-end: -11rem;
+    }
+    .hero-marks {
+      display: none;
+    }
+  }
+  @media (width < 48rem) {
+    .hero {
+      min-block-size: max(100svh, 40rem);
+    }
+    .hero-content {
+      grid-template-rows: 1fr auto;
+      padding-block-end: 1rem;
+    }
+    .hero-title {
+      font-size: 12.5vw;
+    }
+    :global(:lang(ar)) .hero-title {
+      font-size: 11vw;
+    }
+    /* On a phone the two sentences run on as one paragraph: three lines. */
+    .hero-line {
+      display: inline;
+      clip-path: none;
+    }
+    .hero-line-inner {
+      display: inline;
+      animation: none;
+    }
+    .hero-copy {
+      gap: 1.125rem;
+    }
+    .hero-sub {
+      font-size: var(--text-body);
+    }
+    .hero-actions {
+      flex-direction: column;
+      align-self: stretch;
+    }
+    .hero-actions :global(.btn),
+    .hero-actions :global(.dl-button) {
+      inline-size: 100%;
+    }
+    .hero-scroll {
+      display: none;
+    }
+    /* The app waits below the fold and peeks in as the page moves. */
+    .hero-shard {
+      inset-block-end: auto;
+      inset-block-start: calc(100% - 2.5rem);
+      inline-size: 70vw;
+      translate: 0 calc(var(--p, 0) * -9rem);
+      animation: none;
+    }
+  }
+  @media (height <= 44rem) and (width >= 48rem) {
+    .hero-title {
+      font-size: var(--text-display-l);
+    }
+    .hero-copy {
+      gap: 1rem;
     }
   }
 </style>
+
+<script>
+  import { scene } from '../../lib/motion/scenes';
+  import { initParallax } from '../../lib/motion/pointer';
+  import { countUp } from '../../lib/motion/count';
+  import { motionLevel } from '../../lib/motion/level';
+
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+  if (hero) {
+    initParallax(hero);
+    if (motionLevel() !== 'reduced') scene(hero, 'exit');
+
+    // The balance receives the +300.00 as the first packet lands.
+    const amount = hero.querySelector<HTMLElement>('[data-shard-amount]');
+    if (amount && motionLevel() !== 'reduced') {
+      const final = amount.textContent?.trim() ?? '';
+      amount.textContent = '940.00';
+      window.setTimeout(async () => {
+        amount.classList.add('is-flash');
+        amount.dataset.count = final;
+        await countUp(amount, 940, 650);
+        window.setTimeout(() => amount.classList.remove('is-flash'), 240);
+      }, 3400);
+    }
+  }
+</script>

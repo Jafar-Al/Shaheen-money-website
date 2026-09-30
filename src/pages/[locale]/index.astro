@@ -72,13 +72,14 @@ const jsonLd = [
   path="/"
   title={t.meta.title}
   description={t.meta.description}
-  headerTone="dark"
+  temp="night"
   trustStrip
   jsonLd={jsonLd}
 >
   <!-- 1. For the visitor who came to download: the whole job, first screen. -->
-  <Hero locale={locale} />
+  <Hero locale={locale} chapters={9} />
   <!-- 2. For the visitor who wants to understand first, in the order they ask. -->
+  <!--HOLD
   <WhyShaheen locale={locale} />
   <HowItWorks locale={locale} />
   <CashOut locale={locale} />
@@ -88,4 +89,5 @@ const jsonLd = [
   <HomeFaq locale={locale} />
   <LatestPosts locale={locale} />
   <FinalCta locale={locale} />
+  HOLD-->
 </BaseLayout>

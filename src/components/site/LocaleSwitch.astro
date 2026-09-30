@@ -1,36 +1,119 @@
 ---
-import Icon from '../ui/Icon.astro';
 import { common } from '../../copy/common';
-import { otherLocale, type Locale } from '../../i18n/config';
+import { localeMeta, type Locale } from '../../i18n/config';
 
 /**
- * Always-visible language control (audit C.6: never under "Legal"). Links
- * to the same page in the other language, not to its homepage.
+ * The language switch, always visible (audit C.6): a two-state segmented
+ * control, EN | ع, with an indicator under the current language that slides
+ * across when the other is chosen. The other language is a link to the
+ * same page in that language, never to its homepage. Where the browser
+ * supports cross-document view transitions the pages cross-fade.
  */
 interface Props {
   locale: Locale;
-  href: string;
-  tone?: 'light' | 'dark';
+  /** Same page in each locale. */
+  hrefs: Record<Locale, string>;
   class?: string;
 }
 
-const { locale, href, tone = 'light', class: className } = Astro.props;
-const to = otherLocale(locale);
+const { locale, hrefs, class: className } = Astro.props;
 const t = common[locale].nav;
+const order: Locale[] = ['en', 'ar'];
+const short: Record<Locale, string> = { en: 'EN', ar: 'ع' };
 ---
 
-<a
-  href={href}
-  hreflang={to}
-  lang={to}
-  title={t.switchLanguage}
-  class:list={[
-    'inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-nav transition duration-150',
-    tone === 'dark' ? 'text-fg-inverse hover:bg-white/10' : 'text-fg hover:bg-muted',
-    className,
-  ]}
+<div
+  class:list={['lang-switch', locale === 'ar' && 'is-ar', className]}
+  role="group"
+  aria-label={common[locale].footer.language}
+  dir="ltr"
   data-locale-switch
 >
-  <Icon name="globe" size={18} />
-  <span>{t.switchLanguageShort}</span>
-</a>
+  <span class="lang-indicator" aria-hidden="true"></span>
+  {
+    order.map((l) =>
+      l === locale ? (
+        <span class="lang-seg is-current" lang={l} aria-current="true">
+          <span aria-hidden="true">{short[l]}</span>
+          <span class="sr-only">{localeMeta[l].name}</span>
+        </span>
+      ) : (
+        <a class="lang-seg" href={hrefs[l]} hreflang={l} lang={l} title={t.switchLanguage} data-lang-link>
+          <span aria-hidden="true">{short[l]}</span>
+          <span class="sr-only">{localeMeta[l].name}</span>
+        </a>
+      ),
+    )
+  }
+</div>
+
+<style>
+  .lang-switch {
+    position: relative;
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    inline-size: 5.5rem;
+    block-size: 2.75rem;
+    padding: 3px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-full);
+  }
+  .lang-seg {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    block-size: 100%;
+    border-radius: var(--radius-full);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: var(--fg-2);
+    transition: color var(--motion-hover) var(--ease-hover);
+  }
+  .lang-seg[lang='ar'] {
+    font-family: var(--font-plex-arabic), var(--font-sans);
+    font-size: 1rem;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+  .lang-seg.is-current {
+    color: var(--inverse-fg);
+  }
+  a.lang-seg:hover {
+    color: var(--fg);
+  }
+  .lang-indicator {
+    position: absolute;
+    inset-block: 3px;
+    inset-inline-start: 3px;
+    inline-size: calc(50% - 3px);
+    border-radius: var(--radius-full);
+    background-color: var(--inverse-bg);
+    transition: translate var(--motion-standard) var(--ease-out);
+  }
+  .is-ar .lang-indicator {
+    translate: 100% 0;
+  }
+  /* Chosen: the indicator crosses before the next page arrives. */
+  .lang-switch.is-switching .lang-indicator {
+    translate: 100% 0;
+  }
+  .is-ar.is-switching .lang-indicator {
+    translate: 0 0;
+  }
+  .lang-switch.is-switching .lang-seg.is-current {
+    color: var(--fg-2);
+  }
+</style>
+
+<script>
+  for (const group of document.querySelectorAll<HTMLElement>('[data-locale-switch]')) {
+    group.querySelector('[data-lang-link]')?.addEventListener('click', () => group.classList.add('is-switching'));
+  }
+  // Coming back through the back/forward cache: undo the half-finished switch.
+  window.addEventListener('pageshow', () => {
+    for (const group of document.querySelectorAll('[data-locale-switch]')) group.classList.remove('is-switching');
+  });
+</script>

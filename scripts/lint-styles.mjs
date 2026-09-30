@@ -5,8 +5,10 @@
  *   · physical direction utilities (ml-, pr-, left-, text-left …) — use the
  *     logical ones (ms-, pe-, start-, text-start …) so RTL is correct by
  *     construction (audit T.19)
- *   · radius / shadow utilities outside the token set
- *   · cyan text or fills on light surfaces (1.59:1) and gradient text
+ *   · radius / shadow utilities outside the token set (2px panels, pills,
+ *     and one paper shadow under slips)
+ *   · signal (cyan) text or fills on paper surfaces (1.4:1) and gradient text
+ *   · the retired electric blue (#1400ff) and glass (backdrop blur) anywhere
  *   · tracking utilities (letter-spacing comes from type tokens only)
  *   · em dashes in visitor-facing Arabic copy, where they read as machine text
  *
@@ -46,14 +48,15 @@ const rules = [
   },
   {
     id: 'off-token-radius',
-    re: /(?<![\w-])(?:[a-z0-9-]+:)*rounded(?:-(?:none|xs|xl|2xl|3xl|4xl))?(?![\w-])/g,
-    why: 'Only rounded-sm, rounded-md, rounded-lg and rounded-full exist (audit T.12).',
+    re: /(?<![\w-])(?:[a-z0-9-]+:)*rounded(?:-(?:xs|md|lg|xl|2xl|3xl|4xl))?(?![\w-])/g,
+    why: 'Only rounded-sm (2px panels), rounded-full (pills) and rounded-none exist.',
   },
   {
     id: 'off-token-shadow',
-    re: /(?<![\w-])(?:[a-z0-9-]+:)*shadow-(?:xs|xl|2xl|inner)(?![\w-])/g,
-    why: 'Only shadow-sm, shadow-md and shadow-lg exist.',
+    re: /(?<![\w-])(?:[a-z0-9-]+:)*shadow-(?:xs|sm|md|lg|xl|2xl|inner)(?![\w-])/g,
+    why: 'The only shadow is shadow-paper, under a Slip. Separate everything else with hairlines.',
   },
+
   {
     id: 'tracking-utility',
     re: /(?<![\w-])(?:[a-z0-9-]+:)*tracking-[a-z]+/g,
@@ -66,10 +69,10 @@ const rules = [
   },
 ];
 
-// Cyan is only legal inside dark surfaces; flag cyan text/fill in files that
-// never set a dark surface.
-const cyan = /(?<![\w-])(?:[a-z0-9-]+:)*(?:text|fill|stroke|border)-cyan(?![\w-])/;
-const darkContext = /data-surface=["{]|tone="dark"|tone="navy"|bg-navy|hero-surface|tone === 'dark'|dark \?/;
+// Signal (cyan) is only legal on Night; flag it in files that never set a
+// night surface. On paper the accent is signal-ink.
+const cyan = /(?<![\w-])(?:[a-z0-9-]+:)*(?:text|fill|stroke|border|bg)-signal(?![\w-])/;
+const darkContext = /t-night|temp="night"|tone="night"|tone === 'night'/;
 
 const problems = [];
 for (const dir of ['src']) {
@@ -92,8 +95,18 @@ for (const dir of ['src']) {
 
     if (cyan.test(text) && !darkContext.test(text)) {
       const i = lines.findIndex((l) => cyan.test(l));
-      problems.push({ file: rel, line: i + 1, rule: 'cyan-on-light', match: 'cyan', why: 'Cyan is for dark surfaces only (1.59:1 on white).' });
+      problems.push({ file: rel, line: i + 1, rule: 'signal-on-paper', match: 'signal', why: 'Signal cyan is for Night only (1.4:1 on paper). Use the accent token or signal-ink.' });
     }
+
+    // The retired brand blue may not come back, in any file, in any form.
+    lines.forEach((line, i) => {
+      if (/#1400ff|bg-blue|text-blue|--color-blue/i.test(line) && !/retired/i.test(line)) {
+        problems.push({ file: rel, line: i + 1, rule: 'retired-blue', match: '#1400ff', why: 'The electric blue is retired (it reads violet beside navy).' });
+      }
+      if (/backdrop-blur|backdrop-filter/.test(line) && !/^\s*(\/\/|\*|\/\*)/.test(line)) {
+        problems.push({ file: rel, line: i + 1, rule: 'glass', match: 'backdrop', why: 'No glass: surfaces are opaque and separated by hairlines.' });
+      }
+    });
 
     // Arabic copy: no em dashes in visitor-facing strings.
     if (rel.startsWith('src/copy/') || rel.startsWith('src/data/')) {

@@ -5,6 +5,7 @@ import { Font } from 'astro:assets';
 import Header from '../components/site/Header.astro';
 import Footer from '../components/site/Footer.astro';
 import TrustStrip from '../components/site/TrustStrip.astro';
+import DevGaps from '../components/site/DevGaps.astro';
 import JsonLd from '../components/seo/JsonLd.astro';
 import BrandSprite from '../components/site/BrandSprite.astro';
 import DownloadDialog from '../components/site/DownloadDialog.astro';
@@ -31,7 +32,8 @@ interface Props {
   /** Defaults to the build-time image for this path (src/pages/og/[...slug].png.ts). */
   ogImage?: string;
   noindex?: boolean;
-  headerTone?: 'dark' | 'light';
+  /** Temperature at the top of the page: Night (home) or Paper (inner pages). */
+  temp?: 'night' | 'paper';
   trustStrip?: boolean;
   jsonLd?: Record<string, unknown>[];
   /** When the other language has no version of this page, where the switcher should go. */
@@ -49,7 +51,7 @@ const {
   ogType = 'website',
   ogImage,
   noindex = false,
-  headerTone = 'light',
+  temp = 'paper',
   trustStrip = false,
   jsonLd = [],
   otherLocalePath,
@@ -83,11 +85,16 @@ const og = absoluteUrl(ogImage ?? `/og/${locale}${path === '/' ? '/index' : path
  * the desktop treatment is told to scan a QR code with its phone while it
  * is holding the device the app is for.
  *
+ * The same script decides how much motion the visitor gets
+ * (src/lib/motion/level.ts): reduced for prefers-reduced-motion, lite for
+ * save-data, ≤2 GB of memory or ≤4 cores, full otherwise. Deciding it
+ * before paint means no scene starts and then stops.
+ *
  * Astro does not hash is:inline scripts itself, so the exact string is
  * hashed here and added to this page's CSP.
  */
 const platformScript =
-  "(function(){var u=navigator.userAgent,i=/iPhone|iPad|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>0);document.documentElement.dataset.platform=i?'ios':/Android/.test(u)?'android':'desktop'})();";
+  "(function(){var d=document.documentElement,n=navigator,u=n.userAgent,i=/iPhone|iPad|iPod/.test(u)||(/Macintosh/.test(u)&&n.maxTouchPoints>0);d.dataset.platform=i?'ios':/Android/.test(u)?'android':'desktop';var c=n.connection,m=n.deviceMemory,h=n.hardwareConcurrency;d.dataset.motion=matchMedia('(prefers-reduced-motion: reduce)').matches?'reduced':(c&&c.saveData)||(m&&m<=2)||(h&&h<=4)?'lite':'full'})();";
 Astro.csp?.insertScriptHash(`sha256-${createHash('sha256').update(platformScript).digest('base64')}`);
 
 const organization = {
@@ -103,7 +110,12 @@ const organization = {
     { '@type': 'ContactPoint', contactType: 'customer support', email: contact.email, availableLanguage: ['en', 'ar'] },
   ],
   ...(facts.company.legalName ? { legalName: facts.company.legalName } : {}),
-  ...(facts.company.registeredAddress ? { address: facts.company.registeredAddress.en } : {}),
+  ...(facts.company.registeredAddress
+    ? { address: facts.company.registeredAddress.en }
+    : facts.company.office
+      ? { address: facts.company.office.value.address }
+      : {}),
+  ...(facts.company.office ? { telephone: facts.company.office.value.phone } : {}),
 };
 ---
 
@@ -119,7 +131,7 @@ const organization = {
     {noindex && <meta name="robots" content="noindex, follow" />}
 
     <script is:inline set:html={platformScript} />
-    <meta name="theme-color" content="#071138" />
+    <meta name="theme-color" content="#060b1c" />
     <meta name="color-scheme" content="light" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -151,16 +163,20 @@ const organization = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={og} />
 
+    {/* Four files per locale; only the display face is preloaded (it sets
+         the headline, the largest paint on every page). */}
     {
       locale === 'ar' ? (
         <>
-          <Font cssVariable="--font-plex-arabic" preload />
-          <Font cssVariable="--font-inter" />
+          <Font cssVariable="--font-naskh" preload />
+          <Font cssVariable="--font-plex-arabic" />
+          <Font cssVariable="--font-geist-mono" />
         </>
       ) : (
         <>
-          <Font cssVariable="--font-instrument" preload />
-          <Font cssVariable="--font-inter" preload />
+          <Font cssVariable="--font-instrument-serif" preload />
+          <Font cssVariable="--font-instrument-sans" />
+          <Font cssVariable="--font-geist-mono" />
         </>
       )
     }
@@ -168,25 +184,21 @@ const organization = {
     <JsonLd data={organization} />
     {jsonLd.map((data) => <JsonLd data={data} />)}
   </head>
-  <body>
+  <body class={`t-${temp}`}>
     <BrandSprite />
-    <a
-      href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-60 focus:rounded-md focus:bg-navy focus:px-4 focus:py-3 focus:text-fg-inverse"
-    >
-      {t.skipToContent}
-    </a>
+    <a href="#main" class="skip-link">{t.skipToContent}</a>
     {trustStrip && <TrustStrip locale={locale} />}
-    <Header locale={locale} switchHref={localeHrefs[other]} tone={headerTone} />
+    <Header locale={locale} localeHrefs={localeHrefs} temp={temp} />
     <main id="main" tabindex="-1" class="outline-none">
       <slot />
     </main>
     <Footer locale={locale} localeHrefs={localeHrefs} />
     <DownloadDialog locale={locale} />
+    <DevGaps />
 
     <script>
       import '../scripts/smart-download';
-      import '../scripts/reveal';
+      import '../lib/motion/index';
       import '../scripts/analytics';
     </script>
   </body>

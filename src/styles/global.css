@@ -1,13 +1,25 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
+/*
+ * The Feather Line — global layer.
+ *
+ * Two temperatures carry the whole site: .t-night (the digital world) and
+ * .t-paper (the physical one). Both are sets of semantic custom properties
+ * generated from design/tokens.json; a component colours itself from
+ * --surface/--fg/--line/--accent and renders correctly on either.
+ */
+
 /* ── Base ─────────────────────────────────────────────────────────────── */
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    color-scheme: light;
-    scroll-padding-block-start: calc(var(--header-h) + 16px);
+    scroll-padding-block-start: calc(var(--header-h) + 24px);
+    -webkit-tap-highlight-color: transparent;
+    /* Themed, not default: a thin teal thumb reads on both temperatures. */
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-signal-ink) 72%, transparent) transparent;
   }
 
   body {
@@ -15,8 +27,10 @@
     font-family: var(--font-sans);
     font-size: var(--text-body);
     line-height: var(--lh-body);
-    color: var(--color-fg);
-    background-color: var(--color-white);
+    background-color: var(--bg);
+    color: var(--fg);
+    caret-color: var(--accent);
+    font-synthesis: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -26,328 +40,443 @@
   h3,
   h4 {
     font-family: var(--font-display);
+    font-weight: 400;
     text-wrap: balance;
+  }
+  /* Noto Naskh ships one weight: ask for it, so nothing is synthesised. */
+  :lang(ar) :is(h1, h2, h3, h4) {
+    font-weight: 500;
   }
 
   p,
   li,
   dd,
-  figcaption {
+  figcaption,
+  blockquote {
     text-wrap: pretty;
   }
 
-  /* Designed focus state (audit H.3): 2px ring + 2px offset, ≥3:1 on both surfaces. */
+  /* Designed focus: 2px ring, 3px offset, signal on night, signal-ink on paper. */
   :focus-visible {
-    outline: var(--focus-width) solid var(--color-focus);
+    outline: var(--focus-width) solid var(--focus);
     outline-offset: var(--focus-offset);
-  }
-  [data-surface='dark'] :focus-visible,
-  [data-surface='dark']:focus-visible {
-    outline-color: var(--color-focus-inverse);
   }
 
   /* Connected script: tracking is never applied to Arabic, whatever a
-     component asks for (audit A.4.7). Tokens already set it to 0. */
+     component asks for. Tokens already set it to 0. */
   :lang(ar) {
     letter-spacing: 0 !important;
   }
 
   ::selection {
-    background-color: var(--color-blue);
-    color: var(--color-white);
-  }
-  [data-surface='dark'] ::selection {
-    background-color: var(--color-cyan);
-    color: var(--color-navy);
+    background-color: var(--accent);
+    color: var(--bg);
   }
 
   [hidden] {
     display: none !important;
   }
-}
-
-
-/* ── Site header (src/components/site/Header.astro) ───────────────────── */
-@layer components {
-  .site-header {
-    transition:
-      background-color var(--duration) var(--ease-in-out),
-      border-color var(--duration) var(--ease-in-out);
-    border-block-end: 1px solid var(--color-line);
-    background-color: var(--color-white);
-    color: var(--color-fg);
-  }
-  .site-header[data-state='dark'] {
-    border-block-end-color: transparent;
-    background-color: color-mix(in srgb, var(--color-navy) 80%, transparent);
-    color: var(--color-fg-inverse);
-    -webkit-backdrop-filter: blur(var(--blur-md));
-    backdrop-filter: blur(var(--blur-md));
-  }
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .site-header[data-state='dark'] {
-      background-color: var(--color-navy);
-    }
-  }
-  /* The open drawer is always light. backdrop-filter must go too: it makes
-     the header the containing block of the fixed drawer, which would then
-     collapse to the header's height. */
-  .site-header:has(.mobile-menu:not([hidden])) {
-    background-color: var(--color-white);
-    color: var(--color-fg);
-    border-block-end-color: var(--color-line);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-
-  .site-header[data-state='dark'] .logo-light,
-  .site-header[data-state='light'] .logo-dark,
-  .site-header:has(.mobile-menu:not([hidden])) .logo-dark,
-  .site-header[data-state='dark'] .locale-light,
-  .site-header[data-state='light'] .locale-dark {
-    /* !important: these roots carry display utilities of their own. */
-    display: none !important;
-  }
-  .site-header:has(.mobile-menu:not([hidden])) .logo-light {
-    display: inline-flex !important;
-  }
-  .nav-item[aria-expanded='true'] .nav-chevron {
-    rotate: 180deg;
-  }
-  .nav-chevron {
-    transition: rotate var(--duration-fast) var(--ease-in-out);
-  }
-
-  .nav-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    min-block-size: var(--target-min);
-    padding-inline: 0.75rem;
-    border-radius: var(--radius-sm);
-    font-size: var(--text-nav);
-    line-height: var(--lh-nav);
-    font-weight: 500;
-    color: inherit;
-    transition: background-color var(--duration-fast) var(--ease-in-out);
-  }
-  .nav-item:hover,
-  .nav-item[aria-expanded='true'] {
-    background-color: var(--color-muted);
-  }
-  .site-header[data-state='dark'] .nav-item:hover,
-  .site-header[data-state='dark'] .nav-item[aria-expanded='true'] {
-    background-color: color-mix(in srgb, var(--color-white) 10%, transparent);
-  }
-  .nav-item[aria-current='page'],
-  .nav-item[data-current='true'] {
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.5em;
-  }
-
-  .nav-panel {
-    position: absolute;
-    inset-block-start: calc(100% + 0.5rem);
-    inset-inline-start: 0;
-    min-inline-size: 20rem;
-    padding: 0.5rem;
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-md);
-    background-color: var(--color-white);
-    box-shadow: var(--shadow-lg);
-    color: var(--color-fg);
-  }
-  .nav-panel-link {
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-    min-block-size: var(--target-min);
-    padding: 0.75rem;
-    border-radius: var(--radius-sm);
-  }
-  .nav-panel-link:hover,
-  .nav-panel-link[aria-current='page'] {
-    background-color: var(--color-subtle);
-  }
-
-  .header-cta,
-  .header-cta-block {
-    align-items: center;
-    justify-content: center;
-    min-block-size: var(--target-min);
-    padding-inline: 1.25rem;
-    border-radius: var(--radius-md);
-    font-size: var(--text-button);
-    line-height: var(--lh-button);
-    font-weight: 600;
-    background-color: var(--color-blue);
-    color: var(--color-fg-inverse);
-    transition: background-color var(--duration-fast) var(--ease-in-out);
-  }
-  .header-cta:hover,
-  .header-cta-block:hover {
-    background-color: var(--color-blue-hover);
-  }
-  /* Brand blue never sits on navy (1.89:1): the dark header uses the inverse button. */
-  .site-header[data-state='dark'] .header-cta {
-    background-color: var(--color-white);
-    color: var(--color-navy);
-  }
-  .site-header[data-state='dark'] .header-cta:hover {
-    background-color: var(--color-muted);
-  }
-  .header-cta-block {
-    display: flex;
-    min-block-size: 3.5rem;
-  }
-
-  .menu-toggle {
-    display: inline-grid;
-    place-items: center;
-    inline-size: var(--target-min);
-    block-size: var(--target-min);
-    border-radius: var(--radius-sm);
-    color: inherit;
-  }
-  .menu-toggle .icon-close,
-  .menu-toggle[aria-expanded='true'] .icon-open {
-    display: none;
-  }
-  .menu-toggle[aria-expanded='true'] .icon-close {
-    display: block;
-  }
-
-  .mobile-menu {
-    position: fixed;
-    inset-inline: 0;
-    inset-block: calc(var(--header-h) + 1px) 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    background-color: var(--color-white);
-    color: var(--color-fg);
-  }
-  @media (min-width: 64rem) {
-    .mobile-menu {
-      display: none !important;
-    }
-  }
 
   html.menu-open {
     overflow: hidden;
   }
+
+  /* Amounts, codes and coordinates keep their own order inside Arabic. */
+  bdi {
+    unicode-bidi: isolate;
+  }
 }
 
-/* ── Hero surface: depth from CSS gradients, zero image bytes ──────────── */
+/* Pages cross-fade where the browser supports cross-document view
+   transitions (the language switch included); elsewhere they simply load. */
+@view-transition {
+  navigation: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
 @layer components {
-  .hero-surface {
-    background-color: var(--color-navy);
-    background-image:
-      radial-gradient(70% 60% at 88% 0%, color-mix(in srgb, var(--color-navy-600) 80%, transparent), transparent 70%),
-      radial-gradient(50% 50% at 0% 100%, color-mix(in srgb, var(--color-navy-800) 90%, transparent), transparent 70%);
+  .skip-link {
+    position: fixed;
+    inset-block-start: 0.75rem;
+    inset-inline-start: 0.75rem;
+    z-index: 100;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-full);
+    background-color: var(--inverse-bg);
+    color: var(--inverse-fg);
+    font-weight: 600;
+    translate: 0 -200%;
   }
-  [dir='rtl'] .hero-surface {
-    background-image:
-      radial-gradient(70% 60% at 12% 0%, color-mix(in srgb, var(--color-navy-600) 80%, transparent), transparent 70%),
-      radial-gradient(50% 50% at 100% 100%, color-mix(in srgb, var(--color-navy-800) 90%, transparent), transparent 70%);
+  .skip-link:focus-visible {
+    translate: 0 0;
   }
-  .hero-glow {
+
+  /* The first block of a page slides under the sticky header. */
+  .under-header {
+    margin-block-start: calc(-1 * var(--header-h));
+  }
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────── */
+@utility page {
+  inline-size: 100%;
+  max-inline-size: calc(var(--container-page) + 2 * var(--margin));
+  margin-inline: auto;
+  padding-inline: var(--margin);
+}
+@utility rhythm {
+  padding-block: var(--section);
+}
+@utility rhythm-dense {
+  padding-block: var(--section-dense);
+}
+@utility rhythm-airy {
+  padding-block: var(--section-airy);
+}
+@utility measure {
+  max-inline-size: var(--measure);
+}
+@utility reading {
+  max-inline-size: var(--reading);
+}
+@utility target {
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+}
+@utility min-h-hero {
+  min-block-size: max(100svh, 47.5rem);
+}
+
+/* Every figure: Geist Mono, tabular, isolated from the surrounding text
+   direction so "+$300.00" never reorders inside an Arabic sentence. */
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums lining-nums slashed-zero;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ── Typography ───────────────────────────────────────────────────────── */
+@layer components {
+  /* Mono label: data, chapter marks, source lines. In Arabic a label is the
+     UI face in semibold, never tracked, never case-transformed. */
+  .label,
+  .micro {
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    line-height: var(--lh-label);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+  .micro {
+    font-size: var(--text-micro);
+    line-height: var(--lh-micro);
+    letter-spacing: var(--ls-micro);
+  }
+  :lang(ar) .label,
+  :lang(ar) .micro {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    text-transform: none;
+  }
+  /* A label that is itself Latin data (a code, a coordinate) stays mono. */
+  :lang(ar) .label:lang(en),
+  :lang(ar) .micro:lang(en) {
+    font-family: var(--font-mono);
+    font-weight: 400;
+  }
+
+  .lead {
+    font-size: var(--text-body-l);
+    line-height: var(--lh-body-l);
+    color: var(--fg-2);
+    max-inline-size: var(--measure);
+  }
+
+  /* One emphasised word per headline. Latin: the italic of the display
+     face. Arabic has no italic: a stroke in the accent colour instead. */
+  .emph {
+    font-style: italic;
+  }
+  :lang(ar) .emph {
+    font-style: normal;
+    text-decoration-line: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 0.055em;
+    text-underline-offset: 0.42em;
+  }
+
+  /* Links inside running text. */
+  .ink-link {
+    color: inherit;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    text-decoration-color: var(--line-strong);
+    transition: text-decoration-color var(--motion-hover) var(--ease-hover);
+  }
+  .ink-link:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+/* ── Material ─────────────────────────────────────────────────────────── */
+@layer components {
+  /*
+   * Static grain for tactility on both temperatures: one tiny tiled noise
+   * tile, never animated, ~3% visible. Inline data URI, no request.
+   */
+  .grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .grain::after {
+    content: '';
     position: absolute;
-    inset: 5% -5%;
-    background: radial-gradient(closest-side, color-mix(in srgb, var(--color-cyan) 24%, transparent), transparent);
+    inset: 0;
+    z-index: 0;
     pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+  }
+  .t-paper.grain::after,
+  .t-paper .grain::after {
+    opacity: 0.09;
+    mix-blend-mode: multiply;
+  }
+  .grain > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* A 1px rule in the temperature's line colour. */
+  .rule {
+    border-color: var(--line);
   }
 }
 
 /* ── Prose: Markdown content (blog posts, legal documents) ────────────── */
 @layer components {
   .prose {
-    color: var(--color-fg);
-    font-size: var(--text-body-lg);
-    line-height: var(--lh-body-lg);
+    color: var(--fg);
+    font-size: var(--text-body-l);
+    line-height: var(--lh-body-l);
   }
   .prose > * + * {
-    margin-block-start: 1.25em;
+    margin-block-start: 1.1em;
   }
   .prose :where(h2) {
-    margin-block-start: 2.2em;
-    font-size: var(--text-h2);
-    line-height: var(--lh-h2);
-    letter-spacing: var(--ls-h2);
-    font-weight: 650;
-  }
-  .prose :where(h3) {
-    margin-block-start: 1.8em;
+    margin-block-start: 2em;
     font-size: var(--text-h3);
     line-height: var(--lh-h3);
     letter-spacing: var(--ls-h3);
-    font-weight: 600;
+  }
+  .prose :where(h3) {
+    margin-block-start: 1.8em;
+    font-size: var(--text-h4);
+    line-height: var(--lh-h4);
   }
   .prose :where(h2, h3) + * {
-    margin-block-start: 0.75em;
+    margin-block-start: 0.6em;
   }
   .prose :where(a) {
-    color: var(--color-blue);
-    text-decoration: underline;
+    color: var(--accent);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
     text-underline-offset: 0.2em;
   }
   .prose :where(a:hover) {
     text-decoration-thickness: 2px;
   }
   .prose :where(strong) {
-    font-weight: 650;
+    font-weight: 600;
   }
   .prose :where(ul, ol) {
-    padding-inline-start: 1.5em;
+    padding-inline-start: 1.4em;
   }
   .prose :where(ul) {
-    list-style: disc;
+    list-style: none;
+  }
+  .prose :where(ul > li) {
+    position: relative;
+  }
+  .prose :where(ul > li)::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: -1.1em;
+    inset-block-start: 0.78em;
+    inline-size: 0.55em;
+    block-size: 1px;
+    background: var(--fg-3);
   }
   .prose :where(ol) {
-    list-style: decimal;
+    list-style: decimal-leading-zero;
+  }
+  .prose :where(ol > li)::marker {
+    font-family: var(--font-mono);
+    font-size: 0.8em;
+    color: var(--fg-3);
   }
   .prose :where(li + li) {
     margin-block-start: 0.5em;
   }
-  .prose :where(li)::marker {
-    color: var(--color-fg-3);
-  }
   .prose :where(blockquote) {
-    border-inline-start: 3px solid var(--color-navy);
-    padding-inline-start: 1.25em;
-    color: var(--color-fg-2);
-    font-style: normal;
+    padding-block: 0.4em;
+    font-family: var(--font-display);
+    font-size: var(--text-h4);
+    line-height: var(--lh-h4);
+    color: var(--fg);
   }
   .prose :where(hr) {
-    border-color: var(--color-line);
+    border-color: var(--line);
     margin-block: 2.5em;
   }
   .prose :where(img) {
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
   }
   .prose :where(table) {
     inline-size: 100%;
     border-collapse: collapse;
-    font-size: var(--text-body-sm);
+    font-size: var(--text-body-s);
     font-variant-numeric: tabular-nums;
   }
   .prose :where(th, td) {
-    border-block-end: 1px solid var(--color-line);
+    border-block-end: 1px solid var(--line);
     padding: 0.625em 0.75em;
     text-align: start;
   }
   .prose :where(code) {
     font-family: var(--font-mono);
-    font-size: 0.9em;
+    font-size: 0.88em;
+  }
+  /* A drop cap for the first paragraph of a post (Latin only: Arabic has no
+     tradition of it and the joined letterforms would break). */
+  .prose-dropcap > p:first-of-type::first-letter {
+    float: inline-start;
+    margin-inline-end: 0.08em;
+    margin-block-start: 0.06em;
+    font-family: var(--font-display);
+    font-size: 4.1em;
+    line-height: 0.8;
+    color: var(--fg);
+  }
+  :lang(ar) .prose-dropcap > p:first-of-type::first-letter {
+    float: none;
+    font: inherit;
+    margin: 0;
+  }
+}
+
+
+/* ── Buttons (Button.astro, DownloadButton.astro, form submits) ─────────
+   A 52px pill with the label and an arrow held in a small circle at the
+   inline end. solid = the temperature's inverse (paper on Night, ink on
+   Paper), never blue; line = a hairline outline in the text colour. */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-block-size: 3.25rem;
+    padding-block: 0.5rem;
+    padding-inline: 1.5rem 0.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    font-family: var(--font-sans);
+    font-size: var(--text-button);
+    line-height: var(--lh-button);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color var(--motion-hover) var(--ease-hover),
+      border-color var(--motion-hover) var(--ease-hover),
+      color var(--motion-hover) var(--ease-hover),
+      scale var(--motion-micro) var(--ease-out),
+      translate var(--motion-standard) var(--ease-out);
+  }
+  .btn-plain {
+    padding-inline: 1.5rem;
+    justify-content: center;
+  }
+  .btn:active {
+    scale: 0.98;
+  }
+  .btn-block {
+    inline-size: 100%;
+  }
+  @media (width >= 30rem) {
+    .btn-block {
+      inline-size: auto;
+    }
+  }
+
+  .btn-solid {
+    background-color: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+  .btn-line {
+    border-color: var(--line-strong);
+    color: var(--fg);
+  }
+
+  .btn-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border: 1px solid currentColor;
+    border-radius: var(--radius-full);
+    transition:
+      background-color var(--motion-hover) var(--ease-hover),
+      color var(--motion-hover) var(--ease-hover);
+  }
+  .btn-arrow {
+    transition: translate var(--motion-hover) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .btn-solid:hover .btn-mark {
+      background-color: var(--inverse-fg);
+      color: var(--inverse-bg);
+    }
+    .btn-line:hover {
+      border-color: var(--fg);
+    }
+    .btn-line:hover .btn-mark {
+      background-color: var(--fg);
+      color: var(--bg);
+    }
+    .btn:hover .btn-arrow-forward {
+      translate: calc(3px * var(--dir)) 0;
+    }
+    .btn:hover .btn-arrow-down {
+      translate: 0 3px;
+    }
+    .btn:hover .btn-arrow-external {
+      translate: calc(2px * var(--dir)) -2px;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .btn {
+      border-color: ButtonText;
+    }
   }
 }
 
 /* ── Smart download button + QR dialog ────────────────────────────────── */
 @layer components {
-  .dl-button > span {
-    display: inline-flex;
-    align-items: center;
-  }
   .dl-button .dl-when-ios,
   .dl-button .dl-when-android,
   html[data-platform='ios'] .dl-button .dl-when-desktop,
@@ -362,186 +491,143 @@
   .download-dialog {
     margin: auto;
     inline-size: min(26rem, calc(100vw - 2rem));
-    padding: 1rem 2rem 2rem;
-    border: 0;
-    border-radius: var(--radius-lg);
-    background-color: var(--color-white);
-    color: var(--color-fg);
-    box-shadow: var(--shadow-lg);
+    padding: 1.25rem 2rem 2rem;
+    border: 1px solid var(--color-paper-line);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-paper-50);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-paper);
   }
   .download-dialog::backdrop {
-    background-color: color-mix(in srgb, var(--color-navy) 72%, transparent);
+    background-color: color-mix(in srgb, var(--color-night-950) 78%, transparent);
   }
   html:has(.download-dialog[open]) {
     overflow: hidden;
   }
 }
 
-@utility min-h-hero {
-  min-block-size: 88svh;
+/* ── Motion: Land (src/lib/motion/reveal.ts) ─────────────────────────── */
+@layer components {
+  /*
+   * Only an element the script has begun observing is hidden, and it is
+   * hidden by an attribute only the script sets. No script, no hidden
+   * content, and the script carries a timeout that clears every pending
+   * element regardless. Transform and opacity only, so nothing moves the
+   * layout around it. --dir flips horizontal entrances in Arabic.
+   */
+  [data-reveal][data-reveal-pending] {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  [data-reveal][data-revealed] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--motion-standard) var(--ease-out),
+      transform var(--motion-standard) var(--ease-out);
+  }
+
+  [data-reveal][data-reveal-pending] [data-reveal-child] {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  [data-reveal][data-revealed] [data-reveal-child] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--motion-standard) var(--ease-out),
+      transform var(--motion-standard) var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 70ms);
+  }
+
+  /* Draw: a hairline that strokes itself in, once. */
+  [data-reveal-pending] [data-draw],
+  [data-reveal-pending][data-draw] {
+    stroke-dashoffset: 1;
+  }
+  [data-draw] {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  [data-revealed] [data-draw],
+  [data-revealed][data-draw] {
+    transition: stroke-dashoffset var(--motion-scene) var(--ease-in-out);
+    transition-delay: calc(var(--i, 0) * 90ms);
+  }
 }
 
-/* ── Layout utilities ─────────────────────────────────────────────────── */
-@utility container-page {
-  inline-size: 100%;
-  max-inline-size: calc(var(--container-lg) + 2 * var(--gutter));
-  margin-inline: auto;
-  padding-inline: var(--gutter);
+:root {
+  --dir: 1;
 }
-@utility container-wide {
-  inline-size: 100%;
-  max-inline-size: calc(var(--container-xl) + 2 * var(--gutter));
-  margin-inline: auto;
-  padding-inline: var(--gutter);
-}
-@utility container-narrow {
-  inline-size: 100%;
-  max-inline-size: calc(var(--container-md) + 2 * var(--gutter));
-  margin-inline: auto;
-  padding-inline: var(--gutter);
-}
-@utility section-y {
-  padding-block: var(--section-y);
-}
-@utility section-y-sm {
-  padding-block: var(--section-y-sm);
-}
-@utility section-y-lg {
-  padding-block: var(--section-y-lg);
-}
-@utility measure {
-  max-inline-size: var(--container-prose);
-}
-@utility target {
-  min-block-size: var(--target-min);
-  min-inline-size: var(--target-min);
+[dir='rtl'] {
+  --dir: -1;
 }
 
-/* Every figure: tabular lining numerals in Inter, isolated from RTL text so
-   "$1,240.00" never reorders inside an Arabic sentence. */
-@utility num {
-  font-family: var(--font-num);
-  font-variant-numeric: tabular-nums lining-nums;
-  direction: ltr;
-  unicode-bidi: isolate;
-}
-
-/* ── Motion (audit Q.2) ───────────────────────────────────────────────── */
-/* A real reduced-motion path, not a blanket kill: movement goes, but colour
-   and opacity feedback stay so the interface still responds. */
+/* ── Reduced motion ───────────────────────────────────────────────────── */
+/* Movement goes; 150ms opacity fades stay so the interface still answers. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
     scroll-behavior: auto !important;
-    transition-property: color, background-color, border-color, outline-color, opacity, box-shadow !important;
+    transition-property: color, background-color, border-color, outline-color, opacity, text-decoration-color !important;
+    transition-duration: 150ms !important;
+    transition-delay: 0ms !important;
+  }
+  [data-reveal],
+  [data-reveal] [data-reveal-child] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  [data-draw] {
+    stroke-dashoffset: 0 !important;
   }
 }
 
-/* ── Forced colours (Windows High Contrast) ───────────────────────────── */
+/* ── Forced colours (Windows High Contrast): drop the art, keep the text,
+      the borders and the focus outlines. ─────────────────────────────── */
 @media (forced-colors: active) {
+  [data-art] {
+    display: none !important;
+  }
   [data-btn] {
     border: 1px solid ButtonText;
   }
-  [data-card],
-  [data-device] {
+  [data-slip],
+  [data-card] {
     border: 1px solid CanvasText;
   }
-  [data-gap] {
-    border-color: CanvasText;
+  [data-reveal],
+  [data-reveal] [data-reveal-child] {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 
 /* ── Print ────────────────────────────────────────────────────────────── */
 @media print {
   [data-site-header],
+  [data-site-strip],
   [data-site-footer-nav],
+  [data-art],
   [data-no-print] {
     display: none !important;
+  }
+  body,
+  .t-night {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  [data-reveal],
+  [data-reveal] [data-reveal-child] {
+    opacity: 1 !important;
+    transform: none !important;
   }
   a[href^='http']::after {
     content: ' (' attr(href) ')';
     font-size: 0.8em;
-  }
-}
-
-/* ── Scroll reveal (src/scripts/reveal.ts) ─────────────────────── */
-@layer components {
-  /*
-   * Only an element the script has begun observing is hidden, and it is
-   * hidden by an attribute only the script sets. No script, no hidden
-   * content — and the script itself carries a timeout that clears every
-   * pending element regardless. Transform and opacity only, so nothing
-   * below a revealing element ever moves.
-   */
-  [data-reveal][data-reveal-pending] {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  [data-reveal][data-revealed] {
-    opacity: 1;
-    transform: none;
-    transition:
-      opacity 0.6s var(--ease-out),
-      transform 0.7s var(--ease-out);
-  }
-
-  /* Children of a pending group come in just behind it, in order. */
-  [data-reveal][data-reveal-pending] [data-reveal-child] {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  [data-reveal][data-revealed] [data-reveal-child] {
-    opacity: 1;
-    transform: none;
-    transition:
-      opacity 0.5s var(--ease-out),
-      transform 0.6s var(--ease-out);
-  }
-  [data-reveal-child]:nth-child(2) { transition-delay: 90ms; }
-  [data-reveal-child]:nth-child(3) { transition-delay: 180ms; }
-  [data-reveal-child]:nth-child(4) { transition-delay: 270ms; }
-  [data-reveal-child]:nth-child(5) { transition-delay: 360ms; }
-
-  @media (prefers-reduced-motion: reduce) {
-    [data-reveal],
-    [data-reveal] [data-reveal-child] {
-      opacity: 1 !important;
-      transform: none !important;
-      transition: none !important;
-    }
-  }
-
-  /* Printing and forced-colours must never omit content. */
-  @media print, (forced-colors: active) {
-    [data-reveal],
-    [data-reveal] [data-reveal-child] {
-      opacity: 1 !important;
-      transform: none !important;
-    }
-  }
-}
-
-@layer components {
-  /* A section header that stays with its content.
-     The two-column sections put a short header beside a long column, which
-     left the header's side of the page empty for most of the scroll. Held
-     in place it reads as a running title instead: the reader always knows
-     which question the column they are reading answers, and the column
-     that was blank is doing work.
-
-     Only from the large breakpoint, where the two columns actually sit
-     side by side, and only when the header is shorter than the viewport
-     — a sticky element taller than the screen can never be scrolled to
-     its end. */
-  @media (min-width: 64rem) {
-    .sticky-col {
-      position: sticky;
-      inset-block-start: calc(var(--header-h) + 2.5rem);
-      align-self: start;
-      max-block-size: calc(100vh - var(--header-h) - 5rem);
-    }
   }
 }

@@ -1,0 +1,85 @@
+---
+import Breadcrumbs from './Breadcrumbs.astro';
+import FeatherField from '../art/FeatherField.astro';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * The top of every inner page: Paper, a feather field of hairline barbs
+ * seeded by the page (so each page has its own, and it never changes), a
+ * mono breadcrumb, one H1 in the display face, one lead.
+ *
+ * Replaces the grey band the inner pages used to share: the same system as
+ * the homepage, at a quieter volume.
+ */
+interface Props {
+  locale: Locale;
+  title: string;
+  lead?: string | undefined;
+  crumbs: Array<{ label: string; href?: string }>;
+  /** Seeds the feather field. Usually the page key. */
+  seed: string;
+  /** Headline scale: display-l for landmark pages, display-m for utility ones. */
+  size?: 'l' | 'm';
+  class?: string;
+}
+const { locale, title, lead, crumbs, seed, size = 'l', class: className } = Astro.props;
+---
+
+<header class:list={['page-hero under-header t-paper grain', className]} data-temp="paper">
+  <div class="page-hero-art">
+    <FeatherField seed={seed} variant="strip" follow />
+  </div>
+  <div class="page page-hero-inner">
+    <Breadcrumbs locale={locale} items={crumbs} />
+    <div class="page-hero-copy">
+      <h1 class:list={['font-display', size === 'l' ? 'text-display-l' : 'text-display-m']}>{title}</h1>
+      {lead && <p class="lead">{lead}</p>}
+      <slot />
+    </div>
+  </div>
+</header>
+
+<style>
+  .page-hero {
+    position: relative;
+    overflow: clip;
+    background-color: var(--bg);
+    border-block-end: 1px solid var(--line);
+  }
+  .page-hero-art {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    block-size: clamp(9rem, 22vw, 17rem);
+    color: var(--fg);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+  .page-hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2.5rem, 9vw, 7.5rem);
+    padding-block: calc(var(--header-h) + 1.5rem) clamp(3rem, 7vw, 6rem);
+  }
+  .page-hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-inline-size: 22ch;
+    padding-block-start: clamp(4rem, 12vw, 10rem);
+  }
+  .page-hero-copy :global(.lead) {
+    max-inline-size: 46ch;
+  }
+  .page-hero-copy h1 {
+    max-inline-size: 18ch;
+  }
+  @media (width >= 64rem) {
+    .page-hero-copy {
+      max-inline-size: none;
+    }
+    .page-hero-copy h1 {
+      max-inline-size: 16ch;
+    }
+  }
+</style>

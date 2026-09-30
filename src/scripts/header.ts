@@ -1,32 +1,43 @@
 /**
- * Header behaviour (audit O.4 "Navigation").
+ * Header behaviour.
  *
- * The desktop navigation is four plain links, so there is no dropdown code
- * here any more: nothing to open, nothing to trap focus in, nothing to get
- * wrong. What is left is the tone switch and the mobile drawer.
- *
- *  · Tone: dark while the navy hero ([data-dark-zone]) sits under the header.
- *  · Mobile drawer: aria-expanded + aria-controls, focus trapped while open,
- *    Esc closes, focus returns to the toggle.
+ *  · Temperature: the header takes the temperature of the section under it
+ *    ([data-temp="night" | "paper"]; the innermost match wins), and turns
+ *    solid, with a hairline, once the page has moved. One rAF per frame at
+ *    most, reading a handful of rects.
+ *  · Mobile sheet: aria-expanded + aria-controls, focus trapped while open,
+ *    Esc closes, focus returns to the toggle, following a link closes it.
  */
 const header = document.querySelector<HTMLElement>('[data-site-header]');
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 if (header) {
-  // ── Tone ──────────────────────────────────────────────────────────────
-  const zone = document.querySelector<HTMLElement>('[data-dark-zone]');
-  if (zone && header.dataset.state === 'dark' && 'IntersectionObserver' in window) {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry) header.dataset.state = entry.isIntersecting ? 'dark' : 'light';
-      },
-      { rootMargin: `-${header.offsetHeight}px 0px 0px 0px` },
-    );
-    observer.observe(zone);
-  }
+  // ── Temperature ─────────────────────────────────────────────────────
+  const zones = [...document.querySelectorAll<HTMLElement>('main [data-temp], footer[data-temp]')];
+  const fallback = header.dataset.top === 'night' ? 'night' : 'paper';
+  let frame = 0;
 
-  // ── Mobile drawer ─────────────────────────────────────────────────────
+  const update = () => {
+    frame = 0;
+    const line = header.getBoundingClientRect().bottom - 1;
+    let temp = fallback;
+    for (const zone of zones) {
+      const r = zone.getBoundingClientRect();
+      if (r.top <= line && r.bottom > line) temp = zone.dataset.temp === 'night' ? 'night' : 'paper';
+    }
+    header.classList.toggle('t-night', temp === 'night');
+    header.classList.toggle('t-paper', temp === 'paper');
+    header.toggleAttribute('data-scrolled', window.scrollY > 8);
+  };
+  const schedule = () => {
+    if (!frame) frame = requestAnimationFrame(update);
+  };
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+  update();
+
+  // ── Mobile sheet ────────────────────────────────────────────────────
   const toggle = header.querySelector<HTMLButtonElement>('[data-menu-toggle]');
   const menu = document.getElementById('mobile-menu');
 
@@ -45,7 +56,6 @@ if (header) {
 
     toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
 
-    // Trap focus between the toggle and the drawer's own controls.
     header.addEventListener('keydown', (event) => {
       if (menu.hidden) return;
       if (event.key === 'Escape') {
@@ -65,12 +75,10 @@ if (header) {
       }
     });
 
-    // Following a link inside the drawer closes it (matters for same-page anchors).
     menu.addEventListener('click', (event) => {
       if ((event.target as HTMLElement).closest('a')) setOpen(false, { restoreFocus: false });
     });
 
-    // Growing into the desktop layout closes the drawer.
     matchMedia('(min-width: 64rem)').addEventListener('change', (event) => {
       if (event.matches && !menu.hidden) setOpen(false, { restoreFocus: false });
     });

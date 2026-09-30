@@ -33,6 +33,11 @@ export interface Facts {
     registrationNumber: string | null;
     registeredAddress: Localized | null;
     jurisdiction: Localized | null;
+    /**
+     * Where the company can be reached, as published on its own channels.
+     * Not the registered address (that is a separate, legal fact above).
+     */
+    office: Sourced<{ address: string; phone: string }> | null;
   };
   /** Money-transmission / e-money licences or registrations. */
   licences: Licence[];
@@ -70,6 +75,22 @@ export const facts: Facts = {
     registrationNumber: null,
     registeredAddress: null,
     jurisdiction: null,
+    /**
+     * From the Shaheen Money Facebook page's intro, supplied by the owner
+     * as a screenshot on 30 September 2026. A US postal address and phone
+     * number: shown in Latin script in both locales, isolated left to right.
+     */
+    office: {
+      value: {
+        address: '1100 15th Street NW, Washington, DC, United States',
+        phone: '+1 240-600-0946',
+      },
+      source: {
+        name: { en: 'Shaheen Money on Facebook', ar: 'صفحة شاهين موني على فيسبوك' },
+        url: 'https://www.facebook.com/people/Shaheen/61571378790273/',
+        asOf: '2026-09-30',
+      },
+    },
   },
   licences: [],
   /**

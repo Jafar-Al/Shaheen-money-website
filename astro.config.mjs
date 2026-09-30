@@ -3,6 +3,7 @@ import { defineConfig, envField, fontProviders } from 'astro/config';
 import vercel from '@astrojs/vercel';
 import tailwindcss from '@tailwindcss/vite';
 import securityHeaders from './integrations/security-headers.mjs';
+import contentGaps from './integrations/content-gaps.mjs';
 import { legacyRedirects } from './src/config/redirects.mjs';
 
 /**
@@ -17,16 +18,14 @@ const isDev = process.argv.includes('dev');
 const analyticsSrc = process.env.PUBLIC_ANALYTICS_SCRIPT_SRC;
 const analyticsOrigin = analyticsSrc?.startsWith('https://') ? new URL(analyticsSrc).origin : null;
 
-// Latin subset as published by Fontsource, so English pages never fetch
-// the Arabic face and Arabic pages only fetch Inter for digits and Latin.
+// Unicode ranges match the subsets scripts/build-fonts.mjs writes, so a
+// face is only ever fetched for characters it actually carries.
 /** @type {[string, ...string[]]} */
-const LATIN = [
-  'U+0000-00FF', 'U+0131', 'U+0152-0153', 'U+02BB-02BC', 'U+02C6', 'U+02DA', 'U+02DC',
-  'U+0304', 'U+0308', 'U+0329', 'U+2000-206F', 'U+20AC', 'U+2122', 'U+2191', 'U+2193',
-  'U+2212', 'U+2215', 'U+FEFF', 'U+FFFD',
-];
+const LATIN = ['U+0020-007E', 'U+00A0-00FF', 'U+2010-2027', 'U+2030-203A', 'U+20AC', 'U+2122', 'U+2190-2197', 'U+2212', 'U+2715'];
 /** @type {[string, ...string[]]} */
-const ARABIC = ['U+0600-06FF', 'U+FE70-FEFC', 'U+200C-200F'];
+const ARABIC = ['U+0621-063A', 'U+0640-0652', 'U+0670', 'U+060C', 'U+061B', 'U+061F', 'U+200C-200F'];
+/** @type {[string, ...string[]]} */
+const ARABIC_LATIN = [...ARABIC, ...LATIN];
 
 export default defineConfig({
   site: 'https://shaheen.money',
@@ -36,7 +35,7 @@ export default defineConfig({
     // as a real response header instead of a <meta> tag.
     staticHeaders: true,
   }),
-  integrations: [securityHeaders()],
+  integrations: [securityHeaders(), contentGaps()],
   redirects: legacyRedirects,
   trailingSlash: 'ignore',
   compressHTML: true,
@@ -66,21 +65,24 @@ export default defineConfig({
   },
 
   fonts: [
+    // Display (Latin): one italic word per headline, so both styles ship.
     {
       provider: fontProviders.local(),
-      name: 'Inter',
-      cssVariable: '--font-inter',
-      fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+      name: 'Instrument Serif',
+      cssVariable: '--font-instrument-serif',
+      fallbacks: ['ui-serif', 'Georgia', 'serif'],
       options: {
         variants: [
-          { src: ['./src/assets/fonts/inter-latin-wght.woff2'], weight: '100 900', style: 'normal', unicodeRange: LATIN },
+          { src: ['./src/assets/fonts/instrument-serif-400.woff2'], weight: 400, style: 'normal', unicodeRange: LATIN },
+          { src: ['./src/assets/fonts/instrument-serif-400-italic.woff2'], weight: 400, style: 'italic', unicodeRange: LATIN },
         ],
       },
     },
+    // UI and body (Latin).
     {
       provider: fontProviders.local(),
       name: 'Instrument Sans',
-      cssVariable: '--font-instrument',
+      cssVariable: '--font-instrument-sans',
       fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
       options: {
         variants: [
@@ -88,17 +90,37 @@ export default defineConfig({
         ],
       },
     },
+    // Figures, codes, dates, coordinates and source lines, in both locales.
+    {
+      provider: fontProviders.local(),
+      name: 'Geist Mono',
+      cssVariable: '--font-geist-mono',
+      fallbacks: ['ui-monospace', 'monospace'],
+      options: {
+        variants: [{ src: ['./src/assets/fonts/geist-mono-400.woff2'], weight: 400, style: 'normal', unicodeRange: LATIN }],
+      },
+    },
+    // Display (Arabic): chosen by specimen test against Instrument Serif
+    // (docs/DESIGN.md). No generic fallback: the stack continues into Plex.
+    {
+      provider: fontProviders.local(),
+      name: 'Noto Naskh Arabic',
+      cssVariable: '--font-naskh',
+      fallbacks: [],
+      options: {
+        variants: [{ src: ['./src/assets/fonts/noto-naskh-arabic-500.woff2'], weight: 500, style: 'normal', unicodeRange: ARABIC }],
+      },
+    },
+    // UI and body (Arabic), with its own Latin for brand and store names.
     {
       provider: fontProviders.local(),
       name: 'IBM Plex Sans Arabic',
       cssVariable: '--font-plex-arabic',
-      // No generic fallback here: the stack continues into Inter (tokens.css),
-      // which must win for digits and Latin inside Arabic text.
       fallbacks: [],
       options: {
         variants: [
-          { src: ['./src/assets/fonts/ibm-plex-sans-arabic-core-400.woff2'], weight: 400, style: 'normal', unicodeRange: ARABIC },
-          { src: ['./src/assets/fonts/ibm-plex-sans-arabic-core-700.woff2'], weight: 700, style: 'normal', unicodeRange: ARABIC },
+          { src: ['./src/assets/fonts/ibm-plex-sans-arabic-400.woff2'], weight: 400, style: 'normal', unicodeRange: ARABIC_LATIN },
+          { src: ['./src/assets/fonts/ibm-plex-sans-arabic-600.woff2'], weight: 600, style: 'normal', unicodeRange: ARABIC_LATIN },
         ],
       },
     },

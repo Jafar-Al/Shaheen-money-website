@@ -1,0 +1,467 @@
+---
+import AppIcon from './AppIcon.astro';
+import Stamp from '../ui/Stamp.astro';
+import { home } from '../../copy/home';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * A shard of the Shaheen Money app, rebuilt in HTML from the owner's
+ * screenshots rather than pasted in as a phone: the product appears as the
+ * pieces a visitor needs to see, at the moment they matter.
+ *
+ *   balance  the top of the home screen: menu, mark, QR; Cash Balance and
+ *            the USDc selector; optionally the incoming +300.00 row
+ *   actions  Add Funds · Withdraw · Send · Request around the swap button,
+ *            and the Marketplace · Home · History bar
+ *   history  the activity rows, on the app's navy card
+ *   code     the cash-out code, on the navy card
+ *   home     balance + actions + bar: a whole screen, for the device
+ *
+ * The app's own palette (tokens app-*), because this is the product as it
+ * is. Mirrors with the page, as the app would for an Arabic reader; figures
+ * are isolated so "+300.00" never reorders. Every shard carries the
+ * "Illustrative" stamp: these are examples, not anybody's balance.
+ *
+ * Sizing: every shard is an inline-size container and every size inside is
+ * in cqw, so one number (its width) sets the whole composition.
+ */
+interface Props {
+  locale: Locale;
+  variant: 'balance' | 'actions' | 'history' | 'code' | 'home';
+  /** balance: which figure the balance shows. */
+  amount?: 'balanceBefore' | 'balance' | 'balanceAfterSpend' | 'balanceAfterCash';
+  /** balance: show the incoming +300.00 row under the balance. */
+  incoming?: boolean;
+  /** history: which rows (indices into the copy) to show, newest first. */
+  rows?: number[];
+  stamp?: boolean;
+  stampTilt?: number;
+  class?: string;
+  [key: `data-${string}`]: string | undefined;
+}
+const {
+  locale,
+  variant,
+  amount = 'balance',
+  incoming = false,
+  rows = [0, 1, 2, 3],
+  stamp = true,
+  stampTilt = -3,
+  class: className,
+  ...rest
+} = Astro.props;
+const t = home[locale].app;
+const received = t.rows[0]!;
+---
+
+<figure class:list={['shard', `shard-${variant}`, className]} {...rest}>
+  <div class="shard-screen">
+    {
+      (variant === 'balance' || variant === 'home') && (
+        <div class="app-top">
+          <div class="app-bar" aria-hidden="true">
+            <AppIcon name="menu" class="app-bar-icon" />
+            <svg viewBox="0 0 240 240" class="app-bar-mark" focusable="false">
+              <use href="#falcon-mark" />
+            </svg>
+            <AppIcon name="qr" class="app-bar-icon" />
+          </div>
+          <p class="app-balance-label">{t.balanceLabel}</p>
+          <p class="app-balance">
+            <bdi class="app-amount" data-shard-amount>
+              {t[amount]}
+            </bdi>
+            <span class="app-currency" lang="en">
+              {t.currency}
+              <span aria-hidden="true" class="app-caret" />
+            </span>
+          </p>
+          {incoming && (
+            <div class="app-incoming" data-shard-incoming>
+              <span class="app-row-icon app-row-in">
+                <AppIcon name="in" />
+              </span>
+              <span class="app-row-text">
+                <span class="app-row-label">{received.label}</span>
+                <span class="app-row-meta">{received.meta}</span>
+              </span>
+              <bdi class="app-row-amount">
+                {received.amount} <span lang="en">{t.currency}</span>
+              </bdi>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    {
+      (variant === 'actions' || variant === 'home') && (
+        <div class="app-actions">
+          <div class="app-grid">
+            {(
+              [
+                ['add', t.actions.add],
+                ['withdraw', t.actions.withdraw],
+                ['send', t.actions.send],
+                ['request', t.actions.request],
+              ] as const
+            ).map(([icon, label]) => (
+              <span class="app-tile" data-tile={icon}>
+                <span class="app-disc">
+                  <AppIcon name={icon} />
+                </span>
+                <span class="app-tile-label">{label}</span>
+              </span>
+            ))}
+            <span class="app-swap">
+              <span class="app-disc">
+                <AppIcon name="swap" />
+              </span>
+            </span>
+          </div>
+          <div class="app-tabs" aria-hidden="true">
+            {t.tabs.map((tab, i) => (
+              <span class:list={['app-tab', i === 1 && 'app-tab-on']}>{tab}</span>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      variant === 'history' && (
+        <div class="app-card">
+          <p class="app-card-title">{t.historyTitle}</p>
+          <ul class="app-rows">
+            {rows.map((i) => {
+              const r = t.rows[i]!;
+              return (
+                <li class="app-row" data-row={i}>
+                  <span class:list={['app-row-icon', `app-row-${r.kind}`]}>
+                    <AppIcon name={r.kind === 'in' ? 'in' : r.kind === 'cash' ? 'cash' : 'out'} />
+                  </span>
+                  <span class="app-row-text">
+                    <span class="app-row-label">{r.label}</span>
+                    <span class="app-row-meta">{r.meta}</span>
+                  </span>
+                  <bdi class="app-row-amount">{r.amount}</bdi>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )
+    }
+
+    {
+      variant === 'code' && (
+        <div class="app-card app-code">
+          <p class="app-card-title">{t.collect.title}</p>
+          <p class="app-code-amount">
+            <bdi>{t.collect.amount}</bdi>
+          </p>
+          <p class="app-row-meta">{t.collect.at}</p>
+          <div class="app-code-box">
+            <p class="app-code-label">{t.collect.codeLabel}</p>
+            <p class="app-code-value">
+              <bdi>{t.collect.code}</bdi>
+            </p>
+          </div>
+          <p class="app-code-note">{t.collect.note}</p>
+        </div>
+      )
+    }
+  </div>
+  {stamp && <Stamp locale={locale} kind="illustrative" tilt={stampTilt} class="shard-stamp" />}
+  <slot />
+</figure>
+
+<style>
+  .shard {
+    --app-blue: var(--color-app-blue);
+    --app-tile: var(--color-app-tile);
+    --app-card: var(--color-app-card);
+    --app-cyan: var(--color-app-cyan);
+    --app-icon: var(--color-app-icon);
+    position: relative;
+    margin: 0;
+  }
+  .shard-screen {
+    container-type: inline-size;
+    overflow: clip;
+    border-radius: var(--radius-sm);
+    background-color: var(--app-blue);
+    color: #fff;
+    font-family: var(--font-sans);
+    outline: 1px solid rgb(255 255 255 / 0.14);
+  }
+  .shard-stamp {
+    position: absolute;
+    inset-block-start: -0.9rem;
+    inset-inline-end: 1rem;
+    z-index: 2;
+    background-color: var(--bg);
+  }
+
+  /* ── Top of the home screen ─────────────────────────────────────── */
+  .app-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6cqw 6cqw 7cqw;
+  }
+  .app-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    inline-size: 100%;
+  }
+  .app-bar-icon {
+    inline-size: 8cqw;
+    block-size: 8cqw;
+    color: var(--app-cyan);
+  }
+  .app-bar-mark {
+    inline-size: 10cqw;
+    block-size: 10cqw;
+    color: #fff;
+  }
+  .app-balance-label {
+    margin-block-start: 8cqw;
+    font-size: 4.4cqw;
+    color: rgb(255 255 255 / 0.86);
+  }
+  .app-balance {
+    display: flex;
+    align-items: center;
+    gap: 3cqw;
+    margin-block-start: 2cqw;
+  }
+  .app-amount {
+    font-size: 13.5cqw;
+    line-height: 1;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    transition: color 0.6s var(--ease-out);
+  }
+  .app-amount.is-flash {
+    color: var(--app-cyan);
+    transition-duration: 0.12s;
+  }
+  .app-currency {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.6cqw;
+    padding: 1.6cqw 3cqw;
+    border-radius: 2.4cqw;
+    background-color: var(--app-tile);
+    font-family: var(--font-sans);
+    font-size: 4.6cqw;
+    font-weight: 500;
+    color: rgb(255 255 255 / 0.9);
+  }
+  .app-caret {
+    inline-size: 0;
+    block-size: 0;
+    border-inline: 1.3cqw solid transparent;
+    border-block-start: 1.8cqw solid currentColor;
+  }
+
+  /* The incoming row: the app's navy card, sliding under the balance. */
+  .app-incoming {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 3.5cqw;
+    inline-size: 100%;
+    margin-block-start: 6cqw;
+    padding: 3.6cqw 4cqw;
+    border-radius: 3cqw;
+    background-color: var(--app-card);
+  }
+
+  /* ── Actions ────────────────────────────────────────────────────── */
+  .app-actions {
+    padding: 0 5cqw 5cqw;
+  }
+  .app-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3.4cqw;
+  }
+  .app-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3.4cqw;
+    aspect-ratio: 1 / 1.02;
+    border-radius: 2.4cqw;
+    background-color: var(--app-tile);
+  }
+  .app-disc {
+    display: grid;
+    place-items: center;
+    inline-size: 17cqw;
+    block-size: 17cqw;
+    border-radius: var(--radius-full);
+    background-color: #fff;
+    color: var(--app-icon);
+  }
+  .app-disc svg {
+    inline-size: 45%;
+    block-size: 45%;
+  }
+  .app-tile-label {
+    font-size: 4.6cqw;
+    font-weight: 500;
+  }
+  .app-swap {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    translate: -50% -50%;
+    padding: 2.6cqw;
+    border-radius: var(--radius-full);
+    background-color: var(--app-blue);
+  }
+  :global([dir='rtl']) .app-swap {
+    translate: 50% -50%;
+  }
+  .app-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
+    margin-block-start: 6cqw;
+    padding: 1.6cqw;
+    border-radius: 2.4cqw;
+    background-color: var(--app-tile);
+  }
+  .app-tab {
+    padding-block: 2.8cqw;
+    border-radius: 1.8cqw;
+    font-size: 3.8cqw;
+    text-align: center;
+    color: rgb(255 255 255 / 0.62);
+  }
+  .app-tab-on {
+    background-color: var(--app-cyan);
+    color: var(--app-card);
+    font-weight: 600;
+  }
+
+  /* ── Navy card: history and the cash-out code ───────────────────── */
+  .app-card {
+    margin: 5cqw;
+    padding: 5cqw;
+    border-radius: 3.4cqw;
+    background-color: var(--app-card);
+  }
+  .app-card-title {
+    font-size: 4.2cqw;
+    font-weight: 600;
+    color: var(--app-cyan);
+  }
+  .app-rows {
+    display: flex;
+    flex-direction: column;
+    margin-block-start: 2cqw;
+  }
+  .app-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 3.5cqw;
+    padding-block: 3.4cqw;
+    border-block-end: 1px solid rgb(255 255 255 / 0.1);
+  }
+  .app-row:last-child {
+    border-block-end: 0;
+  }
+  .app-row-icon {
+    display: grid;
+    place-items: center;
+    inline-size: 9cqw;
+    block-size: 9cqw;
+    border-radius: var(--radius-full);
+    background-color: rgb(255 255 255 / 0.08);
+    color: #fff;
+  }
+  .app-row-icon svg {
+    inline-size: 55%;
+    block-size: 55%;
+  }
+  .app-row-in {
+    background-color: var(--app-cyan);
+    color: var(--app-card);
+  }
+  .app-row-cash {
+    background-color: var(--color-amber);
+    color: var(--app-card);
+  }
+  .app-row-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6cqw;
+    min-inline-size: 0;
+  }
+  .app-row-label {
+    font-size: 4.2cqw;
+    font-weight: 600;
+  }
+  .app-row-meta {
+    font-size: 3.5cqw;
+    color: rgb(255 255 255 / 0.7);
+  }
+  .app-row-amount {
+    font-size: 4.2cqw;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .app-code {
+    text-align: center;
+  }
+  .app-code-amount {
+    margin-block: 3cqw 1cqw;
+    font-size: 13cqw;
+    line-height: 1;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .app-code-box {
+    margin-block-start: 6cqw;
+    padding: 5cqw;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: 3cqw;
+  }
+  .app-code-label {
+    font-size: 3.6cqw;
+    color: rgb(255 255 255 / 0.7);
+  }
+  .app-code-value {
+    margin-block-start: 2cqw;
+    font-family: var(--font-mono);
+    font-size: 11cqw;
+    letter-spacing: 0.08em;
+    color: var(--app-cyan);
+  }
+  .app-code-note {
+    margin-block-start: 5cqw;
+    font-size: 3.6cqw;
+    line-height: 1.5;
+    color: rgb(255 255 255 / 0.72);
+  }
+
+  @media (forced-colors: active) {
+    .shard-screen {
+      forced-color-adjust: none;
+      background: Canvas;
+      color: CanvasText;
+      outline: 1px solid CanvasText;
+    }
+  }
+</style>

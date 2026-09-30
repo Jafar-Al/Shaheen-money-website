@@ -2,43 +2,90 @@
 import Icon from './Icon.astro';
 
 /**
- * Standalone "go somewhere" link, e.g. "See how it works →". Secondary
- * actions use this instead of a second button, so each screen keeps one
- * dominant action (audit A.9 §8).
+ * A standalone "go somewhere" link: "Ask about your country →".
+ * Secondary actions use this rather than a second button, so each screen
+ * keeps one dominant action. `size="lg"` sets it in the display face as an
+ * inline call to action; the hairline under it draws across on hover and
+ * the arrow leans forward (mirrored in Arabic).
  */
 interface Props {
   href: string;
-  tone?: 'light' | 'dark';
+  size?: 'md' | 'lg';
   external?: boolean;
   class?: string;
   [key: `data-${string}`]: string | undefined;
 }
 
-const { href, tone = 'light', external = false, class: className, ...rest } = Astro.props;
+const { href, size = 'md', external = false, class: className, ...rest } = Astro.props;
 ---
 
 <a
   href={href}
-  class:list={[
-    'group inline-flex min-h-11 items-center gap-2 text-button underline-offset-4 hover:underline',
-    tone === 'dark' ? 'text-fg-inverse' : 'text-fg',
-    className,
-  ]}
+  class:list={['text-link', `text-link-${size}`, className]}
   target={external ? '_blank' : undefined}
   rel={external ? 'noopener noreferrer' : undefined}
   {...rest}
 >
-  <slot />
-  {
-    external ? (
-      <Icon name="arrow-up-right" size={18} directional />
-    ) : (
-      <Icon
-        name="arrow-right"
-        size={18}
-        directional
-        class="transition-transform duration-150 group-hover:translate-x-1 rtl:group-hover:-translate-x-1"
-      />
-    )
-  }
+  <span class="text-link-label"><slot /></span>
+  <Icon
+    name={external ? 'arrow-up-right' : 'arrow-right'}
+    size={size === 'lg' ? 24 : 18}
+    directional={!external}
+    class="text-link-arrow"
+  />
 </a>
+
+<style>
+  .text-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: var(--target-min);
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .text-link-md {
+    font-size: var(--text-button);
+    line-height: var(--lh-button);
+  }
+  .text-link-lg {
+    gap: 0.75rem;
+    font-family: var(--font-display);
+    font-size: var(--text-h4);
+    line-height: var(--lh-h4);
+    font-weight: 400;
+  }
+  :global(:lang(ar)) .text-link-lg {
+    font-weight: 500;
+  }
+  .text-link-label {
+    background-image: linear-gradient(currentColor, currentColor), linear-gradient(var(--line-strong), var(--line-strong));
+    background-repeat: no-repeat;
+    background-size:
+      0% 1px,
+      100% 1px;
+    background-position:
+      0 100%,
+      0 100%;
+    padding-block-end: 0.15em;
+    transition: background-size var(--motion-standard) var(--ease-out);
+  }
+  :global([dir='rtl']) .text-link-label {
+    background-position:
+      100% 100%,
+      100% 100%;
+  }
+  .text-link-arrow {
+    transition: translate var(--motion-hover) var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .text-link:hover .text-link-label {
+      background-size:
+        100% 1px,
+        100% 1px;
+    }
+    .text-link:hover .text-link-arrow {
+      translate: calc(4px * var(--dir)) 0;
+    }
+  }
+</style>

@@ -1,0 +1,330 @@
+---
+import { heroFrame, type FrameId } from '../../lib/atlas';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * One frame of the hero's engraved atlas (see src/lib/atlas.ts): the map
+ * layer (graticule, hatched land, coastline) and the route layer (the five
+ * feather routes, their packets, the cities, Amman). The two layers are
+ * separate so the pointer can move them a few pixels apart.
+ *
+ * Geography is never mirrored: this SVG is direction: ltr in both locales.
+ */
+interface Props {
+  frame: FrameId;
+  locale: Locale;
+}
+const { frame, locale } = Astro.props;
+const f = heroFrame(frame, locale);
+const vb = `0 0 ${f.w} ${f.h}`;
+const hatch = `hatch-${frame}`;
+const pitch = frame === 'wide' ? 5 : 3.2;
+
+// Label offsets around a dot, in frame units (screen space, never mirrored).
+const s = frame === 'wide' ? 1 : 0.7;
+const place = {
+  e: { dx: 10, dy: 4, anchor: 'start' },
+  w: { dx: -10, dy: 4, anchor: 'end' },
+  n: { dx: 0, dy: -12, anchor: 'middle' },
+  s: { dx: 0, dy: 20, anchor: 'middle' },
+  ne: { dx: 8, dy: -8, anchor: 'start' },
+  nw: { dx: -8, dy: -8, anchor: 'end' },
+  se: { dx: 8, dy: 16, anchor: 'start' },
+  sw: { dx: -8, dy: 16, anchor: 'end' },
+} as const;
+// The first packet is the one that "lands": the shortest on-frame route.
+const intro = f.routes
+  .filter((r) => !r.exit)
+  .reduce<(typeof f.routes)[number] | undefined>((a, b) => (!a || b.length < a.length ? b : a), undefined)?.key;
+---
+
+<div class:list={['atlas-layer atlas-map', `atlas-${frame}`]} data-parallax="-6">
+  <svg viewBox={vb} class="atlas-svg" focusable="false">
+    <defs>
+      <pattern id={hatch} width={pitch * 4} height={pitch} patternUnits="userSpaceOnUse">
+        <path d={`M0 ${pitch / 2}H${pitch * 4}`} class="atlas-hatch-line" shape-rendering="crispEdges" />
+      </pattern>
+    </defs>
+    <path class="atlas-graticule" d={f.graticule} />
+    <path class="atlas-land" d={f.land} fill={`url(#${hatch})`} />
+    <path class="atlas-coast" d={f.land} />
+  </svg>
+</div>
+
+<div class:list={['atlas-layer atlas-lines', `atlas-${frame}`]} data-parallax="6">
+  <svg viewBox={vb} class="atlas-svg" focusable="false" direction="ltr">
+    <g class="atlas-routes">
+      {f.routes.map((r, i) => <path class={`route route-${i}`} d={r.d} pathLength="1" />)}
+    </g>
+    <g class="atlas-packets">
+      {
+        f.routes.map((r, i) => (
+          <path
+            class={`packet packet-${i}`}
+            d={r.d}
+            pathLength="1000"
+            stroke-dasharray={`${((14 / r.length) * 1000).toFixed(2)} 1000`}
+          />
+        ))
+      }
+      {
+        f.routes
+          .filter((r) => r.key === intro)
+          .map((r) => (
+            <path
+              class="packet-intro"
+              d={r.d}
+              pathLength="1000"
+              stroke-dasharray={`${((18 / r.length) * 1000).toFixed(2)} 1000`}
+            />
+          ))
+      }
+    </g>
+    <g class="atlas-cities">
+      {
+        f.cities.map((c) => {
+          const p = place[c.label];
+          return (
+            <g class:list={['city', c.route && 'city-route', !c.name && 'city-quiet']}>
+              <circle cx={c.x} cy={c.y} r={c.route ? 3.6 * s : 2.6 * s} />
+              {c.name && (
+                <text x={c.x + p.dx * s} y={c.y + p.dy * s} text-anchor={p.anchor} class="city-name">
+                  {c.name}
+                </text>
+              )}
+            </g>
+          );
+        })
+      }
+    </g>
+    <g class="atlas-exits">
+      {
+        f.routes
+          .filter((r) => r.exit)
+          .map((r) => (
+            <text
+              x={r.exit!.x}
+              y={r.exit!.y + 22 * s}
+              text-anchor={r.exit!.anchor}
+              class="exit-name"
+            >
+              {r.exit!.anchor === 'start' ? `← ${r.name}` : `${r.name} →`}
+            </text>
+          ))
+      }
+    </g>
+    <g class="atlas-amman">
+      <circle class="amman-ring" cx={f.amman.x} cy={f.amman.y} r={9 * s} />
+      <circle class="amman-dot" cx={f.amman.x} cy={f.amman.y} r={3.4 * s} />
+    </g>
+  </svg>
+</div>
+
+<style>
+  .atlas-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition: translate 1.2s var(--ease-out);
+  }
+  .atlas-svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: visible;
+  }
+
+  /* ── Map: engraved, borderless ─────────────────────────────────────── */
+  .atlas-graticule {
+    fill: none;
+    stroke: var(--color-white);
+    stroke-opacity: 0.075;
+    stroke-width: 0.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .atlas-hatch-line {
+    stroke: var(--color-white);
+    stroke-opacity: 0.26;
+    stroke-width: 1;
+  }
+  .atlas-coast {
+    fill: none;
+    stroke: var(--color-white);
+    stroke-opacity: 0.34;
+    stroke-width: 0.75;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* ── Routes: the feathers drawn out ───────────────────────────────── */
+  .route {
+    fill: none;
+    stroke: var(--color-signal);
+    stroke-opacity: 0.72;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: route-draw 1.1s var(--ease-in-out) 1.45s forwards;
+  }
+  .route-1 { animation-delay: 1.53s; }
+  .route-2 { animation-delay: 1.61s; }
+  .route-3 { animation-delay: 1.69s; }
+  .route-4 { animation-delay: 1.77s; }
+  @keyframes route-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* Packets: one 14px signal dash, city to falcon. The intro packet lands
+     as the routes finish; after that one route at a time, every 4s. */
+  .packet {
+    fill: none;
+    stroke: var(--color-signal);
+    stroke-width: 2.25;
+    vector-effect: non-scaling-stroke;
+    stroke-dashoffset: -1000;
+    opacity: 0;
+    animation: packet 20s linear infinite;
+  }
+  .packet-0 { animation-delay: 6s; }
+  .packet-1 { animation-delay: 10s; }
+  .packet-2 { animation-delay: 14s; }
+  .packet-3 { animation-delay: 18s; }
+  .packet-4 { animation-delay: 22s; }
+  @keyframes packet {
+    0% {
+      stroke-dashoffset: -1000;
+      opacity: 0;
+    }
+    1% {
+      opacity: 1;
+    }
+    14% {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
+    15%,
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 0;
+    }
+  }
+  .packet-intro {
+    fill: none;
+    stroke: var(--color-signal);
+    stroke-width: 2.5;
+    vector-effect: non-scaling-stroke;
+    stroke-dashoffset: -1000;
+    opacity: 0;
+    animation: packet-intro 0.95s var(--ease-in-out) 2.45s both;
+  }
+  @keyframes packet-intro {
+    0% {
+      stroke-dashoffset: -1000;
+      opacity: 1;
+    }
+    96% {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 0;
+    }
+  }
+
+  /* ── Places ────────────────────────────────────────────────────────── */
+  .city circle {
+    fill: var(--color-white);
+    fill-opacity: 0.8;
+  }
+  .city-quiet circle {
+    fill-opacity: 0.45;
+  }
+  .city-route circle {
+    fill: var(--color-signal);
+    fill-opacity: 1;
+  }
+  .city,
+  .exit-name {
+    opacity: 0;
+    animation: label-in 0.6s var(--ease-out) 2.2s forwards;
+  }
+  .city-route {
+    animation-delay: 2.35s;
+  }
+  @keyframes label-in {
+    from {
+      opacity: 0;
+      translate: 0 6px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+  .city-name,
+  .exit-name {
+    fill: var(--color-chalk-2);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .city-route .city-name {
+    fill: var(--color-chalk);
+  }
+  .exit-name {
+    fill: var(--color-signal);
+  }
+  .atlas-tall .city-name,
+  .atlas-tall .exit-name {
+    font-size: 10px;
+  }
+  :global(:lang(ar)) .city-name,
+  :global(:lang(ar)) .exit-name {
+    font-family: var(--font-plex-arabic), var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  :global(:lang(ar)) .atlas-tall .city-name,
+  :global(:lang(ar)) .atlas-tall .exit-name {
+    font-size: 11px;
+  }
+
+  .amman-dot {
+    fill: var(--color-signal);
+  }
+  .amman-ring {
+    fill: none;
+    stroke: var(--color-signal);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: amman-land 1.4s var(--ease-out) 3.35s both;
+  }
+  @keyframes amman-land {
+    0% {
+      opacity: 1;
+      scale: 0.4;
+    }
+    100% {
+      opacity: 0;
+      scale: 2.4;
+    }
+  }
+
+  /* Lite motion (save-data, small devices) and paused (off screen): no
+     ambient packets. Reduced motion is handled globally. */
+  :global(html[data-motion='lite']) .packet {
+    display: none;
+  }
+  :global([data-paused]) .packet {
+    animation-play-state: paused;
+  }
+</style>

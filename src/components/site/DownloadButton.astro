@@ -7,39 +7,42 @@ import type { Locale } from '../../i18n/config';
 
 /**
  * The one download button. It works out the visitor's device by itself:
- *   iPhone/iPad → App Store, Android → Google Play (label and icon adapt),
+ *   iPhone/iPad → App Store, Android → Google Play (label and glyph adapt),
  *   computer    → opens a QR code to scan with the phone.
  * Without JavaScript the link still works: /download redirects on the server
- * by user agent (scripts/postbuild.mjs). Label and icon switch with CSS on
- * html[data-platform], set by src/scripts/smart-download.ts, so nothing in
- * the page is rewritten or shifts.
+ * by user agent (scripts/postbuild.mjs). Label and glyph switch with CSS on
+ * html[data-platform], decided before first paint, so nothing shifts.
+ *
+ * Drawn as the system's pill (global .btn): the platform glyph sits in the
+ * circle where other buttons carry their arrow.
  */
 interface Props {
   locale: Locale;
-  tone?: 'light' | 'dark';
-  size?: 'md' | 'lg';
+  variant?: 'solid' | 'line';
+  /** Full width on a phone. */
+  block?: boolean;
   class?: string;
 }
 
-const { locale, tone = 'light', size = 'md', class: className } = Astro.props;
+const { locale, variant = 'solid', block = false, class: className } = Astro.props;
 const t = common[locale].download;
 ---
 
 <a
   href={downloadPath(locale)}
   data-smart-download
-  data-btn={tone === 'dark' ? 'inverse' : 'primary'}
-  class:list={[
-    'dl-button group inline-flex items-center justify-center gap-3 rounded-md text-button font-sans shadow-sm transition duration-150 active:translate-y-px',
-    size === 'lg' ? 'min-h-14 px-8' : 'min-h-12 px-6',
-    tone === 'dark' ? 'bg-white text-navy hover:bg-muted' : 'bg-blue text-fg-inverse hover:bg-blue-hover',
-    className,
-  ]}
+  data-btn={variant}
+  data-magnetic
+  class:list={['btn', `btn-${variant}`, 'dl-button', block && 'btn-block', className]}
 >
-  <span class="dl-when-desktop"><Icon name="download" size={20} /></span>
-  <span class="dl-when-ios"><BrandIcon name="apple" size={20} /></span>
-  <span class="dl-when-android"><BrandIcon name="googleplay" size={18} /></span>
-  <span class="dl-when-desktop">{t.label}</span>
-  <span class="dl-when-ios">{t.ios}</span>
-  <span class="dl-when-android">{t.android}</span>
+  <span class="btn-label">
+    <span class="dl-when-desktop">{t.label}</span>
+    <span class="dl-when-ios">{t.ios}</span>
+    <span class="dl-when-android">{t.android}</span>
+  </span>
+  <span class="btn-mark" aria-hidden="true">
+    <span class="dl-when-desktop"><Icon name="download" size={18} class="btn-arrow btn-arrow-down" /></span>
+    <span class="dl-when-ios"><BrandIcon name="apple" size={17} /></span>
+    <span class="dl-when-android"><BrandIcon name="googleplay" size={15} /></span>
+  </span>
 </a>

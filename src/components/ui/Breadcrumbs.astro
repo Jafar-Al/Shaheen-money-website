@@ -1,6 +1,5 @@
 ---
 import JsonLd from '../seo/JsonLd.astro';
-import Icon from './Icon.astro';
 import { common } from '../../copy/common';
 import { absoluteUrl, href, type Locale } from '../../i18n/config';
 
@@ -8,10 +7,9 @@ interface Props {
   locale: Locale;
   /** Trail after Home; the last item is the current page. */
   items: Array<{ label: string; href?: string }>;
-  tone?: 'light' | 'dark';
 }
 
-const { locale, items, tone = 'light' } = Astro.props;
+const { locale, items } = Astro.props;
 const t = common[locale].ui;
 const trail = [{ label: t.home, href: href(locale, 'home') }, ...items];
 
@@ -27,18 +25,24 @@ const jsonLd = {
 };
 ---
 
-<nav aria-label={t.breadcrumbs}>
-  <ol class:list={['flex flex-wrap items-center gap-1 text-caption', tone === 'dark' ? 'text-fg-inverse-2' : 'text-fg-2']}>
+<nav aria-label={t.breadcrumbs} class="crumbs">
+  <ol class="label">
     {
       trail.map((item, i) => (
-        <li class="flex items-center gap-1">
-          {i > 0 && <Icon name="arrow-right" size={14} directional class="opacity-60" />}
+        <li>
+          {i > 0 && (
+            <span class="crumb-sep" aria-hidden="true">
+              /
+            </span>
+          )}
           {item.href && i < trail.length - 1 ? (
-            <a href={item.href} class="inline-flex min-h-6 items-center underline-offset-2 hover:underline">
+            <a href={item.href} class="crumb-link">
               {item.label}
             </a>
           ) : (
-            <span aria-current="page">{item.label}</span>
+            <span aria-current="page" class="crumb-here">
+              {item.label}
+            </span>
           )}
         </li>
       ))
@@ -46,3 +50,38 @@ const jsonLd = {
   </ol>
 </nav>
 <JsonLd data={jsonLd} />
+
+<style>
+  .crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.625rem;
+    color: var(--fg-2);
+  }
+  .crumbs li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+  .crumb-sep {
+    color: var(--fg-3);
+  }
+  .crumb-link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 1.5rem;
+    color: inherit;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+    text-decoration-color: var(--line-strong);
+  }
+  .crumb-link:hover {
+    color: var(--fg);
+    text-decoration-color: currentColor;
+  }
+  .crumb-here {
+    color: var(--fg);
+  }
+</style>
