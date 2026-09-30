@@ -1,0 +1,51 @@
+---
+import Icon from '../ui/Icon.astro';
+import Gap from '../ui/Gap.astro';
+import { common } from '../../copy/common';
+import { facts } from '../../data/facts';
+import { formatNumber } from '../../lib/format';
+import { showGaps } from '../../lib/gaps';
+import { href, type Locale } from '../../i18n/config';
+
+/**
+ * Answers "is this safe?" before it is asked (audit P-02). Built only from
+ * facts that exist; with none, the strip is not rendered at all.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = common[locale];
+
+const items: string[] = [];
+for (const l of facts.licences) {
+  items.push(`${t.trust.licensed}: ${l.regulator[locale]} · ${l.jurisdiction[locale]}`);
+}
+if (facts.safeguarding) items.push(t.trust.selfCustody);
+const ratings = [
+  facts.ratings.ios && `★ ${formatNumber(facts.ratings.ios.value.score, locale, 1)} App Store`,
+  facts.ratings.android && `★ ${formatNumber(facts.ratings.android.value.score, locale, 1)} Google Play`,
+].filter(Boolean);
+if (ratings.length) items.push(ratings.join(' · '));
+
+const render = items.length > 0 || showGaps;
+---
+
+{
+  render && (
+    <aside aria-label={t.trust.label} data-surface="dark" class="border-b border-line-inverse bg-navy-800">
+      <div class="container-wide flex min-h-10 flex-wrap items-center gap-x-6 gap-y-1 py-2 text-caption text-fg-inverse-2">
+        <Icon name="shield-check" size={16} class="text-cyan" />
+        {items.length ? (
+          items.map((item) => <span>{item}</span>)
+        ) : (
+          <Gap tone="dark" need="Licence + regulator, how funds are safeguarded, and real store ratings for the trust strip. Nothing unverifiable goes here." class="grow" />
+        )}
+        <a href={href(locale, 'security')} class="ms-auto inline-flex min-h-6 items-center gap-1 font-semibold text-fg-inverse underline-offset-2 hover:underline">
+          {t.trust.protect}
+          <Icon name="arrow-right" size={14} directional />
+        </a>
+      </div>
+    </aside>
+  )
+}

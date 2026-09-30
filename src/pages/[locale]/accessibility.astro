@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import Section from '../../components/ui/Section.astro';
+import TextLink from '../../components/ui/TextLink.astro';
+import { accessibility } from '../../copy/misc';
+import { common } from '../../copy/common';
+import { formatDate } from '../../lib/format';
+import { href, localeStaticPaths, type Locale } from '../../i18n/config';
+
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const t = accessibility[locale];
+/** Update when the statement is reviewed. */
+const reviewed = new Date(Date.UTC(2026, 8, 23));
+---
+
+<BaseLayout locale={locale} path="/accessibility" title={t.meta.title} description={t.meta.description}>
+  <PageHeader locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].footer.accessibility }]} />
+  <Section container="narrow">
+    <div class="flex flex-col gap-10">
+      {
+        t.sections.map((s) => (
+          <section class="flex flex-col gap-3">
+            <h2 class="text-h2 font-display">{s.title}</h2>
+            {s.body.length > 1 ? (
+              <ul class="flex list-disc flex-col gap-2 ps-6 text-body-lg text-fg-2">
+                {s.body.map((line) => (
+                  <li>{line}</li>
+                ))}
+              </ul>
+            ) : (
+              <p class="text-body-lg text-fg-2">{s.body[0]}</p>
+            )}
+          </section>
+        ))
+      }
+      <TextLink href={href(locale, 'contact')}>{t.contactCta}</TextLink>
+      <p class="text-caption text-fg-3">
+        {t.reviewed}: <time datetime={reviewed.toISOString().slice(0, 10)}>{formatDate(reviewed, locale)}</time>
+      </p>
+    </div>
+  </Section>
+</BaseLayout>

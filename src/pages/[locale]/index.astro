@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hero from '../../components/home/Hero.astro';
+import WhyShaheen from '../../components/home/WhyShaheen.astro';
+import HowItWorks from '../../components/home/HowItWorks.astro';
+import CashOut from '../../components/home/CashOut.astro';
+import Network from '../../components/home/Network.astro';
+import Pricing from '../../components/home/Pricing.astro';
+import Proof from '../../components/home/Proof.astro';
+import HomeFaq from '../../components/home/HomeFaq.astro';
+import LatestPosts from '../../components/home/LatestPosts.astro';
+import FinalCta from '../../components/home/FinalCta.astro';
+import { home } from '../../copy/home';
+import { brand, SITE_URL, stores } from '../../config/site';
+import { facts } from '../../data/facts';
+import { localeStaticPaths, type Locale } from '../../i18n/config';
+
+export const getStaticPaths = localeStaticPaths;
+
+const locale = Astro.params.locale as Locale;
+const t = home[locale];
+
+const ratings = [facts.ratings.ios, facts.ratings.android].filter((r) => r !== null);
+const aggregate =
+  ratings.length > 0
+    ? {
+        '@type': 'AggregateRating',
+        ratingValue: (
+          ratings.reduce((sum, r) => sum + r.value.score * r.value.count, 0) /
+          ratings.reduce((sum, r) => sum + r.value.count, 0)
+        ).toFixed(1),
+        ratingCount: ratings.reduce((sum, r) => sum + r.value.count, 0),
+      }
+    : null;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
+    name: brand.name,
+    url: SITE_URL,
+    inLanguage: ['en', 'ar'],
+    publisher: { '@id': `${SITE_URL}/#organization` },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'MobileApplication',
+    name: brand.name,
+    operatingSystem: 'iOS, Android',
+    applicationCategory: 'FinanceApplication',
+    installUrl: [stores.ios, stores.android],
+    publisher: { '@id': `${SITE_URL}/#organization` },
+    ...(aggregate ? { aggregateRating: aggregate } : {}),
+  },
+  // Word for word the answers on the page: a rich result that says anything
+  // the visitor cannot also read here would be cloaking.
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: t.faq.items.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  locale={locale}
+  path="/"
+  title={t.meta.title}
+  description={t.meta.description}
+  headerTone="dark"
+  trustStrip
+  jsonLd={jsonLd}
+>
+  <!-- 1. For the visitor who came to download: the whole job, first screen. -->
+  <Hero locale={locale} />
+  <!-- 2. For the visitor who wants to understand first, in the order they ask. -->
+  <WhyShaheen locale={locale} />
+  <HowItWorks locale={locale} />
+  <CashOut locale={locale} />
+  <Network locale={locale} />
+  <Pricing locale={locale} />
+  <Proof locale={locale} />
+  <HomeFaq locale={locale} />
+  <LatestPosts locale={locale} />
+  <FinalCta locale={locale} />
+</BaseLayout>

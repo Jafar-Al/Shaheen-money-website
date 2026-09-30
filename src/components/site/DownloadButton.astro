@@ -1,0 +1,45 @@
+---
+import BrandIcon from '../ui/BrandIcon.astro';
+import Icon from '../ui/Icon.astro';
+import { common } from '../../copy/common';
+import { downloadPath } from '../../config/download';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * The one download button. It works out the visitor's device by itself:
+ *   iPhone/iPad → App Store, Android → Google Play (label and icon adapt),
+ *   computer    → opens a QR code to scan with the phone.
+ * Without JavaScript the link still works: /download redirects on the server
+ * by user agent (scripts/postbuild.mjs). Label and icon switch with CSS on
+ * html[data-platform], set by src/scripts/smart-download.ts, so nothing in
+ * the page is rewritten or shifts.
+ */
+interface Props {
+  locale: Locale;
+  tone?: 'light' | 'dark';
+  size?: 'md' | 'lg';
+  class?: string;
+}
+
+const { locale, tone = 'light', size = 'md', class: className } = Astro.props;
+const t = common[locale].download;
+---
+
+<a
+  href={downloadPath(locale)}
+  data-smart-download
+  data-btn={tone === 'dark' ? 'inverse' : 'primary'}
+  class:list={[
+    'dl-button group inline-flex items-center justify-center gap-3 rounded-md text-button font-sans shadow-sm transition duration-150 active:translate-y-px',
+    size === 'lg' ? 'min-h-14 px-8' : 'min-h-12 px-6',
+    tone === 'dark' ? 'bg-white text-navy hover:bg-muted' : 'bg-blue text-fg-inverse hover:bg-blue-hover',
+    className,
+  ]}
+>
+  <span class="dl-when-desktop"><Icon name="download" size={20} /></span>
+  <span class="dl-when-ios"><BrandIcon name="apple" size={20} /></span>
+  <span class="dl-when-android"><BrandIcon name="googleplay" size={18} /></span>
+  <span class="dl-when-desktop">{t.label}</span>
+  <span class="dl-when-ios">{t.ios}</span>
+  <span class="dl-when-android">{t.android}</span>
+</a>

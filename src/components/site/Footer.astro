@@ -1,0 +1,182 @@
+---
+import Logo from './Logo.astro';
+import StoreBadges from './StoreBadges.astro';
+import SocialLinks from './SocialLinks.astro';
+import Icon from '../ui/Icon.astro';
+import Gap from '../ui/Gap.astro';
+import { brand } from '../../config/site';
+import { common } from '../../copy/common';
+import { facts } from '../../data/facts';
+import { showGaps } from '../../lib/gaps';
+import { href, locales, localeMeta, type Locale, type PageKey } from '../../i18n/config';
+
+/**
+ * Four columns, the company/licence block on every page in both locales
+ * (audit F.3 rule 6), a language control of its own, 44px targets.
+ *
+ * The product column links into the homepage by anchor: those sections used
+ * to be pages, and somebody arriving at the footer looking for "what it
+ * costs" should land on it, not on a menu.
+ */
+interface Props {
+  locale: Locale;
+  /** Same page in each locale, for the language control. */
+  localeHrefs: Record<Locale, string>;
+}
+
+const { locale, localeHrefs } = Astro.props;
+const t = common[locale];
+const n = t.nav;
+const s = t.homeSections;
+const f = t.footer;
+
+const homeAnchor = (hash: string) => `${href(locale, 'home')}#${hash}`;
+
+const columns: Array<{ title: string; links: Array<{ label: string; href: string }> }> = [
+  {
+    title: f.product,
+    links: [
+      { label: f.getApp, href: href(locale, 'getApp') },
+      { label: s.howItWorks, href: homeAnchor('how') },
+      { label: s.cashOut, href: homeAnchor('cash-out') },
+      { label: s.network, href: homeAnchor('network') },
+      { label: s.pricing, href: homeAnchor('pricing') },
+    ],
+  },
+  {
+    title: f.company,
+    links: (
+      [
+        ['about', n.about.title],
+        ['business', n.business.title],
+        ['blog', n.blog.title],
+        ['contact', n.contact.title],
+      ] as Array<[PageKey, string]>
+    ).map(([k, label]) => ({ label, href: href(locale, k) })),
+  },
+  {
+    title: f.resources,
+    links: [
+      { label: n.media, href: href(locale, 'media') },
+      { label: n.security, href: href(locale, 'security') },
+      { label: s.faq, href: homeAnchor('faq') },
+      { label: f.accessibility, href: href(locale, 'accessibility') },
+      { label: f.reportVulnerability, href: '/.well-known/security.txt' },
+    ],
+  },
+  {
+    title: f.legal,
+    links: (
+      [
+        ['privacy', f.privacy],
+        ['terms', f.terms],
+        ['cookies', f.cookies],
+      ] as Array<[PageKey, string]>
+    ).map(([k, label]) => ({ label, href: href(locale, k) })),
+  },
+];
+
+const c = facts.company;
+const companyLines = [c.legalName, c.registrationNumber, c.registeredAddress?.[locale], c.jurisdiction?.[locale]].filter(
+  (x): x is string => Boolean(x),
+);
+const hasCompanyFacts = companyLines.length > 0 || facts.licences.length > 0;
+const year = new Date().getUTCFullYear();
+---
+
+<footer class="border-t border-line bg-white">
+  <div class="container-wide section-y-sm flex flex-col gap-12">
+    <div class="grid gap-12 lg:grid-cols-12">
+      <div class="flex flex-col gap-6 lg:col-span-4">
+        <a href={href(locale, 'home')} aria-label={t.homeLabel} class="inline-flex min-h-11 items-center self-start">
+          <Logo />
+        </a>
+        <div class="flex flex-col gap-1">
+          <p class="text-h3 font-display text-fg">{brand.taglineSecondary[locale]}</p>
+          <p class="text-body-sm text-fg-2">{brand.taglinePrimary[locale]}</p>
+        </div>
+        <StoreBadges locale={locale} />
+        <p class="flex items-start gap-2 text-caption text-fg-2">
+          <Icon name="shield-check" size={16} class="mt-px text-fg" />
+          <span>{f.officialApps}</span>
+        </p>
+      </div>
+
+      <nav aria-label={f.nav} data-site-footer-nav class="grid grid-cols-2 gap-8 md:grid-cols-4 lg:col-span-8">
+        {
+          columns.map((col) => (
+            <div class="flex flex-col gap-3">
+              <h2 class="text-label uppercase text-fg-2 font-sans">{col.title}</h2>
+              <ul class="flex flex-col">
+                {col.links.map((l) => (
+                  <li>
+                    <a
+                      href={l.href}
+                      class="inline-flex min-h-11 items-center text-body-sm text-fg underline-offset-4 hover:underline"
+                    >
+                      {l.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </nav>
+    </div>
+
+    {
+      (hasCompanyFacts || showGaps) && (
+        <section aria-labelledby="footer-company" class="flex flex-col gap-3 border-t border-line pt-8">
+          <h2 id="footer-company" class="text-label uppercase text-fg-2 font-sans">
+            {f.companyDetails}
+          </h2>
+          {companyLines.length > 0 && <p class="text-caption text-fg-2">{companyLines.join(' · ')}</p>}
+          {facts.licences.map((l) => (
+            <p class="text-caption text-fg-2">
+              {l.licenceType[locale]} · {l.regulator[locale]} · <span class="num">{l.number}</span> ·{' '}
+              {l.jurisdiction[locale]}
+              {l.registerUrl && (
+                <>
+                  {' · '}
+                  <a href={l.registerUrl} target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">
+                    {l.regulator[locale]}
+                    <span class="sr-only">{t.ui.opensNewTab}</span>
+                  </a>
+                </>
+              )}
+            </p>
+          ))}
+          {!hasCompanyFacts && (
+            <Gap need="Registered entity name, company number, registered address, and licence/registration + regulator. Required on every page in both locales (audit F.3 rule 6)." />
+          )}
+        </section>
+      )
+    }
+
+    <div class="flex flex-col gap-6 border-t border-line pt-8 md:flex-row md:items-center md:justify-between">
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-body-sm">
+        <span class="text-fg-2">{f.language}:</span>
+        {
+          locales.map((l) => (
+            <a
+              href={localeHrefs[l]}
+              hreflang={l}
+              lang={l}
+              aria-current={l === locale ? 'true' : undefined}
+              class:list={[
+                'inline-flex min-h-11 items-center rounded-md px-3',
+                l === locale ? 'bg-muted font-semibold text-fg' : 'text-fg hover:bg-muted',
+              ]}
+            >
+              {localeMeta[l].name}
+            </a>
+          ))
+        }
+      </div>
+      <SocialLinks locale={locale} />
+    </div>
+
+    <p class="text-caption text-fg-2">© {year} {locale === 'ar' ? brand.nameAr : brand.name}. {f.rights}</p>
+  </div>
+</footer>

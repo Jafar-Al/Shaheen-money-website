@@ -1,0 +1,108 @@
+/**
+ * Local preview of the production build, applying the same routing Vercel
+ * will: security headers, per-page CSP, redirects, the 404 page.
+ *
+ *   npm run build && npm run preview      → http://localhost:4321
+ *
+ * `astro preview` is not supported by the Vercel adapter; this reads
+ * .vercel/output directly. Serverless routes (the form endpoints) are not
+ * run here — use `npm run dev` to exercise forms.
+ */
+import { createServer } from 'node:http';
+import { readFile, stat } from 'node:fs/promises';
+import { extname, join, normalize } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = fileURLToPath(new URL('../.vercel/output/', import.meta.url));
+const staticDir = join(root, 'static');
+const configPath = join(root, 'config.json');
+const port = Number(process.env.PORT ?? 4321);
+
+/**
+ * The routing table is re-read whenever the build writes a new one.
+ *
+ * Holding it in memory for the life of the process is a trap: rebuild while
+ * the preview is running and it keeps serving the previous build's per-page
+ * CSP hashes against the new build's HTML, so every inline script is
+ * blocked and the page half-works in a way that looks like a site bug.
+ */
+let config;
+let configMtime = 0;
+async function routingConfig() {
+  const { mtimeMs } = await stat(configPath);
+  if (mtimeMs !== configMtime) {
+    config = JSON.parse(await readFile(configPath, 'utf8'));
+    configMtime = mtimeMs;
+  }
+  return config;
+}
+
+const types = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json',
+  '.xml': 'application/xml; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.ico': 'image/x-icon',
+  '.jpg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.avif': 'image/avif',
+  '.woff2': 'font/woff2',
+};
+
+async function findFile(pathname) {
+  const safe = normalize(decodeURIComponent(pathname)).replace(/^(\.\.[/\\])+/, '');
+  for (const candidate of [safe, join(safe, 'index.html'), `${safe}.html`]) {
+    const full = join(staticDir, candidate);
+    if (!full.startsWith(staticDir)) continue;
+    try {
+      if ((await stat(full)).isFile()) return full;
+    } catch {}
+  }
+  return null;
+}
+
+createServer(async (req, res) => {
+  const url = new URL(req.url ?? '/', `http://localhost:${port}`);
+  const headers = {};
+  let phase = 'main';
+  const { routes } = await routingConfig();
+
+  for (const route of routes) {
+    if (route.handle === 'filesystem') {
+      phase = 'filesystem';
+      break;
+    }
+    if (!route.src || !new RegExp(route.src).test(url.pathname)) continue;
+    const hasOk = (route.has ?? []).every(
+      (h) => h.type === 'header' && new RegExp(h.value ?? '.*').test(String(req.headers[h.key.toLowerCase()] ?? '')),
+    );
+    if (!hasOk) continue;
+    Object.assign(headers, route.headers);
+    if (route.status && route.headers?.Location) {
+      res.writeHead(route.status, { ...headers, Location: route.headers.Location });
+      return res.end();
+    }
+    if (!route.continue) break;
+  }
+
+  const file = await findFile(url.pathname);
+  if (file) {
+    res.writeHead(200, { ...headers, 'Content-Type': types[extname(file)] ?? 'application/octet-stream' });
+    return res.end(await readFile(file));
+  }
+
+  if (url.pathname.startsWith('/api/')) {
+    res.writeHead(501, { 'Content-Type': 'text/plain' });
+    return res.end('Serverless routes run on Vercel or under `npm run dev`, not in this static preview.');
+  }
+
+  const notFound = join(staticDir, '404.html');
+  res.writeHead(404, { ...headers, 'Content-Type': types['.html'] });
+  res.end(await readFile(notFound).catch(() => 'Not found'));
+  void phase;
+}).listen(port, () => console.log(`Preview: http://localhost:${port}  (serving .vercel/output/static)`));

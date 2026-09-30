@@ -1,0 +1,51 @@
+---
+/**
+ * Page section with one of three surfaces and the fluid section rhythm.
+ * Navy sections set data-surface="dark", which switches focus rings and
+ * text selection to their inverse colours.
+ */
+interface Props {
+  id?: string;
+  tone?: 'white' | 'subtle' | 'navy';
+  spacing?: 'sm' | 'md' | 'lg' | 'none';
+  container?: 'page' | 'wide' | 'narrow' | false;
+  labelledby?: string;
+  class?: string;
+  innerClass?: string;
+}
+
+const {
+  id,
+  tone = 'white',
+  spacing = 'md',
+  container = 'page',
+  labelledby,
+  class: className,
+  innerClass,
+} = Astro.props;
+
+const tones = {
+  white: 'bg-white text-fg',
+  subtle: 'bg-subtle text-fg',
+  navy: 'bg-navy text-fg-inverse',
+};
+const spacings = { sm: 'section-y-sm', md: 'section-y', lg: 'section-y-lg', none: '' };
+const containers = { page: 'container-page', wide: 'container-wide', narrow: 'container-narrow' };
+---
+
+<section
+  id={id}
+  aria-labelledby={labelledby}
+  data-surface={tone === 'navy' ? 'dark' : undefined}
+  class:list={['relative', tones[tone], spacings[spacing], className]}
+>
+  {
+    container ? (
+      <div class:list={[containers[container], innerClass]}>
+        <slot />
+      </div>
+    ) : (
+      <slot />
+    )
+  }
+</section>

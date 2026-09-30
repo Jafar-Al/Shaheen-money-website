@@ -1,0 +1,403 @@
+---
+import { home } from '../../copy/home';
+import { common } from '../../copy/common';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * The product, on a phone, drawn in code.
+ *
+ * The screen mirrors with the page: someone reading the Arabic site would
+ * be holding the Arabic app, and a wallet that laid itself out left to
+ * right for them would be the wrong screenshot. Only the figures are
+ * pinned, in <bdi>, so "$1,240.00" and "−$45.00" keep their sign and
+ * currency mark in the right place inside an RTL line.
+ *
+ * A wallet page that never shows the wallet asks the visitor to take the
+ * whole thing on trust. This is the answer to that, and it is deliberately
+ * not a photograph: a render of a handset would date the moment a new one
+ * ships, would weigh several hundred kilobytes, and would have to be
+ * relit for the dark field it sits on. Everything here is a border, a
+ * gradient or a line of text, so it is sharp on any display, it costs
+ * nothing to download, and it inherits the brand's own colours.
+ *
+ * The figures are examples and say so: the badge and its hint come from
+ * the shared `ui.illustrative` copy, so the claim the screen makes is
+ * "this is what the app does", never "this is what you will have".
+ *
+ * Scaling: the screen is a container, and every size inside it is in `cqw`.
+ * One number — the phone's width — therefore sets the whole composition,
+ * and the layout is identical at 220px and at 340px with no breakpoints.
+ */
+interface Props {
+  locale: Locale;
+  variant: 'wallet' | 'collect';
+  class?: string;
+}
+const { locale, variant, class: className } = Astro.props;
+const t = home[locale].app;
+const ui = common[locale].ui;
+---
+
+<figure class:list={['app-screen', className]} data-reveal>
+  <div class="phone">
+    <div class="screen">
+      <div class="status" aria-hidden="true">
+        <span class="status-time"><bdi>9:41</bdi></span>
+        <span class="status-bars"><i></i><i></i><i></i><i></i></span>
+      </div>
+
+      {
+        variant === 'wallet' ? (
+          <div class="pane">
+            <p class="label">{t.wallet.balance}</p>
+            <p class="amount"><bdi>{t.wallet.amount}</bdi></p>
+            <p class="kind">
+              <span class="dot" /> {t.wallet.kind}
+            </p>
+
+            <div class="actions">
+              <span class="action action-primary">{t.wallet.send}</span>
+              <span class="action">{t.wallet.cashOut}</span>
+            </div>
+
+            <p class="section-label">{t.wallet.activity}</p>
+            <ul class="rows">
+              {t.wallet.rows.map((r) => (
+                <li class="row" data-reveal-child>
+                  <span class="row-text">
+                    <span class="row-label">{r.label}</span>
+                    <span class="row-meta">{r.meta}</span>
+                  </span>
+                  <span class="row-amount"><bdi>{r.amount}</bdi></span>
+                </li>
+              ))}
+            </ul>
+
+            <nav class="tabs" aria-hidden="true">
+              {t.wallet.tabs.map((tab, i) => (
+                <span class:list={['tab', i === 0 && 'tab-on']}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    {i === 0 && <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5.5A2.5 2.5 0 0 1 3 16.5Zm14 3.5h.01" />}
+                    {i === 1 && <path d="M3 12h4l2.5-6 4 13 2.5-7h5" />}
+                    {i === 2 && <path d="M4 20a8 8 0 0 1 16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />}
+                  </svg>
+                  {tab}
+                </span>
+              ))}
+            </nav>
+          </div>
+        ) : (
+          <div class="pane pane-collect">
+            <p class="label">{t.collect.title}</p>
+            <p class="amount"><bdi>{t.collect.amount}</bdi></p>
+            <p class="kind">
+              <span class="dot" /> {t.collect.at}
+            </p>
+
+            <div class="code-card">
+              <p class="code-label">{t.collect.codeLabel}</p>
+              <p class="code"><bdi>{t.collect.code}</bdi></p>
+            </div>
+
+            <p class="note">{t.collect.note}</p>
+          </div>
+        )
+      }
+
+      <div class="home-bar" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <figcaption class="caption">
+    <span class="badge">{ui.illustrative}</span>
+    <span>{ui.illustrativeHint}</span>
+  </figcaption>
+</figure>
+
+<style>
+  .app-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin: 0;
+  }
+
+  /* The handset. Its radius is the radius of a physical object, not a UI
+     token, so it is stated here in one place and scales with the width. */
+  .phone {
+    --phone-w: 19.5rem;
+    inline-size: min(100%, var(--phone-w));
+    padding: 0.75rem;
+    border: 1px solid var(--color-line-inverse);
+    border-radius: 2.5rem;
+    background:
+      linear-gradient(160deg, color-mix(in srgb, var(--color-white) 14%, transparent), transparent 42%),
+      var(--color-navy-800);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .screen {
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+    overflow: clip;
+    aspect-ratio: 9 / 18.5;
+    border-radius: 1.85rem;
+    background:
+      radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--color-navy-600) 70%, transparent), transparent 70%),
+      var(--color-navy);
+    color: var(--color-fg-inverse);
+  }
+
+  /* ---- chrome ---------------------------------------------------- */
+  .status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4cqw 6cqw 0;
+    font-size: 3.4cqw;
+    font-weight: 600;
+    color: var(--color-fg-inverse-2);
+  }
+  .status-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.8cqw;
+  }
+  .status-bars i {
+    inline-size: 1cqw;
+    background: var(--color-fg-inverse-2);
+    border-radius: 0.5cqw;
+  }
+  .status-bars i:nth-child(1) {
+    block-size: 1.4cqw;
+  }
+  .status-bars i:nth-child(2) {
+    block-size: 2.1cqw;
+  }
+  .status-bars i:nth-child(3) {
+    block-size: 2.8cqw;
+  }
+  .status-bars i:nth-child(4) {
+    block-size: 3.5cqw;
+  }
+
+  .home-bar {
+    inline-size: 30cqw;
+    block-size: 0.9cqw;
+    margin-inline: auto;
+    margin-block-end: 2.5cqw;
+    border-radius: var(--radius-full);
+    background: var(--color-line-inverse-strong);
+  }
+
+  /* ---- content --------------------------------------------------- */
+  .pane {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 7cqw 6cqw 0;
+  }
+
+  /* One job, one screen: the code is what the reader holds up at the
+     counter, so it sits in the middle of the glass rather than stacking
+     from the top with the rest of the handset empty below it. */
+  .pane-collect {
+    justify-content: center;
+    padding-block-end: 12cqw;
+  }
+
+  .label {
+    font-size: 3.6cqw;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-cyan);
+  }
+  .amount {
+    margin-block-start: 1.5cqw;
+    font-size: 11cqw;
+    font-weight: 700;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+  }
+  .kind {
+    display: flex;
+    align-items: center;
+    gap: 2cqw;
+    margin-block-start: 2cqw;
+    font-size: 3.6cqw;
+    color: var(--color-fg-inverse-2);
+  }
+  .dot {
+    inline-size: 2cqw;
+    block-size: 2cqw;
+    border-radius: var(--radius-full);
+    background: var(--color-cyan);
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3cqw;
+    margin-block-start: 6cqw;
+  }
+  .action {
+    padding-block: 3.4cqw;
+    border: 1px solid var(--color-line-inverse-strong);
+    border-radius: var(--radius-full);
+    font-size: 3.8cqw;
+    font-weight: 600;
+    text-align: center;
+  }
+  .action-primary {
+    border-color: transparent;
+    background: var(--color-cyan);
+    color: var(--color-navy);
+  }
+
+  .section-label {
+    margin-block: 7cqw 0;
+    font-size: 3.2cqw;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-fg-inverse-2);
+  }
+  .rows {
+    display: flex;
+    flex-direction: column;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3cqw;
+    padding-block: 3.6cqw;
+    border-block-end: 1px solid var(--color-line-inverse);
+  }
+  .row:last-child {
+    border-block-end: 0;
+  }
+  .row-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6cqw;
+  }
+  .row-label {
+    font-size: 3.9cqw;
+    font-weight: 600;
+  }
+  .row-meta {
+    font-size: 3.2cqw;
+    color: var(--color-fg-inverse-2);
+  }
+  .row-amount {
+    font-size: 3.9cqw;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* The app's own navigation. It carries no link and no meaning to a
+     screen reader: the whole figure is one illustration, and its caption
+     is what has to be read. */
+  .tabs {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    margin-block-start: auto;
+    padding-block: 3.4cqw 2.8cqw;
+    border-block-start: 1px solid var(--color-line-inverse);
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2cqw;
+    font-size: 2.9cqw;
+    font-weight: 600;
+    color: var(--color-fg-inverse-2);
+  }
+  .tab svg {
+    inline-size: 5.2cqw;
+    block-size: 5.2cqw;
+  }
+  .tab-on {
+    color: var(--color-cyan);
+  }
+
+  /* ---- collect variant ------------------------------------------- */
+  .code-card {
+    margin-block-start: 8cqw;
+    padding: 5cqw;
+    border: 1px solid var(--color-line-inverse);
+    border-radius: 4cqw;
+    background: color-mix(in srgb, var(--color-white) 6%, transparent);
+    text-align: center;
+  }
+  .code-label {
+    font-size: 3.2cqw;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-fg-inverse-2);
+  }
+  .code {
+    margin-block-start: 2cqw;
+    font-size: 10cqw;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-cyan);
+  }
+  .note {
+    margin-block-start: 5cqw;
+    font-size: 3.5cqw;
+    line-height: 1.5;
+    color: var(--color-fg-inverse-2);
+  }
+
+  /* ---- caption ---------------------------------------------------- */
+  .caption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    max-inline-size: 22rem;
+    text-align: center;
+    font-size: var(--text-caption);
+    line-height: var(--text-caption--line-height);
+    color: var(--color-fg-inverse-2);
+  }
+  .badge {
+    padding: 0.125rem 0.5rem;
+    border: 1px solid var(--color-line-inverse);
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    color: var(--color-fg-inverse);
+  }
+
+  /* On a light surface the caption takes the light palette; the phone
+     itself is always dark, because the app is. */
+  :global([data-surface='light']) .caption,
+  :global(.app-screen-on-light) .caption {
+    color: var(--color-fg-2);
+  }
+  :global(.app-screen-on-light) .badge {
+    border-color: var(--color-line);
+    color: var(--color-fg);
+  }
+
+  @media (forced-colors: active) {
+    .phone,
+    .screen {
+      background: Canvas;
+      forced-color-adjust: none;
+      color: CanvasText;
+      border: 1px solid CanvasText;
+    }
+  }
+</style>

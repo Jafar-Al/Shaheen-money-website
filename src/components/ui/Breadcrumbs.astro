@@ -1,0 +1,48 @@
+---
+import JsonLd from '../seo/JsonLd.astro';
+import Icon from './Icon.astro';
+import { common } from '../../copy/common';
+import { absoluteUrl, href, type Locale } from '../../i18n/config';
+
+interface Props {
+  locale: Locale;
+  /** Trail after Home; the last item is the current page. */
+  items: Array<{ label: string; href?: string }>;
+  tone?: 'light' | 'dark';
+}
+
+const { locale, items, tone = 'light' } = Astro.props;
+const t = common[locale].ui;
+const trail = [{ label: t.home, href: href(locale, 'home') }, ...items];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: trail.map((item, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: item.label,
+    ...(item.href ? { item: absoluteUrl(item.href) } : {}),
+  })),
+};
+---
+
+<nav aria-label={t.breadcrumbs}>
+  <ol class:list={['flex flex-wrap items-center gap-1 text-caption', tone === 'dark' ? 'text-fg-inverse-2' : 'text-fg-2']}>
+    {
+      trail.map((item, i) => (
+        <li class="flex items-center gap-1">
+          {i > 0 && <Icon name="arrow-right" size={14} directional class="opacity-60" />}
+          {item.href && i < trail.length - 1 ? (
+            <a href={item.href} class="inline-flex min-h-6 items-center underline-offset-2 hover:underline">
+              {item.label}
+            </a>
+          ) : (
+            <span aria-current="page">{item.label}</span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+<JsonLd data={jsonLd} />

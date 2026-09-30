@@ -1,0 +1,74 @@
+# Gates before pages (audit S.2): every change must pass all of these.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Design tokens are current and meet contrast
+        run: node scripts/build-tokens.mjs --check
+      - name: Design-system lint
+        run: npm run lint:styles
+      - name: Types
+        run: npm run check
+      - name: Build
+        run: npm run build
+      - name: Output checks (metadata, hreflang, OG images, links, store links, budgets)
+        run: npm run check:dist
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Accessibility, layout, privacy, CSP and behaviour tests
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: test-results/
+          retention-days: 7
+
+      - name: Lighthouse budgets
+        run: npx --yes @lhci/cli@0.14 autorun
+
+      - name: Dependency audit (production dependencies)
+        run: npm audit --omit=dev --audit-level=critical
+
+  # Blocks the production branch until the company facts, legal review and
+  # form delivery are in place (npm run check:launch).
+  launch-readiness:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: npm run check:launch
+        env:
+          FORMS_WEBHOOK_URL: ${{ secrets.FORMS_WEBHOOK_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          FORMS_EMAIL_TO: ${{ secrets.FORMS_EMAIL_TO }}
+          FORMS_EMAIL_FROM: ${{ secrets.FORMS_EMAIL_FROM }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}

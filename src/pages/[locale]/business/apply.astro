@@ -1,0 +1,111 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PageHeader from '../../../components/ui/PageHeader.astro';
+import Section from '../../../components/ui/Section.astro';
+import TextLink from '../../../components/ui/TextLink.astro';
+import Steps from '../../../components/ui/Steps.astro';
+import FormShell from '../../../components/forms/FormShell.astro';
+import TextField from '../../../components/forms/TextField.astro';
+import SelectField from '../../../components/forms/SelectField.astro';
+import ConsentField from '../../../components/forms/ConsentField.astro';
+import { apply, formMessages } from '../../../copy/support';
+import { business } from '../../../copy/business';
+import { common } from '../../../copy/common';
+import { SHOP_TYPES, COMPANY_TYPES } from '../../../lib/forms/schema';
+import { href, localeStaticPaths, type Locale } from '../../../i18n/config';
+
+/**
+ * One application for a shop and for a company. The two option groups are
+ * built from the same arrays the server validates against, so a choice can
+ * never be offered that the endpoint would reject.
+ */
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const t = apply[locale];
+const m = formMessages[locale];
+const b = business[locale];
+
+const pick = <K extends readonly string[]>(keys: K) =>
+  Object.fromEntries(keys.map((k) => [k, t.types[k as keyof typeof t.types]]));
+
+const typeGroups = [
+  { label: t.typeGroups.shop, options: pick(SHOP_TYPES) },
+  { label: t.typeGroups.company, options: pick(COMPANY_TYPES) },
+];
+---
+
+<BaseLayout locale={locale} path="/business/apply" title={t.meta.title} description={t.meta.description}>
+  <PageHeader
+    locale={locale}
+    title={t.title}
+    lead={t.lead}
+    crumbs={[{ label: common[locale].nav.business.title, href: href(locale, 'business') }, { label: t.title }]}
+  />
+
+  <Section>
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
+      <div class="lg:col-span-7">
+        <FormShell action="/api/forms/business" locale={locale} submitLabel={t.submit} successId="apply-success">
+          <SelectField
+            name="type"
+            label={t.type}
+            hint={t.typeHint}
+            placeholder={t.typeChoose}
+            groups={typeGroups}
+            options={{ other: t.types.other }}
+            required
+          />
+          <TextField name="name" label={t.name} autocomplete="name" required maxlength={120} />
+          <TextField name="business" label={t.business} autocomplete="organization" required maxlength={160} />
+          <div class="grid gap-6 sm:grid-cols-2">
+            <TextField name="country" label={t.country} autocomplete="country-name" required maxlength={80} />
+            <TextField name="city" label={t.city} autocomplete="address-level2" required maxlength={80} />
+          </div>
+          <TextField
+            name="phone"
+            label={t.phone}
+            hint={t.phoneHint}
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            dir="ltr"
+            required
+            maxlength={20}
+          />
+          <TextField
+            name="email"
+            label={t.email}
+            optionalLabel={m.optional}
+            type="email"
+            autocomplete="email"
+            dir="ltr"
+            maxlength={254}
+          />
+          <TextField
+            name="message"
+            label={t.message}
+            hint={t.messageHint}
+            optionalLabel={m.optional}
+            multiline
+            maxlength={1000}
+          />
+          <ConsentField before={t.consentBefore} linkLabel={m.privacyLink} href={href(locale, 'privacy')} />
+        </FormShell>
+
+        <div id="apply-success" hidden class="flex flex-col items-start gap-4 rounded-lg bg-success-bg p-8" role="status">
+          <h2 tabindex="-1" class="text-h2 font-display outline-none">{t.success.title}</h2>
+          <p class="text-body-lg text-fg">{t.success.body}</p>
+          <TextLink href={href(locale, 'business')}>{t.success.next}</TextLink>
+        </div>
+      </div>
+
+      <aside class="flex flex-col gap-8 self-start lg:col-span-4 lg:col-start-9">
+        <p class="rounded-md bg-subtle p-5 text-body-sm text-fg-2">{t.privacyNote}</p>
+        <div class="flex flex-col gap-4">
+          <h2 class="text-h3 font-display">{b.connectors.stepsTitle}</h2>
+          <Steps items={b.connectors.steps} locale={locale} columns={1} emphasize={0} class="gap-y-6" />
+        </div>
+      </aside>
+    </div>
+  </Section>
+</BaseLayout>

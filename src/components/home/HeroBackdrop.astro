@@ -1,0 +1,226 @@
+---
+import { heroGeometry, HERO_W, HERO_H } from '../../lib/globe';
+
+/**
+ * The hero's field: the world at night, seen from above, with the falcon
+ * flying over it.
+ *
+ * Layers, from back to front:
+ *   1. a graded navy sky with one light source high on the right;
+ *   2. the atmosphere — a glow ring concentric with the planet, so the
+ *      horizon carries the band of light you actually see from orbit;
+ *   3. the planet: land silhouette over a body slightly darker than the
+ *      sky, with meridians and parallels at the faintest legible opacity;
+ *   4. the corridors from src/data/network-map.ts, arcing between lit
+ *      cities — the same great circles the network globe draws further
+ *      down the page, so the hero is a close-up of the product, not
+ *      decoration;
+ *   5. a rim light along the limb, brightest under the light source;
+ *   6. a fine grain that stops the large gradients from banding on 8-bit
+ *      screens.
+ *
+ * Cost: one inline SVG of build-time path data and a 400-byte CSS data URI.
+ * No image request, no script, no animation, no blur filter — every layer
+ * is a gradient or a stroke, which the compositor handles without repaint.
+ * The whole thing is decorative, so it is aria-hidden, and it is dropped
+ * entirely in forced-colours mode rather than fighting the user's palette.
+ *
+ * Contrast: nothing here exceeds 22% alpha over navy (#071138), which
+ * leaves the white headline and the buttons far above 4.5:1 everywhere
+ * they sit. The `slice` fit anchors the horizon to the bottom edge, so the
+ * composition holds from a 320px phone to an ultrawide television.
+ */
+const g = heroGeometry();
+const { cx, cy, r } = g.atmosphere;
+// The glow hugs the limb: transparent through the planet, brightest just
+// outside it, gone by the time it reaches the sky.
+const glowR = r * 1.075;
+const inner = (r * 0.975) / glowR;
+const edge = r / glowR;
+---
+
+<div class="hero-backdrop" aria-hidden="true">
+  <svg class="hero-sky" viewBox={`0 0 ${HERO_W} ${HERO_H}`} preserveAspectRatio="xMidYMax slice" focusable="false">
+    <defs>
+      <radialGradient id="hero-atmosphere" gradientUnits="userSpaceOnUse" cx={cx} cy={cy} r={glowR}>
+        <stop offset={inner} stop-color="var(--color-cyan)" stop-opacity="0"></stop>
+        <stop offset={edge} stop-color="var(--color-cyan)" stop-opacity="0.3"></stop>
+        <stop offset="1" stop-color="var(--color-cyan)" stop-opacity="0"></stop>
+      </radialGradient>
+
+      <radialGradient id="hero-planet" gradientUnits="userSpaceOnUse" cx={cx} cy={cy} r={r}>
+        <stop offset="0" stop-color="#050d2c"></stop>
+        <stop offset="0.88" stop-color="#050d2c"></stop>
+        <stop offset="1" stop-color="var(--color-navy-800)"></stop>
+      </radialGradient>
+
+      <!-- Rim light along the horizon: brightest under the light source
+           high on the right, gone by both ends of the arc, so the limb
+           reads as an edge catching light and not as a drawn swoosh. -->
+      <linearGradient id="hero-rim" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="var(--color-white)" stop-opacity="0"></stop>
+        <stop offset="0.3" stop-color="var(--color-white)" stop-opacity="0.2"></stop>
+        <stop offset="0.62" stop-color="var(--color-cyan)" stop-opacity="0.5"></stop>
+        <stop offset="1" stop-color="var(--color-cyan)" stop-opacity="0.06"></stop>
+      </linearGradient>
+    </defs>
+
+    <!-- Orbits: circles concentric with the planet, arcing up through the
+         sky. Same geometry family as the limb, so the frame gains depth
+         without gaining a second visual language. -->
+    <g class="hero-orbits">
+      <circle cx={cx} cy={cy} r={r * 1.035}></circle>
+      <circle cx={cx} cy={cy} r={r * 1.1}></circle>
+      <circle cx={cx} cy={cy} r={r * 1.19}></circle>
+    </g>
+    <circle class="hero-atmosphere" cx={cx} cy={cy} r={glowR}></circle>
+    <path class="hero-planet" d={g.limb}></path>
+    <path class="hero-graticule" d={g.graticule}></path>
+    <path class="hero-land" d={g.land}></path>
+
+    <g class="hero-routes">
+      {g.routes.map((d) => <path d={d} />)}
+    </g>
+    <g class="hero-cities">
+      {
+        g.cities.map((c) => (
+          <>
+            <circle class="hero-city-glow" cx={c.x} cy={c.y} r="14" />
+            <circle class="hero-city" cx={c.x} cy={c.y} r="3.5" />
+          </>
+        ))
+      }
+    </g>
+
+    <path class="hero-rim" d={g.limb}></path>
+  </svg>
+
+  <div class="hero-shaft"></div>
+  <div class="hero-halo"></div>
+  <div class="hero-grain"></div>
+</div>
+
+<style>
+  .hero-backdrop {
+    position: absolute;
+    inset: 0;
+    overflow: clip;
+    pointer-events: none;
+    /* One light source, high on the right, over deep navy.
+       Not mirrored in Arabic: the planet below it is real geography and
+       never flips, so a light source that moved to the other side would
+       light the horizon from one direction and the sky from the other. */
+    background-color: var(--color-navy);
+    background-image:
+      radial-gradient(64% 54% at 84% -8%, color-mix(in srgb, var(--color-navy-600) 95%, transparent), transparent 72%),
+      radial-gradient(48% 44% at 6% 2%, color-mix(in srgb, var(--color-navy-800) 80%, transparent), transparent 70%);
+  }
+
+  /* Geography is never mirrored: the map reads the same in both languages. */
+  .hero-sky {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    direction: ltr;
+  }
+
+  .hero-orbits circle {
+    fill: none;
+    stroke: var(--color-white);
+    stroke-opacity: 0.045;
+    stroke-width: 1.4;
+  }
+  .hero-orbits circle:nth-child(2) {
+    stroke-opacity: 0.032;
+  }
+  .hero-orbits circle:nth-child(3) {
+    stroke-opacity: 0.022;
+  }
+  .hero-atmosphere {
+    fill: url(#hero-atmosphere);
+  }
+  .hero-planet {
+    fill: url(#hero-planet);
+  }
+  .hero-graticule {
+    fill: none;
+    stroke: var(--color-white);
+    stroke-opacity: 0.05;
+    stroke-width: 1.2;
+  }
+  .hero-land {
+    fill: var(--color-white);
+    fill-opacity: 0.07;
+  }
+
+  .hero-routes path {
+    fill: none;
+    stroke: var(--color-cyan);
+    stroke-opacity: 0.2;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .hero-city {
+    fill: var(--color-cyan);
+    fill-opacity: 0.85;
+  }
+  .hero-city-glow {
+    fill: var(--color-cyan);
+    fill-opacity: 0.12;
+  }
+
+  .hero-rim {
+    fill: none;
+    stroke: url(#hero-rim);
+    stroke-width: 2;
+  }
+
+  /* A shaft of light down the centre. It is what the falcon flies in, and
+     it gives the upper half of the frame something to be. */
+  .hero-shaft {
+    position: absolute;
+    inset-block-start: -12%;
+    inset-inline-start: 50%;
+    inline-size: 68%;
+    block-size: 88%;
+    translate: -50% 0;
+    background: radial-gradient(
+      46% 62% at 50% 0%,
+      color-mix(in srgb, var(--color-white) 9%, transparent),
+      transparent 72%
+    );
+  }
+
+  /* Lifts the white mark and the headline off the field. */
+  .hero-halo {
+    position: absolute;
+    inset-block-start: 2%;
+    inset-inline: 0;
+    block-size: 64%;
+    background: radial-gradient(
+      42% 48% at 50% 32%,
+      color-mix(in srgb, var(--color-cyan) 10%, transparent),
+      transparent 70%
+    );
+  }
+
+  /* Fine grain: kills the banding large gradients show on 8-bit panels.
+     Inline data URI, ~400 bytes, no network request. */
+  .hero-grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.38;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+  }
+
+  /* Forced colours: drop the decoration entirely rather than fight the
+     user's palette. */
+  @media (forced-colors: active) {
+    .hero-backdrop {
+      display: none;
+    }
+  }
+</style>

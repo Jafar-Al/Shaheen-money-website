@@ -1,0 +1,84 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import Icon from './Icon.astro';
+
+/**
+ * One component for every button-shaped control (audit O.4 "Buttons").
+ *   primary            the single primary action on a screen — brand blue
+ *   secondary          alternative action on light surfaces
+ *   tertiary           low emphasis, text only
+ *   inverse            primary action on navy — never brand blue on navy (1.89:1)
+ *   inverse-secondary  alternative action on navy
+ * Every size is at least 44px tall (WCAG 2.5.8 needs 24px; 44px is our floor).
+ */
+type Variant = 'primary' | 'secondary' | 'tertiary' | 'inverse' | 'inverse-secondary';
+type Size = 'sm' | 'md' | 'lg';
+
+type Props = {
+  href?: string;
+  variant?: Variant;
+  size?: Size;
+  type?: 'button' | 'submit';
+  /** Trailing arrow for "go somewhere" actions. */
+  arrow?: boolean;
+  /** Stretch to the container width below 480px. */
+  blockOnMobile?: boolean;
+  class?: string;
+} & Omit<HTMLAttributes<'a'> & HTMLAttributes<'button'>, 'class' | 'type'>;
+
+const {
+  href,
+  variant = 'primary',
+  size = 'md',
+  type = 'button',
+  arrow = false,
+  blockOnMobile = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const variants: Record<Variant, string> = {
+  primary: 'bg-blue text-fg-inverse shadow-sm hover:bg-blue-hover',
+  secondary: 'border border-line-strong bg-white text-fg hover:border-fg hover:bg-subtle',
+  tertiary: 'text-fg underline-offset-4 hover:underline',
+  inverse: 'bg-white text-navy shadow-sm hover:bg-muted',
+  'inverse-secondary': 'border border-line-inverse-strong text-fg-inverse hover:border-white hover:bg-white/10',
+};
+
+const sizes: Record<Size, string> = {
+  sm: 'min-h-11 px-4',
+  md: 'min-h-12 px-6',
+  lg: 'min-h-14 px-7',
+};
+
+const classes = [
+  'group inline-flex items-center justify-center gap-2 rounded-md text-button font-sans',
+  'transition duration-150 ease-out active:translate-y-px',
+  variant === 'tertiary' ? 'min-h-11 px-0' : sizes[size],
+  variants[variant],
+  blockOnMobile && 'w-full sm:w-auto',
+  className,
+];
+
+const Tag = href ? 'a' : 'button';
+---
+
+<Tag
+  href={href}
+  type={href ? undefined : type}
+  class:list={classes}
+  data-btn={variant === 'tertiary' ? undefined : variant}
+  {...rest}
+>
+  <slot />
+  {
+    arrow && (
+      <Icon
+        name="arrow-right"
+        size={18}
+        directional
+        class="transition-transform duration-150 group-hover:translate-x-1 rtl:group-hover:-translate-x-1"
+      />
+    )
+  }
+</Tag>

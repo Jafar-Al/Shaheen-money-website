@@ -1,0 +1,58 @@
+---
+import Icon from '../ui/Icon.astro';
+
+/**
+ * One <select>. Pass `options` for a flat list, or `groups` when the choices
+ * belong to two audiences and the grouping is itself the question being
+ * asked (the business application uses it to tell a shop from a company
+ * without a second field to keep in sync). Passing both puts the flat
+ * options last, after every group, for a trailing "something else".
+ */
+interface Props {
+  name: string;
+  label: string;
+  hint?: string;
+  placeholder: string;
+  options?: Record<string, string>;
+  groups?: Array<{ label: string; options: Record<string, string> }>;
+  required?: boolean;
+  class?: string;
+}
+
+const { name, label, hint, placeholder, options, groups, required = false, class: className } = Astro.props;
+const id = `f-${name}`;
+---
+
+<div class:list={['flex flex-col gap-2', className]} data-field={name}>
+  <label for={id} class="text-body-sm font-semibold text-fg">{label}</label>
+  <span class="relative">
+    <select
+      id={id}
+      name={name}
+      required={required}
+      aria-describedby={hint ? `${id}-hint ${id}-error` : `${id}-error`}
+      class="block min-h-12 w-full appearance-none rounded-sm border border-line-strong bg-white pe-11 ps-4 text-body text-fg aria-invalid:border-error aria-invalid:bg-error-bg"
+    >
+      <option value="" disabled selected>{placeholder}</option>
+      {
+        groups?.map((group) => (
+          <optgroup label={group.label}>
+            {Object.entries(group.options).map(([value, text]) => (
+              <option value={value}>{text}</option>
+            ))}
+          </optgroup>
+        ))
+      }
+      {options && Object.entries(options).map(([value, text]) => <option value={value}>{text}</option>)}
+    </select>
+    <Icon name="chevron-down" size={18} class="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 text-fg-2" />
+  </span>
+  {hint && <p id={`${id}-hint`} class="text-body-sm text-fg-2" data-hint>{hint}</p>}
+  <p id={`${id}-error`} class="flex items-start gap-2 text-body-sm font-semibold text-error" data-error hidden>
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="mt-0.5 shrink-0">
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M12 7.5v5.5M12 16.2v.3"></path>
+    </svg>
+    <span data-error-text></span>
+  </p>
+</div>

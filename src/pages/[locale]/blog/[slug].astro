@@ -1,0 +1,149 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Section from '../../../components/ui/Section.astro';
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.astro';
+import DownloadButton from '../../../components/site/DownloadButton.astro';
+import TextLink from '../../../components/ui/TextLink.astro';
+import PostCard from '../../../components/blog/PostCard.astro';
+import Photo from '../../../components/media/Photo.astro';
+import { blog } from '../../../copy/blog';
+import { common } from '../../../copy/common';
+import { categoryLabel, getPosts, postLocale, postSlug, type Post } from '../../../lib/blog';
+import { formatDate, readingMinutes } from '../../../lib/format';
+import { absoluteUrl, href, locales, otherLocale, type Locale } from '../../../i18n/config';
+import { SITE_URL } from '../../../config/site';
+
+export async function getStaticPaths() {
+  const all = (await Promise.all(locales.map((l) => getPosts(l)))).flat();
+  return all.map((post) => ({
+    params: { locale: postLocale(post), slug: postSlug(post) },
+    props: {
+      post,
+      hasTwin: all.some((p) => postLocale(p) !== postLocale(post) && postSlug(p) === postSlug(post)),
+    },
+  }));
+}
+
+interface Props {
+  post: Post;
+  hasTwin: boolean;
+}
+
+const { post, hasTwin } = Astro.props;
+const locale = Astro.params.locale as Locale;
+const slug = postSlug(post);
+const t = blog[locale];
+const ui = common[locale].ui;
+const { Content } = await render(post);
+const minutes = readingMinutes(post.body ?? '', locale);
+const path = `/blog/${slug}`;
+const related = (await getPosts(locale))
+  .filter((p) => postSlug(p) !== slug && p.data.category === post.data.category)
+  .slice(0, 2);
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.data.title,
+    description: post.data.description,
+    inLanguage: locale,
+    datePublished: post.data.publishedAt.toISOString(),
+    dateModified: (post.data.updatedAt ?? post.data.publishedAt).toISOString(),
+    author: { '@type': 'Person', name: post.data.author },
+    publisher: { '@id': `${SITE_URL}/#organization` },
+    mainEntityOfPage: absoluteUrl(`/${locale}${path}`),
+    image: absoluteUrl(`/og/${locale}${path}.png`),
+    articleSection: categoryLabel[post.data.category][locale],
+  },
+];
+---
+
+<BaseLayout
+  locale={locale}
+  path={path}
+  title={`${post.data.title} — Shaheen Money`}
+  description={post.data.description}
+  ogType="article"
+  otherLocalePath={hasTwin ? undefined : href(otherLocale(locale), 'blog')}
+  article={{
+    publishedTime: post.data.publishedAt.toISOString(),
+    modifiedTime: post.data.updatedAt?.toISOString(),
+    section: categoryLabel[post.data.category][locale],
+  }}
+  jsonLd={jsonLd}
+>
+  <article>
+    <Section tone="subtle" spacing="sm" container="narrow" class="border-b border-line-subtle">
+      <Breadcrumbs
+        locale={locale}
+        items={[{ label: common[locale].nav.blog.title, href: href(locale, 'blog') }, { label: post.data.title }]}
+      />
+      <header class="mt-8 flex flex-col gap-5">
+        <p class="text-label uppercase text-fg-2">{categoryLabel[post.data.category][locale]}</p>
+        <h1 class="text-display-lg font-display">{post.data.title}</h1>
+        <p class="text-body-lg text-fg-2">{post.data.description}</p>
+        <p class="text-caption text-fg-2">
+          {t.by} {post.data.author}
+          <span aria-hidden="true"> · </span>
+          <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt, locale)}</time>
+          {
+            post.data.updatedAt && (
+              <>
+                <span aria-hidden="true"> · </span>
+                {ui.updated} <time datetime={post.data.updatedAt.toISOString()}>{formatDate(post.data.updatedAt, locale)}</time>
+              </>
+            )
+          }
+          <span aria-hidden="true"> · </span>
+          <span class="num">{minutes}</span> {ui.minRead}
+        </p>
+      </header>
+    </Section>
+
+    {
+      post.data.heroImage && (
+        <div class="container-narrow mt-10">
+          <Photo
+            src={post.data.heroImage}
+            alt={post.data.heroAlt ?? ''}
+            width={960}
+            sizes="(min-width: 64rem) 960px, 92vw"
+            priority
+            class="w-full rounded-lg"
+          />
+        </div>
+      )
+    }
+
+    <Section container="narrow">
+      <div class="prose measure mx-auto">
+        <Content />
+      </div>
+    </Section>
+  </article>
+
+  <Section tone="subtle" container="narrow">
+    <div class="flex flex-col items-start gap-4 rounded-lg bg-navy p-8 text-fg-inverse md:p-10" data-surface="dark">
+      <h2 class="text-h2 font-display">{t.cta.title}</h2>
+      <p class="text-body-lg text-fg-inverse-2">{t.cta.body}</p>
+      <DownloadButton locale={locale} tone="dark" />
+    </div>
+    {
+      related.length > 0 && (
+        <div class="mt-12 flex flex-col gap-6">
+          <h2 class="text-h2 font-display">{t.related}</h2>
+          <ul class="grid gap-6 md:grid-cols-2">
+            {related.map((p) => (
+              <li>
+                <PostCard post={p} locale={locale} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+    <TextLink href={href(locale, 'blog')} class="mt-8">{t.backToBlog}</TextLink>
+  </Section>
+</BaseLayout>

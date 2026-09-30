@@ -1,0 +1,37 @@
+---
+import Section from '../ui/Section.astro';
+import TextLink from '../ui/TextLink.astro';
+import PostCard from '../blog/PostCard.astro';
+import { home } from '../../copy/home';
+import { getPosts } from '../../lib/blog';
+import { href, type Locale } from '../../i18n/config';
+
+/** Audit M.3: the homepage links to the three most recent posts. */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = home[locale].blog;
+const posts = (await getPosts(locale)).slice(0, 3);
+---
+
+{
+  posts.length > 0 && (
+    <Section tone="subtle" labelledby="blog-title">
+      <div class="flex flex-wrap items-end justify-between gap-6">
+        <header class="flex flex-col gap-4">
+          <p class="text-label uppercase text-navy">{t.label}</p>
+          <h2 id="blog-title" class="text-h1 font-display">{t.title}</h2>
+        </header>
+        <TextLink href={href(locale, 'blog')}>{t.all}</TextLink>
+      </div>
+      <ul class="mt-10 grid gap-6 md:grid-cols-3">
+        {posts.map((post) => (
+          <li>
+            <PostCard post={post} locale={locale} />
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )
+}

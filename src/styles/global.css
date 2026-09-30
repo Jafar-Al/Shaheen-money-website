@@ -1,0 +1,547 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    color-scheme: light;
+    scroll-padding-block-start: calc(var(--header-h) + 16px);
+  }
+
+  body {
+    min-block-size: 100svh;
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--lh-body);
+    color: var(--color-fg);
+    background-color: var(--color-white);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd,
+  figcaption {
+    text-wrap: pretty;
+  }
+
+  /* Designed focus state (audit H.3): 2px ring + 2px offset, ≥3:1 on both surfaces. */
+  :focus-visible {
+    outline: var(--focus-width) solid var(--color-focus);
+    outline-offset: var(--focus-offset);
+  }
+  [data-surface='dark'] :focus-visible,
+  [data-surface='dark']:focus-visible {
+    outline-color: var(--color-focus-inverse);
+  }
+
+  /* Connected script: tracking is never applied to Arabic, whatever a
+     component asks for (audit A.4.7). Tokens already set it to 0. */
+  :lang(ar) {
+    letter-spacing: 0 !important;
+  }
+
+  ::selection {
+    background-color: var(--color-blue);
+    color: var(--color-white);
+  }
+  [data-surface='dark'] ::selection {
+    background-color: var(--color-cyan);
+    color: var(--color-navy);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+
+/* ── Site header (src/components/site/Header.astro) ───────────────────── */
+@layer components {
+  .site-header {
+    transition:
+      background-color var(--duration) var(--ease-in-out),
+      border-color var(--duration) var(--ease-in-out);
+    border-block-end: 1px solid var(--color-line);
+    background-color: var(--color-white);
+    color: var(--color-fg);
+  }
+  .site-header[data-state='dark'] {
+    border-block-end-color: transparent;
+    background-color: color-mix(in srgb, var(--color-navy) 80%, transparent);
+    color: var(--color-fg-inverse);
+    -webkit-backdrop-filter: blur(var(--blur-md));
+    backdrop-filter: blur(var(--blur-md));
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .site-header[data-state='dark'] {
+      background-color: var(--color-navy);
+    }
+  }
+  /* The open drawer is always light. backdrop-filter must go too: it makes
+     the header the containing block of the fixed drawer, which would then
+     collapse to the header's height. */
+  .site-header:has(.mobile-menu:not([hidden])) {
+    background-color: var(--color-white);
+    color: var(--color-fg);
+    border-block-end-color: var(--color-line);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .site-header[data-state='dark'] .logo-light,
+  .site-header[data-state='light'] .logo-dark,
+  .site-header:has(.mobile-menu:not([hidden])) .logo-dark,
+  .site-header[data-state='dark'] .locale-light,
+  .site-header[data-state='light'] .locale-dark {
+    /* !important: these roots carry display utilities of their own. */
+    display: none !important;
+  }
+  .site-header:has(.mobile-menu:not([hidden])) .logo-light {
+    display: inline-flex !important;
+  }
+  .nav-item[aria-expanded='true'] .nav-chevron {
+    rotate: 180deg;
+  }
+  .nav-chevron {
+    transition: rotate var(--duration-fast) var(--ease-in-out);
+  }
+
+  .nav-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-block-size: var(--target-min);
+    padding-inline: 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-nav);
+    line-height: var(--lh-nav);
+    font-weight: 500;
+    color: inherit;
+    transition: background-color var(--duration-fast) var(--ease-in-out);
+  }
+  .nav-item:hover,
+  .nav-item[aria-expanded='true'] {
+    background-color: var(--color-muted);
+  }
+  .site-header[data-state='dark'] .nav-item:hover,
+  .site-header[data-state='dark'] .nav-item[aria-expanded='true'] {
+    background-color: color-mix(in srgb, var(--color-white) 10%, transparent);
+  }
+  .nav-item[aria-current='page'],
+  .nav-item[data-current='true'] {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.5em;
+  }
+
+  .nav-panel {
+    position: absolute;
+    inset-block-start: calc(100% + 0.5rem);
+    inset-inline-start: 0;
+    min-inline-size: 20rem;
+    padding: 0.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background-color: var(--color-white);
+    box-shadow: var(--shadow-lg);
+    color: var(--color-fg);
+  }
+  .nav-panel-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-block-size: var(--target-min);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+  }
+  .nav-panel-link:hover,
+  .nav-panel-link[aria-current='page'] {
+    background-color: var(--color-subtle);
+  }
+
+  .header-cta,
+  .header-cta-block {
+    align-items: center;
+    justify-content: center;
+    min-block-size: var(--target-min);
+    padding-inline: 1.25rem;
+    border-radius: var(--radius-md);
+    font-size: var(--text-button);
+    line-height: var(--lh-button);
+    font-weight: 600;
+    background-color: var(--color-blue);
+    color: var(--color-fg-inverse);
+    transition: background-color var(--duration-fast) var(--ease-in-out);
+  }
+  .header-cta:hover,
+  .header-cta-block:hover {
+    background-color: var(--color-blue-hover);
+  }
+  /* Brand blue never sits on navy (1.89:1): the dark header uses the inverse button. */
+  .site-header[data-state='dark'] .header-cta {
+    background-color: var(--color-white);
+    color: var(--color-navy);
+  }
+  .site-header[data-state='dark'] .header-cta:hover {
+    background-color: var(--color-muted);
+  }
+  .header-cta-block {
+    display: flex;
+    min-block-size: 3.5rem;
+  }
+
+  .menu-toggle {
+    display: inline-grid;
+    place-items: center;
+    inline-size: var(--target-min);
+    block-size: var(--target-min);
+    border-radius: var(--radius-sm);
+    color: inherit;
+  }
+  .menu-toggle .icon-close,
+  .menu-toggle[aria-expanded='true'] .icon-open {
+    display: none;
+  }
+  .menu-toggle[aria-expanded='true'] .icon-close {
+    display: block;
+  }
+
+  .mobile-menu {
+    position: fixed;
+    inset-inline: 0;
+    inset-block: calc(var(--header-h) + 1px) 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background-color: var(--color-white);
+    color: var(--color-fg);
+  }
+  @media (min-width: 64rem) {
+    .mobile-menu {
+      display: none !important;
+    }
+  }
+
+  html.menu-open {
+    overflow: hidden;
+  }
+}
+
+/* ── Hero surface: depth from CSS gradients, zero image bytes ──────────── */
+@layer components {
+  .hero-surface {
+    background-color: var(--color-navy);
+    background-image:
+      radial-gradient(70% 60% at 88% 0%, color-mix(in srgb, var(--color-navy-600) 80%, transparent), transparent 70%),
+      radial-gradient(50% 50% at 0% 100%, color-mix(in srgb, var(--color-navy-800) 90%, transparent), transparent 70%);
+  }
+  [dir='rtl'] .hero-surface {
+    background-image:
+      radial-gradient(70% 60% at 12% 0%, color-mix(in srgb, var(--color-navy-600) 80%, transparent), transparent 70%),
+      radial-gradient(50% 50% at 100% 100%, color-mix(in srgb, var(--color-navy-800) 90%, transparent), transparent 70%);
+  }
+  .hero-glow {
+    position: absolute;
+    inset: 5% -5%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--color-cyan) 24%, transparent), transparent);
+    pointer-events: none;
+  }
+}
+
+/* ── Prose: Markdown content (blog posts, legal documents) ────────────── */
+@layer components {
+  .prose {
+    color: var(--color-fg);
+    font-size: var(--text-body-lg);
+    line-height: var(--lh-body-lg);
+  }
+  .prose > * + * {
+    margin-block-start: 1.25em;
+  }
+  .prose :where(h2) {
+    margin-block-start: 2.2em;
+    font-size: var(--text-h2);
+    line-height: var(--lh-h2);
+    letter-spacing: var(--ls-h2);
+    font-weight: 650;
+  }
+  .prose :where(h3) {
+    margin-block-start: 1.8em;
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+    letter-spacing: var(--ls-h3);
+    font-weight: 600;
+  }
+  .prose :where(h2, h3) + * {
+    margin-block-start: 0.75em;
+  }
+  .prose :where(a) {
+    color: var(--color-blue);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .prose :where(a:hover) {
+    text-decoration-thickness: 2px;
+  }
+  .prose :where(strong) {
+    font-weight: 650;
+  }
+  .prose :where(ul, ol) {
+    padding-inline-start: 1.5em;
+  }
+  .prose :where(ul) {
+    list-style: disc;
+  }
+  .prose :where(ol) {
+    list-style: decimal;
+  }
+  .prose :where(li + li) {
+    margin-block-start: 0.5em;
+  }
+  .prose :where(li)::marker {
+    color: var(--color-fg-3);
+  }
+  .prose :where(blockquote) {
+    border-inline-start: 3px solid var(--color-navy);
+    padding-inline-start: 1.25em;
+    color: var(--color-fg-2);
+    font-style: normal;
+  }
+  .prose :where(hr) {
+    border-color: var(--color-line);
+    margin-block: 2.5em;
+  }
+  .prose :where(img) {
+    border-radius: var(--radius-md);
+  }
+  .prose :where(table) {
+    inline-size: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-body-sm);
+    font-variant-numeric: tabular-nums;
+  }
+  .prose :where(th, td) {
+    border-block-end: 1px solid var(--color-line);
+    padding: 0.625em 0.75em;
+    text-align: start;
+  }
+  .prose :where(code) {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+}
+
+/* ── Smart download button + QR dialog ────────────────────────────────── */
+@layer components {
+  .dl-button > span {
+    display: inline-flex;
+    align-items: center;
+  }
+  .dl-button .dl-when-ios,
+  .dl-button .dl-when-android,
+  html[data-platform='ios'] .dl-button .dl-when-desktop,
+  html[data-platform='android'] .dl-button .dl-when-desktop {
+    display: none;
+  }
+  html[data-platform='ios'] .dl-button .dl-when-ios,
+  html[data-platform='android'] .dl-button .dl-when-android {
+    display: inline-flex;
+  }
+
+  .download-dialog {
+    margin: auto;
+    inline-size: min(26rem, calc(100vw - 2rem));
+    padding: 1rem 2rem 2rem;
+    border: 0;
+    border-radius: var(--radius-lg);
+    background-color: var(--color-white);
+    color: var(--color-fg);
+    box-shadow: var(--shadow-lg);
+  }
+  .download-dialog::backdrop {
+    background-color: color-mix(in srgb, var(--color-navy) 72%, transparent);
+  }
+  html:has(.download-dialog[open]) {
+    overflow: hidden;
+  }
+}
+
+@utility min-h-hero {
+  min-block-size: 88svh;
+}
+
+/* ── Layout utilities ─────────────────────────────────────────────────── */
+@utility container-page {
+  inline-size: 100%;
+  max-inline-size: calc(var(--container-lg) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+@utility container-wide {
+  inline-size: 100%;
+  max-inline-size: calc(var(--container-xl) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+@utility container-narrow {
+  inline-size: 100%;
+  max-inline-size: calc(var(--container-md) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+@utility section-y {
+  padding-block: var(--section-y);
+}
+@utility section-y-sm {
+  padding-block: var(--section-y-sm);
+}
+@utility section-y-lg {
+  padding-block: var(--section-y-lg);
+}
+@utility measure {
+  max-inline-size: var(--container-prose);
+}
+@utility target {
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+}
+
+/* Every figure: tabular lining numerals in Inter, isolated from RTL text so
+   "$1,240.00" never reorders inside an Arabic sentence. */
+@utility num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ── Motion (audit Q.2) ───────────────────────────────────────────────── */
+/* A real reduced-motion path, not a blanket kill: movement goes, but colour
+   and opacity feedback stay so the interface still responds. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-property: color, background-color, border-color, outline-color, opacity, box-shadow !important;
+  }
+}
+
+/* ── Forced colours (Windows High Contrast) ───────────────────────────── */
+@media (forced-colors: active) {
+  [data-btn] {
+    border: 1px solid ButtonText;
+  }
+  [data-card],
+  [data-device] {
+    border: 1px solid CanvasText;
+  }
+  [data-gap] {
+    border-color: CanvasText;
+  }
+}
+
+/* ── Print ────────────────────────────────────────────────────────────── */
+@media print {
+  [data-site-header],
+  [data-site-footer-nav],
+  [data-no-print] {
+    display: none !important;
+  }
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+  }
+}
+
+/* ── Scroll reveal (src/scripts/reveal.ts) ─────────────────────── */
+@layer components {
+  /*
+   * Only an element the script has begun observing is hidden, and it is
+   * hidden by an attribute only the script sets. No script, no hidden
+   * content — and the script itself carries a timeout that clears every
+   * pending element regardless. Transform and opacity only, so nothing
+   * below a revealing element ever moves.
+   */
+  [data-reveal][data-reveal-pending] {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  [data-reveal][data-revealed] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.6s var(--ease-out),
+      transform 0.7s var(--ease-out);
+  }
+
+  /* Children of a pending group come in just behind it, in order. */
+  [data-reveal][data-reveal-pending] [data-reveal-child] {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  [data-reveal][data-revealed] [data-reveal-child] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.5s var(--ease-out),
+      transform 0.6s var(--ease-out);
+  }
+  [data-reveal-child]:nth-child(2) { transition-delay: 90ms; }
+  [data-reveal-child]:nth-child(3) { transition-delay: 180ms; }
+  [data-reveal-child]:nth-child(4) { transition-delay: 270ms; }
+  [data-reveal-child]:nth-child(5) { transition-delay: 360ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal],
+    [data-reveal] [data-reveal-child] {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+  }
+
+  /* Printing and forced-colours must never omit content. */
+  @media print, (forced-colors: active) {
+    [data-reveal],
+    [data-reveal] [data-reveal-child] {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+}
+
+@layer components {
+  /* A section header that stays with its content.
+     The two-column sections put a short header beside a long column, which
+     left the header's side of the page empty for most of the scroll. Held
+     in place it reads as a running title instead: the reader always knows
+     which question the column they are reading answers, and the column
+     that was blank is doing work.
+
+     Only from the large breakpoint, where the two columns actually sit
+     side by side, and only when the header is shorter than the viewport
+     — a sticky element taller than the screen can never be scrolled to
+     its end. */
+  @media (min-width: 64rem) {
+    .sticky-col {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 2.5rem);
+      align-self: start;
+      max-block-size: calc(100vh - var(--header-h) - 5rem);
+    }
+  }
+}

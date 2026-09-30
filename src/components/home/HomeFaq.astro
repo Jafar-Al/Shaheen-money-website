@@ -1,0 +1,55 @@
+---
+import Section from '../ui/Section.astro';
+import Faq from '../ui/Faq.astro';
+import Button from '../ui/Button.astro';
+import { home } from '../../copy/home';
+import { common } from '../../copy/common';
+import { href, type Locale, type PageKey } from '../../i18n/config';
+
+/**
+ * The questions we are asked most. Was /help.
+ *
+ * Native <details>, so it works with the keyboard and a screen reader
+ * without a line of JavaScript, and the answers are in the HTML whether or
+ * not anyone opens them. The page emits matching FAQPage structured data
+ * (see index.astro), which is only honest because the answer a search
+ * engine reads is the answer a visitor reads.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = home[locale].faq;
+const nav = common[locale].nav;
+
+const labels: Record<'security' | 'getApp' | 'contact' | 'business', string> = {
+  security: nav.security,
+  getApp: nav.getApp,
+  contact: nav.contact.title,
+  business: nav.business.title,
+};
+
+const items = t.items.map((item) => ({
+  q: item.q,
+  a: item.a,
+  link: 'link' in item && item.link ? { href: href(locale, item.link as PageKey), label: labels[item.link] } : undefined,
+}));
+---
+
+<Section id="faq" labelledby="faq-title">
+  <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
+    <header class="sticky-col flex flex-col gap-5 lg:col-span-4">
+      <p class="text-label uppercase text-navy">{t.label}</p>
+      <h2 id="faq-title" class="text-h1 font-display">{t.title}</h2>
+      <div class="mt-2 flex flex-col items-start gap-3 rounded-lg bg-subtle p-6">
+        <h3 class="text-h3 font-display">{t.stillTitle}</h3>
+        <p class="text-body text-fg-2">{t.stillBody}</p>
+        <Button href={href(locale, 'contact')} variant="secondary" arrow>{t.stillCta}</Button>
+      </div>
+    </header>
+
+    <div class="lg:col-span-8">
+      <Faq items={items} />
+    </div>
+  </div>
+</Section>

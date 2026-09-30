@@ -1,0 +1,243 @@
+/* GENERATED from design/tokens.json by scripts/build-tokens.mjs — do not edit. */
+
+@theme {
+  --color-*: initial;
+  --color-navy: #071138;
+  --color-navy-800: #0c1a4d;
+  --color-navy-600: #142a6e;
+  --color-blue: #1400ff;
+  --color-blue-hover: #1000cc;
+  --color-cyan: #00e1ff;
+  --color-white: #ffffff;
+  --color-subtle: #f7f8fc;
+  --color-muted: #f4f5fb;
+  --color-fg: #071138;
+  --color-fg-2: #4a5270;
+  --color-fg-3: #5b6382;
+  --color-fg-inverse: #ffffff;
+  --color-fg-inverse-2: rgba(255, 255, 255, 0.72);
+  --color-line-subtle: rgba(7, 17, 56, 0.10);
+  --color-line: rgba(7, 17, 56, 0.16);
+  --color-line-strong: rgba(7, 17, 56, 0.50);
+  --color-line-inverse: rgba(255, 255, 255, 0.18);
+  --color-line-inverse-strong: rgba(255, 255, 255, 0.45);
+  --color-success: #0a7d5a;
+  --color-success-bg: #e6f5f0;
+  --color-warning: #8a5a00;
+  --color-warning-bg: #fdf3e0;
+  --color-error: #b3261e;
+  --color-error-bg: #fdeceb;
+  --color-info-bg: #eceaff;
+  --color-focus: #1400ff;
+  --color-focus-inverse: #00e1ff;
+
+  --radius-*: initial;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --shadow-sm: 0 1px 2px rgba(7, 17, 56, 0.06), 0 1px 3px rgba(7, 17, 56, 0.08);
+  --shadow-md: 0 2px 4px rgba(7, 17, 56, 0.05), 0 8px 16px -6px rgba(7, 17, 56, 0.12);
+  --shadow-lg: 0 4px 8px rgba(7, 17, 56, 0.05), 0 24px 48px -16px rgba(7, 17, 56, 0.18);
+
+  --breakpoint-*: initial;
+  --breakpoint-sm: 30rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+
+  --container-*: initial;
+  --container-prose: 68ch;
+  --container-sm: 720px;
+  --container-md: 960px;
+  --container-lg: 1200px;
+  --container-xl: 1400px;
+
+  --spacing: 0.25rem; /* 4px unit: every spacing utility is a multiple */
+  --tracking-*: initial; /* tracking comes from type tokens only */
+  --leading-*: initial; /* line-height comes from type tokens only */
+  --ease-*: initial;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-*: initial;
+  --blur-*: initial;
+  --blur-md: 12px;
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Type and font tokens resolve per element, so :lang(ar) can retune them. */
+@theme inline {
+  --text-*: initial;
+  --text-display-xl: calc(clamp(2.75rem, 1.9rem + 3.6vw, 4.5rem) * var(--scale-display-xl));
+  --text-display-xl--line-height: var(--lh-display-xl);
+  --text-display-xl--letter-spacing: var(--ls-display-xl);
+  --text-display-xl--font-weight: 700;
+  --text-display-lg: calc(clamp(2.25rem, 1.7rem + 2.4vw, 3.5rem) * var(--scale-display-lg));
+  --text-display-lg--line-height: var(--lh-display-lg);
+  --text-display-lg--letter-spacing: var(--ls-display-lg);
+  --text-display-lg--font-weight: 700;
+  --text-h1: calc(clamp(2rem, 1.6rem + 1.8vw, 3rem) * var(--scale-h1));
+  --text-h1--line-height: var(--lh-h1);
+  --text-h1--letter-spacing: var(--ls-h1);
+  --text-h1--font-weight: 700;
+  --text-h2: calc(clamp(1.625rem, 1.4rem + 1.1vw, 2.25rem) * var(--scale-h2));
+  --text-h2--line-height: var(--lh-h2);
+  --text-h2--letter-spacing: var(--ls-h2);
+  --text-h2--font-weight: 650;
+  --text-h3: calc(clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem) * var(--scale-h3));
+  --text-h3--line-height: var(--lh-h3);
+  --text-h3--letter-spacing: var(--ls-h3);
+  --text-h3--font-weight: 600;
+  --text-body-lg: calc(clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem) * var(--scale-body-lg));
+  --text-body-lg--line-height: var(--lh-body-lg);
+  --text-body-lg--letter-spacing: var(--ls-body-lg);
+  --text-body-lg--font-weight: 400;
+  --text-body: calc(1rem * var(--scale-body));
+  --text-body--line-height: var(--lh-body);
+  --text-body--letter-spacing: var(--ls-body);
+  --text-body--font-weight: 400;
+  --text-body-sm: calc(0.9375rem * var(--scale-body-sm));
+  --text-body-sm--line-height: var(--lh-body-sm);
+  --text-body-sm--letter-spacing: var(--ls-body-sm);
+  --text-body-sm--font-weight: 400;
+  --text-caption: calc(0.8125rem * var(--scale-caption));
+  --text-caption--line-height: var(--lh-caption);
+  --text-caption--letter-spacing: var(--ls-caption);
+  --text-caption--font-weight: 500;
+  --text-label: calc(0.75rem * var(--scale-label));
+  --text-label--line-height: var(--lh-label);
+  --text-label--letter-spacing: var(--ls-label);
+  --text-label--font-weight: 600;
+  --text-button: calc(0.9375rem * var(--scale-button));
+  --text-button--line-height: var(--lh-button);
+  --text-button--letter-spacing: var(--ls-button);
+  --text-button--font-weight: 600;
+  --text-nav: calc(0.9375rem * var(--scale-nav));
+  --text-nav--line-height: var(--lh-nav);
+  --text-nav--letter-spacing: var(--ls-nav);
+  --text-nav--font-weight: 500;
+  --text-wordmark: calc(1.1875rem * var(--scale-wordmark));
+  --text-wordmark--line-height: var(--lh-wordmark);
+  --text-wordmark--letter-spacing: var(--ls-wordmark);
+  --text-wordmark--font-weight: 700;
+
+  --font-*: initial;
+  --font-display: var(--font-display-stack);
+  --font-sans: var(--font-body-stack);
+  --font-num: var(--font-num-stack);
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+:root {
+  --scale-display-xl: 1;
+  --lh-display-xl: 1.06;
+  --ls-display-xl: -0.02em;
+  --scale-display-lg: 1;
+  --lh-display-lg: 1.1;
+  --ls-display-lg: -0.018em;
+  --scale-h1: 1;
+  --lh-h1: 1.15;
+  --ls-h1: -0.015em;
+  --scale-h2: 1;
+  --lh-h2: 1.22;
+  --ls-h2: -0.01em;
+  --scale-h3: 1;
+  --lh-h3: 1.32;
+  --ls-h3: -0.005em;
+  --scale-body-lg: 1;
+  --lh-body-lg: 1.62;
+  --ls-body-lg: 0em;
+  --scale-body: 1;
+  --lh-body: 1.6;
+  --ls-body: 0em;
+  --scale-body-sm: 1;
+  --lh-body-sm: 1.55;
+  --ls-body-sm: 0em;
+  --scale-caption: 1;
+  --lh-caption: 1.45;
+  --ls-caption: 0.01em;
+  --scale-label: 1;
+  --lh-label: 1.4;
+  --ls-label: 0.06em;
+  --scale-button: 1;
+  --lh-button: 1;
+  --ls-button: 0.01em;
+  --scale-nav: 1;
+  --lh-nav: 1;
+  --ls-nav: 0em;
+  --scale-wordmark: 1;
+  --lh-wordmark: 1;
+  --ls-wordmark: -0.01em;
+
+  --gutter: clamp(16px, 5vw, 48px);
+  --section-y-sm: clamp(48px, 8vw, 72px);
+  --section-y: clamp(64px, 10vw, 112px);
+  --section-y-lg: clamp(80px, 12vw, 144px);
+  --header-h: 72px;
+  --target-min: 44px;
+  --duration-fast: 150ms;
+  --duration: 200ms;
+  --duration-entrance: 360ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --focus-width: 2px;
+  --focus-offset: 2px;
+
+  /* Families are registered by the Fonts API (astro.config.mjs). */
+  --font-display-stack: var(--font-instrument, ui-sans-serif, system-ui, sans-serif);
+  --font-body-stack: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+  --font-num-stack: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+}
+
+/* Arabic: own face, deeper line-height, never any tracking. Inter follows
+   Plex in the stack so digits and Latin match the English site. */
+:root:lang(ar) {
+  --scale-display-xl: 0.94;
+  --lh-display-xl: 1.35;
+  --ls-display-xl: 0em;
+  --scale-display-lg: 0.96;
+  --lh-display-lg: 1.35;
+  --ls-display-lg: 0em;
+  --scale-h1: 1;
+  --lh-h1: 1.4;
+  --ls-h1: 0em;
+  --scale-h2: 1;
+  --lh-h2: 1.45;
+  --ls-h2: 0em;
+  --scale-h3: 1.04;
+  --lh-h3: 1.5;
+  --ls-h3: 0em;
+  --scale-body-lg: 1.0625;
+  --lh-body-lg: 1.8;
+  --ls-body-lg: 0em;
+  --scale-body: 1.0625;
+  --lh-body: 1.75;
+  --ls-body: 0em;
+  --scale-body-sm: 1.0625;
+  --lh-body-sm: 1.7;
+  --ls-body-sm: 0em;
+  --scale-caption: 1.08;
+  --lh-caption: 1.65;
+  --ls-caption: 0em;
+  --scale-label: 1.1;
+  --lh-label: 1.6;
+  --ls-label: 0em;
+  --scale-button: 1.0625;
+  --lh-button: 1.3;
+  --ls-button: 0em;
+  --scale-nav: 1.0625;
+  --lh-nav: 1.3;
+  --ls-nav: 0em;
+  --scale-wordmark: 1;
+  --lh-wordmark: 1;
+  --ls-wordmark: 0em;
+  --font-display-stack: var(--font-plex-arabic), var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+  --font-body-stack: var(--font-plex-arabic), var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+}

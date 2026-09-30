@@ -1,0 +1,14 @@
+# Shaheen Money — agent notes
+
+## Design skills
+
+Before any design, UI, motion or visual-QA work, read `.claude/skills-architecture.md`. It says which skill leads each layer and how their conflicts are resolved. Skill sources and the security review are in `.claude/skills-lock.json`.
+
+Non-negotiables, whatever a skill suggests:
+
+- The falcon (`src/components/home/FalconFlight.astro`), the globe (`src/components/home/Globe.astro`) and the logo stay exactly as they are: same drawing, style, keyframes and proportions.
+- The stack is Astro + Tailwind v4. Do not add React or R3F.
+- `design/tokens.json` is the source for colour, type, spacing and motion tokens.
+- Nothing may look AI-generated: no stock heroes, no generated people, no mock app screens with invented data.
+- Arabic/RTL is first-class. Use logical CSS properties and never letter-space Arabic.
+- Respect `prefers-reduced-motion` on every animation.

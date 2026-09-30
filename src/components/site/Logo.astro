@@ -1,0 +1,36 @@
+---
+/**
+ * Falcon mark + two-tone wordmark. The mark references the sprite in
+ * BrandSprite.astro and takes its colour from context. "Money" is brand blue
+ * on light and cyan on navy — never cyan on light (1.59:1).
+ */
+interface Props {
+  tone?: 'light' | 'dark';
+  /** Mark only, e.g. in tight spaces. */
+  markOnly?: boolean;
+  class?: string;
+}
+
+const { tone = 'light', markOnly = false, class: className } = Astro.props;
+---
+
+<span class:list={['inline-flex items-center gap-3', className]} dir="ltr">
+  <span
+    class:list={[
+      'grid size-8 place-items-center rounded-full',
+      tone === 'dark' ? 'bg-white text-navy' : 'bg-navy text-white',
+    ]}
+  >
+    <svg viewBox="0 0 240 240" width="20" height="20" aria-hidden="true" focusable="false">
+      <use href="#falcon-mark"></use>
+    </svg>
+  </span>
+  {
+    !markOnly && (
+      <span class="whitespace-nowrap text-wordmark font-display" lang="en">
+        <span class={tone === 'dark' ? 'text-fg-inverse' : 'text-fg'}>Shaheen</span>
+        <span class={tone === 'dark' ? 'text-cyan' : 'text-blue'}>Money</span>
+      </span>
+    )
+  }
+</span>

@@ -1,0 +1,74 @@
+---
+import Section from '../ui/Section.astro';
+import AppScreen from './AppScreen.astro';
+import Steps from '../ui/Steps.astro';
+import Icon from '../ui/Icon.astro';
+import Gap from '../ui/Gap.astro';
+import SourceNote from '../ui/SourceNote.astro';
+import { home } from '../../copy/home';
+import { facts } from '../../data/facts';
+import { formatUsd } from '../../lib/format';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * Cash out, the one thing a card or a crypto wallet cannot do for someone
+ * without a bank. Was /cash-out.
+ *
+ * The safety list is not decoration: handing cash over a counter is where
+ * this product meets fraud, so the three rules that matter are on the
+ * homepage rather than buried in a help centre.
+ *
+ * The collection screen sits under the header rather than beside the steps.
+ * It is the step the reader cannot picture — a code shown across a counter
+ * — and the column was otherwise empty below the lead.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = home[locale].cashOut;
+const minimum = facts.pricing.minCashOutUsd;
+---
+
+<Section id="cash-out" labelledby="cash-out-title">
+  <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
+    <header class="flex flex-col gap-5 lg:col-span-5">
+      <p class="text-label uppercase text-navy">{t.label}</p>
+      <h2 id="cash-out-title" class="text-h1 font-display">{t.title}</h2>
+      <p class="measure text-body-lg text-fg-2">{t.lead}</p>
+      {
+        minimum ? (
+          <div class="flex flex-col gap-1">
+            <p class="text-h3 font-display">{t.minimum(formatUsd(minimum.value, locale))}</p>
+            <SourceNote source={minimum.source} locale={locale} />
+          </div>
+        ) : (
+          <Gap need="Minimum cash-out amount in USD, with the date it applies from." />
+        )
+      }
+
+      <AppScreen locale={locale} variant="collect" class="app-screen-on-light mt-2 lg:items-start" />
+    </header>
+
+    <div class="flex flex-col gap-12 lg:col-span-7 lg:ps-10">
+      <Steps items={t.steps} locale={locale} columns={3} emphasize={2} />
+
+      <div class="flex flex-col gap-4 rounded-lg bg-subtle p-6 md:p-8">
+        <h3 class="flex items-center gap-2 text-h3 font-display">
+          <Icon name="shield-check" size={22} class="text-fg" />
+          {t.safetyTitle}
+        </h3>
+        <ul class="flex flex-col gap-3">
+          {
+            t.safety.map((line) => (
+              <li class="flex items-start gap-3 text-body text-fg-2">
+                <Icon name="check" size={20} class="mt-1 shrink-0 text-navy" />
+                <span>{line}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+</Section>

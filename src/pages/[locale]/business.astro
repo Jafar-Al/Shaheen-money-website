@@ -1,0 +1,250 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import Section from '../../components/ui/Section.astro';
+import Steps from '../../components/ui/Steps.astro';
+import Button from '../../components/ui/Button.astro';
+import TextLink from '../../components/ui/TextLink.astro';
+import SourceNote from '../../components/ui/SourceNote.astro';
+import Icon from '../../components/ui/Icon.astro';
+import Gap from '../../components/ui/Gap.astro';
+import { business } from '../../copy/business';
+import { common } from '../../copy/common';
+import { facts } from '../../data/facts';
+import { resolvedDocuments } from '../../data/media';
+import { formatPercent } from '../../lib/format';
+import { showGaps } from '../../lib/gaps';
+import { href, localeStaticPaths, type Locale } from '../../i18n/config';
+
+/**
+ * Two audiences, one page, and a fork in the first screen so neither has to
+ * read the other's half: a shop becoming a Connector, and a company, bank,
+ * wallet or payment provider connecting to the network.
+ *
+ * Both ends of the fork finish at the same application form, which asks
+ * what kind of business you are and routes on the answer.
+ */
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const t = business[locale];
+const commission = facts.connectorProgram.commissionPercent;
+const eligibility = facts.connectorProgram.eligibility;
+const documents = resolvedDocuments.filter((d) => d.download !== null);
+---
+
+<BaseLayout
+  locale={locale}
+  path="/business"
+  title={t.meta.title}
+  description={t.meta.description}
+  headerTone="dark"
+>
+  <PageHeader
+    locale={locale}
+    title={t.title}
+    lead={t.lead}
+    crumbs={[{ label: common[locale].nav.business.title }]}
+    tone="navy"
+  />
+
+  <!-- The fork. Everything below is one of these two answers. -->
+  <Section spacing="sm" labelledby="chooser-title">
+    <h2 id="chooser-title" class="sr-only">{t.chooser.label}</h2>
+    <div class="grid gap-6 md:grid-cols-2">
+      {
+        (
+          [
+            { id: 'connectors', icon: 'store', ...t.chooser.connector },
+            { id: 'partners', icon: 'building', ...t.chooser.partner },
+          ] as const
+        ).map((card) => (
+          <a
+            href={`#${card.id}`}
+            class="group flex flex-col gap-3 rounded-lg border border-line bg-white p-6 shadow-sm transition duration-150 hover:border-fg md:p-8"
+            data-card
+          >
+            <Icon name={card.icon} size={28} class="text-fg" />
+            <h3 class="text-h2 font-display">{card.title}</h3>
+            <p class="text-body text-fg-2">{card.body}</p>
+            <span class="mt-2 inline-flex items-center gap-2 text-body-sm font-semibold text-blue">
+              {card.cta}
+              <Icon
+                name="arrow-right"
+                size={18}
+                directional
+                class="transition-transform duration-150 group-hover:translate-x-1 rtl:group-hover:-translate-x-1"
+              />
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </Section>
+
+  <!-- 1. Shops. Keeps id="connector" so old /#connector links still land. -->
+  <Section id="connectors" tone="subtle" labelledby="connectors-title">
+    <div id="connector" class="flex flex-col gap-5">
+      <p class="text-label uppercase text-navy">{t.connectors.label}</p>
+      <h2 id="connectors-title" class="text-h1 font-display">{t.connectors.title}</h2>
+      <p class="measure text-body-lg text-fg-2">{t.connectors.lead}</p>
+    </div>
+
+    <h3 class="mt-14 text-h2 font-display">{t.connectors.whyTitle}</h3>
+    <ul class="mt-8 grid gap-x-8 gap-y-10 md:grid-cols-3">
+      {
+        t.connectors.why.map((w) => (
+          <li class="flex flex-col gap-3 border-t-2 border-line pt-6">
+            <h4 class="text-h3 font-display">{w.title}</h4>
+            <p class="text-body text-fg-2">{w.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="mt-10">
+      {
+        commission ? (
+          <div class="flex flex-col gap-1">
+            <p class="text-h3 font-display">{t.connectors.commission(formatPercent(commission.value, locale))}</p>
+            <SourceNote source={commission.source} locale={locale} />
+          </div>
+        ) : (
+          <Gap need="Commission per cash-out (%), with the date it applies from. The audit ranks this page's economics as the highest-value missing content." />
+        )
+      }
+    </div>
+
+    <div class="mt-16 grid gap-12 lg:grid-cols-12 lg:gap-8">
+      <div class="flex flex-col gap-6 lg:col-span-7">
+        <h3 class="text-h2 font-display">{t.connectors.stepsTitle}</h3>
+        <Steps items={t.connectors.steps} locale={locale} columns={1} emphasize={0} headingLevel="h4" class="gap-y-6" />
+      </div>
+      <div class="flex flex-col gap-6 lg:col-span-5">
+        <h3 class="text-h2 font-display">{t.connectors.askTitle}</h3>
+        <ul class="flex flex-col gap-3">
+          {
+            t.connectors.ask.map((item) => (
+              <li class="flex items-start gap-3 text-body">
+                <Icon name="check" size={20} class="mt-1 shrink-0 text-navy" />
+                <span>{item}</span>
+              </li>
+            ))
+          }
+        </ul>
+        {
+          eligibility ? (
+            <>
+              <h3 class="mt-4 text-h2 font-display">{t.connectors.eligibilityTitle}</h3>
+              <ul class="flex flex-col gap-3">
+                {eligibility.value.map((line) => (
+                  <li class="flex items-start gap-3 text-body">
+                    <Icon name="check" size={20} class="mt-1 shrink-0 text-navy" />
+                    <span>{line[locale]}</span>
+                  </li>
+                ))}
+              </ul>
+              <SourceNote source={eligibility.source} locale={locale} />
+            </>
+          ) : (
+            showGaps && (
+              <>
+                <h3 class="mt-4 text-h2 font-display">{t.connectors.eligibilityTitle}</h3>
+                <Gap need="Eligibility: which businesses can apply (registration, fixed location, opening hours, cash on hand), per country." />
+              </>
+            )
+          )
+        }
+      </div>
+    </div>
+
+    <div class="mt-12">
+      <Button href={href(locale, 'businessApply')} size="lg" arrow>{t.connectors.cta}</Button>
+    </div>
+  </Section>
+
+  <!-- 2. Companies and institutions. -->
+  <Section id="partners" tone="navy" labelledby="partners-title">
+    <div class="flex flex-col gap-5">
+      <p class="text-label uppercase text-cyan">{t.partners.label}</p>
+      <h2 id="partners-title" class="text-h1 font-display">{t.partners.title}</h2>
+      <p class="measure text-body-lg text-fg-inverse-2">{t.partners.lead}</p>
+    </div>
+
+    <ul class="mt-12 grid gap-x-8 gap-y-10 md:grid-cols-2">
+      {
+        t.partners.offers.map((offer) => (
+          <li class="flex flex-col gap-3 border-t-2 border-line-inverse pt-6">
+            <h3 class="text-h3 font-display">{offer.title}</h3>
+            <p class="text-body text-fg-inverse-2">{offer.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-14 grid gap-10 lg:grid-cols-12 lg:gap-8">
+      <div class="flex flex-col gap-6 lg:col-span-7">
+        <h3 class="text-h2 font-display">{t.partners.lookingTitle}</h3>
+        <ul class="flex flex-col gap-3">
+          {
+            t.partners.looking.map((line) => (
+              <li class="flex items-start gap-3 text-body text-fg-inverse-2">
+                <Icon name="check" size={20} class="mt-1 shrink-0 text-cyan" />
+                <span>{line}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class="flex flex-col items-start gap-4 self-start rounded-lg border border-line-inverse bg-navy-800 p-6 md:p-8 lg:col-span-5">
+        <Button href={href(locale, 'businessApply')} variant="inverse" arrow>{t.partners.cta}</Button>
+        <p class="flex flex-wrap items-center gap-x-3 text-body text-fg-inverse-2">
+          {t.questions}
+          <TextLink href={href(locale, 'contact')} tone="dark">{t.contact}</TextLink>
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <!-- 3. What a partner, an investor or a journalist asks for next. -->
+  <Section labelledby="materials-title">
+    <div class="grid gap-10 lg:grid-cols-12 lg:gap-8">
+      <header class="flex flex-col gap-4 lg:col-span-5">
+        <p class="text-label uppercase text-navy">{t.materials.label}</p>
+        <h2 id="materials-title" class="text-h1 font-display">{t.materials.title}</h2>
+        <p class="measure text-body-lg text-fg-2">{t.materials.lead}</p>
+        <TextLink href={href(locale, 'media')}>{t.materials.mediaCta}</TextLink>
+      </header>
+      <div class="flex flex-col gap-4 lg:col-span-7">
+        {
+          documents.length > 0 ? (
+            <ul class="flex flex-col gap-4">
+              {documents.map((doc) => (
+                <li>
+                  <a
+                    href={doc.download!.file}
+                    download
+                    class="flex items-center gap-4 rounded-lg border border-line bg-white p-5 shadow-sm transition duration-150 hover:border-fg"
+                    data-card
+                  >
+                    <Icon name="file" size={26} class="shrink-0 text-fg" />
+                    <span class="flex flex-col gap-1">
+                      <span class="text-body font-semibold">{doc.title[locale]}</span>
+                      <span class="text-body-sm text-fg-2">{doc.description[locale]}</span>
+                    </span>
+                    <span class="num ms-auto shrink-0 text-caption text-fg-3">
+                      {doc.download!.format} · {doc.download!.sizeKb} KB
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Gap
+              where="public/media/ + src/data/media.ts"
+              need="Pitch deck and company profile as PDFs. Drop each file into public/media/ and set its `file` in src/data/media.ts; the build reads the size and fails if the path is wrong. Until then this block is omitted in production."
+            />
+          )
+        }
+      </div>
+    </div>
+  </Section>
+</BaseLayout>

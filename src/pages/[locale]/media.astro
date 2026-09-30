@@ -1,0 +1,249 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import Section from '../../components/ui/Section.astro';
+import Button from '../../components/ui/Button.astro';
+import Icon from '../../components/ui/Icon.astro';
+import Gap from '../../components/ui/Gap.astro';
+import { media } from '../../copy/business';
+import { common } from '../../copy/common';
+import { brand, contact } from '../../config/site';
+import { facts } from '../../data/facts';
+import { brandAssets, brandColours, brandFonts, resolvedDocuments } from '../../data/media';
+import { href, localeStaticPaths, type Locale } from '../../i18n/config';
+
+/**
+ * The press kit: the mark in the files we actually ship, the rules for
+ * using it, the palette, the type, and the company documents.
+ *
+ * Every download here is generated from src/assets/brand/falcon.svg by
+ * `npm run media`, and src/data/media.ts fails the build if a listed file
+ * is missing from public/. A press page whose logo link 404s is worse than
+ * one with no logo link, so that check is not optional.
+ *
+ * The mark previews use the sprite defined once per page in BrandSprite,
+ * not the downloads, so the page stays light no matter how many colourways
+ * are listed.
+ */
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const t = media[locale];
+const ui = common[locale].ui;
+const documents = resolvedDocuments;
+const hasAnyDocument = documents.some((d) => d.download !== null);
+const founder = facts.team[0];
+---
+
+<BaseLayout locale={locale} path="/media" title={t.meta.title} description={t.meta.description}>
+  <PageHeader locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.media }]} />
+
+  <!-- 1. The mark. -->
+  <Section labelledby="logo-title">
+    <header class="flex max-w-2xl flex-col gap-4">
+      <h2 id="logo-title" class="text-h1 font-display">{t.logoTitle}</h2>
+      <p class="measure text-body-lg text-fg-2">{t.logoLead}</p>
+    </header>
+
+    <ul class="mt-10 grid gap-8 md:grid-cols-3">
+      {
+        brandAssets.map((asset) => (
+          <li class="flex flex-col overflow-clip rounded-lg border border-line shadow-sm" data-card>
+            <div
+              class:list={[
+                'grid place-items-center p-10',
+                asset.preview === 'dark' ? 'bg-navy text-white' : 'bg-subtle text-navy',
+              ]}
+              data-surface={asset.preview === 'dark' ? 'dark' : undefined}
+            >
+              <span
+                class:list={[
+                  'grid place-items-center',
+                  asset.circle && 'size-32 rounded-full bg-navy text-white',
+                ]}
+              >
+                <svg
+                  viewBox="0 0 240 240"
+                  width={asset.circle ? 74 : 88}
+                  height={asset.circle ? 74 : 88}
+                  role="img"
+                  aria-label={asset.name[locale]}
+                  focusable="false"
+                >
+                  <use href="#falcon-mark"></use>
+                </svg>
+              </span>
+            </div>
+            <div class="flex grow flex-col gap-3 bg-white p-6">
+              <h3 class="text-h3 font-display">{asset.name[locale]}</h3>
+              <p class="text-body-sm text-fg-2">{asset.note[locale]}</p>
+              <ul class="mt-auto flex flex-col pt-2">
+                {asset.files.map((file) => (
+                  <li>
+                    <a
+                      href={file.file}
+                      download
+                      class="inline-flex min-h-11 items-center gap-2 text-body-sm text-blue underline-offset-4 hover:underline"
+                    >
+                      <Icon name="download" size={18} />
+                      {file.label[locale]}
+                      <span class="num text-caption text-fg-3">{file.sizeKb} KB</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <!-- 2. How to use it. -->
+  <Section tone="subtle" labelledby="rules-title">
+    <h2 id="rules-title" class="text-h1 font-display">{t.rulesTitle}</h2>
+    <ul class="mt-10 grid gap-x-8 gap-y-10 md:grid-cols-2 lg:grid-cols-4">
+      {
+        t.rules.map((rule) => (
+          <li class="flex flex-col gap-3 border-t-2 border-line pt-6">
+            <h3 class="text-h3 font-display">{rule.title}</h3>
+            <p class="text-body-sm text-fg-2">{rule.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <!-- 3. Colour and type. -->
+  <Section labelledby="colours-title">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
+      <div class="flex flex-col gap-6 lg:col-span-7">
+        <h2 id="colours-title" class="text-h1 font-display">{t.coloursTitle}</h2>
+        <p class="measure text-body text-fg-2">{t.coloursLead}</p>
+        <ul class="flex flex-col divide-y divide-line border-y border-line">
+          {
+            brandColours.map((colour) => (
+              <li class="flex items-center gap-5 py-4">
+                <span class:list={['size-12 shrink-0 rounded-md border border-line', colour.swatch]} aria-hidden="true" />
+                <span class="flex flex-col gap-1">
+                  <span class="flex flex-wrap items-baseline gap-x-3">
+                    <span class="text-body font-semibold">{colour.name}</span>
+                    <code class="num font-mono text-body-sm text-fg-2" dir="ltr">
+                      {colour.hex}
+                    </code>
+                  </span>
+                  <span class="text-body-sm text-fg-2">{colour.use[locale]}</span>
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="flex flex-col gap-6 lg:col-span-5">
+        <h2 class="text-h1 font-display">{t.typeTitle}</h2>
+        <p class="measure text-body text-fg-2">{t.typeLead}</p>
+        <ul class="flex flex-col divide-y divide-line border-y border-line">
+          {
+            brandFonts.map((font) => (
+              <li class="flex flex-col gap-1 py-4">
+                <span class="text-h3 font-display" dir="ltr" lang="en">
+                  {font.name}
+                </span>
+                <span class="text-body-sm text-fg-2">{font.use[locale]}</span>
+                <a
+                  href={font.licence}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex min-h-11 items-center text-body-sm text-blue underline-offset-4 hover:underline"
+                >
+                  {t.licence}
+                  <span class="sr-only">{ui.opensNewTab}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </Section>
+
+  <!-- 4. Company documents and the facts a newsroom needs. -->
+  <Section tone="subtle" labelledby="docs-title">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
+      <div class="flex flex-col gap-6 lg:col-span-7">
+        <h2 id="docs-title" class="text-h1 font-display">{t.docsTitle}</h2>
+        {
+          hasAnyDocument ? (
+            <ul class="flex flex-col gap-4">
+              {documents
+                .filter((doc) => doc.download !== null)
+                .map((doc) => (
+                  <li>
+                    <a
+                      href={doc.download!.file}
+                      download
+                      class="flex items-center gap-4 rounded-lg border border-line bg-white p-5 shadow-sm transition duration-150 hover:border-fg"
+                      data-card
+                    >
+                      <Icon name="file" size={26} class="shrink-0 text-fg" />
+                      <span class="flex flex-col gap-1">
+                        <span class="text-body font-semibold">{doc.title[locale]}</span>
+                        <span class="text-body-sm text-fg-2">{doc.description[locale]}</span>
+                      </span>
+                      <span class="num ms-auto shrink-0 text-caption text-fg-3">
+                        {doc.download!.format} · {doc.download!.sizeKb} KB
+                      </span>
+                    </a>
+                  </li>
+                ))}
+            </ul>
+          ) : (
+            <Gap
+              where="public/media/ + src/data/media.ts"
+              need="Pitch deck, company profile and brand guidelines as PDFs. Drop each file into public/media/ and set its `file` in src/data/media.ts. The build reads size and format off the file and fails if the path is wrong, so these links cannot rot."
+            />
+          )
+        }
+
+        <div class="mt-4 flex flex-col items-start gap-3 rounded-lg border border-line bg-white p-6 shadow-sm" data-card>
+          <h3 class="text-h3 font-display">{t.pressTitle}</h3>
+          <p class="text-body text-fg-2">{t.pressBody}</p>
+          <p class="text-body">
+            <a href={`mailto:${contact.email}`} class="inline-flex min-h-11 items-center gap-2 underline-offset-4 hover:underline">
+              <Icon name="mail" size={20} />
+              <span dir="ltr">{contact.email}</span>
+            </a>
+          </p>
+          <Button href={href(locale, 'contact')} variant="secondary" arrow>{t.pressCta}</Button>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-4 lg:col-span-5">
+        <h2 class="text-h1 font-display">{t.factsTitle}</h2>
+        <dl class="flex flex-col divide-y divide-line border-y border-line">
+          <div class="flex flex-col gap-1 py-4">
+            <dt class="text-label uppercase text-fg-2">{t.description}</dt>
+            <dd class="text-body text-fg">{t.descriptionBody}</dd>
+          </div>
+          <div class="flex flex-col gap-1 py-4">
+            <dt class="text-label uppercase text-fg-2">{common[locale].nav.media}</dt>
+            <dd class="text-body text-fg" dir="ltr" lang="en">{brand.name} · shaheen.money</dd>
+          </div>
+          {
+            founder && (
+              <div class="flex flex-col gap-1 py-4">
+                <dt class="text-label uppercase text-fg-2">{t.founded}</dt>
+                <dd class="text-body text-fg">{(locale === 'ar' && founder.nameAr) || founder.name}</dd>
+              </div>
+            )
+          }
+        </dl>
+        {
+          !facts.company.legalName && (
+            <Gap need="Registered entity, jurisdiction and founding year for the newsroom fact box. A journalist who cannot find the legal entity writes 'could not be verified'." />
+          )
+        }
+      </div>
+    </div>
+  </Section>
+</BaseLayout>

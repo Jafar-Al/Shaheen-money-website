@@ -1,0 +1,30 @@
+---
+import Section from './Section.astro';
+import Eyebrow from './Eyebrow.astro';
+import Breadcrumbs from './Breadcrumbs.astro';
+import type { Locale } from '../../i18n/config';
+
+/** Title band for inner pages: breadcrumb, one H1, one lead, optional actions. */
+interface Props {
+  locale: Locale;
+  title: string;
+  lead?: string;
+  eyebrow?: string;
+  crumbs: Array<{ label: string; href?: string }>;
+  tone?: 'subtle' | 'navy';
+}
+const { locale, title, lead, eyebrow, crumbs, tone = 'subtle' } = Astro.props;
+const dark = tone === 'navy';
+---
+
+<Section tone={tone} spacing="sm" class:list={[dark ? 'hero-surface -mt-18 pt-18' : 'border-b border-line-subtle']} >
+  <div data-dark-zone={dark ? '' : undefined}>
+    <Breadcrumbs locale={locale} items={crumbs} tone={dark ? 'dark' : 'light'} />
+    <div class="mt-8 flex max-w-3xl flex-col gap-5">
+      {eyebrow && <Eyebrow tone={dark ? 'dark' : 'light'}>{eyebrow}</Eyebrow>}
+      <h1 class:list={['text-display-lg font-display', dark ? 'text-fg-inverse' : 'text-fg']}>{title}</h1>
+      {lead && <p class:list={['measure text-body-lg', dark ? 'text-fg-inverse-2' : 'text-fg-2']}>{lead}</p>}
+      <slot />
+    </div>
+  </div>
+</Section>

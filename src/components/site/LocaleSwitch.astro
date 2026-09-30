@@ -1,0 +1,36 @@
+---
+import Icon from '../ui/Icon.astro';
+import { common } from '../../copy/common';
+import { otherLocale, type Locale } from '../../i18n/config';
+
+/**
+ * Always-visible language control (audit C.6: never under "Legal"). Links
+ * to the same page in the other language, not to its homepage.
+ */
+interface Props {
+  locale: Locale;
+  href: string;
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+
+const { locale, href, tone = 'light', class: className } = Astro.props;
+const to = otherLocale(locale);
+const t = common[locale].nav;
+---
+
+<a
+  href={href}
+  hreflang={to}
+  lang={to}
+  title={t.switchLanguage}
+  class:list={[
+    'inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-nav transition duration-150',
+    tone === 'dark' ? 'text-fg-inverse hover:bg-white/10' : 'text-fg hover:bg-muted',
+    className,
+  ]}
+  data-locale-switch
+>
+  <Icon name="globe" size={18} />
+  <span>{t.switchLanguageShort}</span>
+</a>

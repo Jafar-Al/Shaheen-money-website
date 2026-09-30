@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import Section from '../../components/ui/Section.astro';
+import TextLink from '../../components/ui/TextLink.astro';
+import Icon from '../../components/ui/Icon.astro';
+import SocialLinks from '../../components/site/SocialLinks.astro';
+import FormShell from '../../components/forms/FormShell.astro';
+import TextField from '../../components/forms/TextField.astro';
+import ConsentField from '../../components/forms/ConsentField.astro';
+import { contactPage, formMessages } from '../../copy/support';
+import { common } from '../../copy/common';
+import { contact } from '../../config/site';
+import { facts } from '../../data/facts';
+import { href, localeStaticPaths, type Locale } from '../../i18n/config';
+
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const t = contactPage[locale];
+const m = formMessages[locale];
+const address = facts.company.registeredAddress?.[locale];
+---
+
+<BaseLayout locale={locale} path="/contact" title={t.meta.title} description={t.meta.description}>
+  <PageHeader locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.contact.title }]} />
+
+  <Section>
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
+      <div class="lg:col-span-7">
+        <FormShell action="/api/forms/contact" locale={locale} submitLabel={t.submit} successId="contact-success">
+          <fieldset class="flex flex-col gap-3" data-field="topic">
+            <legend class="mb-3 text-body-sm font-semibold text-fg">{t.topic}</legend>
+            {
+              Object.entries(t.topics).map(([value, label], i) => (
+                <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded-sm border border-line-strong bg-white px-4 has-checked:border-navy has-checked:bg-subtle">
+                  <input type="radio" name="topic" value={value} required={i === 0} checked={i === 0} class="size-5 accent-blue" />
+                  <span class="text-body">{label}</span>
+                </label>
+              ))
+            }
+            <p class="text-body-sm text-fg-2">
+              {t.connectorNote}{' '}
+              <a href={href(locale, 'businessApply')} class="text-blue underline underline-offset-2">{t.connectorLink}</a>
+            </p>
+            <p id="f-topic-error" class="text-body-sm font-semibold text-error" data-error hidden><span data-error-text></span></p>
+          </fieldset>
+          <TextField name="name" label={t.name} autocomplete="name" required maxlength={120} />
+          <TextField name="email" label={t.email} type="email" autocomplete="email" dir="ltr" required maxlength={254} />
+          <TextField name="message" label={t.message} hint={t.messageHint} multiline rows={6} required maxlength={3000} />
+          <ConsentField before={t.consentBefore} linkLabel={m.privacyLink} href={href(locale, 'privacy')} />
+        </FormShell>
+
+        <div id="contact-success" hidden class="flex flex-col items-start gap-4 rounded-lg bg-success-bg p-8" role="status">
+          <h2 tabindex="-1" class="text-h2 font-display outline-none">{t.success.title}</h2>
+          <p class="text-body-lg text-fg">{t.success.body}</p>
+          <TextLink href={href(locale, 'home')}>{t.success.next}</TextLink>
+        </div>
+      </div>
+
+      <aside class="flex flex-col gap-10 self-start lg:col-span-4 lg:col-start-9">
+        <section class="flex flex-col gap-2">
+          <h2 class="text-label uppercase text-fg-2">{t.emailTitle}</h2>
+          <a href={`mailto:${contact.email}`} class="inline-flex min-h-11 items-center gap-2 text-body-lg underline-offset-4 hover:underline">
+            <Icon name="mail" size={20} />
+            <span dir="ltr">{contact.email}</span>
+          </a>
+          {address && <p class="text-body-sm text-fg-2">{address}</p>}
+        </section>
+        <section class="flex flex-col gap-2">
+          <h2 class="text-label uppercase text-fg-2">{t.channelsTitle}</h2>
+          <SocialLinks locale={locale} class="-ms-3" />
+        </section>
+        <section class="flex flex-col gap-2">
+          <h2 class="text-label uppercase text-fg-2">{t.securityTitle}</h2>
+          <p class="text-body-sm text-fg-2">{t.securityBody}</p>
+          <TextLink href={href(locale, 'security')}>{common[locale].nav.security}</TextLink>
+        </section>
+      </aside>
+    </div>
+  </Section>
+</BaseLayout>

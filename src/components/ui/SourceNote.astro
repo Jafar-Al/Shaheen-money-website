@@ -1,0 +1,40 @@
+---
+import { common } from '../../copy/common';
+import { formatAsOf } from '../../lib/format';
+import type { Locale } from '../../i18n/config';
+import type { Source } from '../../data/types';
+
+/** "Source: World Bank, Remittance Prices Worldwide · Q3 2025" */
+interface Props {
+  source: Source;
+  locale: Locale;
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+
+const { source, locale, tone = 'light', class: className } = Astro.props;
+const t = common[locale].ui;
+const when = source.period?.[locale] ?? formatAsOf(source.asOf, locale);
+const tooltip = source.note?.[locale];
+---
+
+<p class:list={['text-caption', tone === 'dark' ? 'text-fg-inverse-2' : 'text-fg-3', className]}>
+  <span>{t.source}: </span>
+  {
+    source.url ? (
+      <a
+        href={source.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="underline decoration-1 underline-offset-2 hover:decoration-2"
+      >
+        {source.name[locale]}
+        <span class="sr-only">{t.opensNewTab}</span>
+      </a>
+    ) : (
+      <span>{source.name[locale]}</span>
+    )
+  }
+  <span> · {when}</span>
+  {tooltip && <span class="block">{tooltip}</span>}
+</p>

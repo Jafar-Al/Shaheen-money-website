@@ -1,0 +1,47 @@
+---
+import Icon from './Icon.astro';
+
+/**
+ * Native <details> disclosure: keyboard and screen-reader support without
+ * JavaScript.
+ */
+interface Props {
+  items: Array<{ q: string; a: string; link?: { href: string; label: string } | undefined }>;
+  class?: string;
+}
+const { items, class: className } = Astro.props;
+---
+
+<div class:list={['divide-y divide-line border-y border-line', className]}>
+  {
+    items.map((item) => (
+      <details class="group">
+        <summary class="flex min-h-16 cursor-pointer items-center justify-between gap-6 py-4 text-h3 font-display">
+          <span>{item.q}</span>
+          <span class="grid size-8 shrink-0 place-items-center rounded-full border border-navy text-navy transition duration-200 group-open:rotate-45">
+            <Icon name="plus" size={16} />
+          </span>
+        </summary>
+        <div class="measure flex flex-col gap-2 pb-6 text-body text-fg-2">
+          <p>{item.a}</p>
+          {item.link && (
+            <p>
+              <a href={item.link.href} class="text-blue underline underline-offset-2">
+                {item.link.label}
+              </a>
+            </p>
+          )}
+        </div>
+      </details>
+    ))
+  }
+</div>
+
+<style>
+  summary {
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+</style>

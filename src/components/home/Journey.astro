@@ -1,0 +1,183 @@
+---
+import Icon from '../ui/Icon.astro';
+import { formatNumber } from '../../lib/format';
+import type { IconName } from '../ui/icons';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * The four steps as one connected journey rather than four columns that
+ * happen to sit next to each other.
+ *
+ * Money enters at the first node and leaves as cash at the last, and the
+ * line between them is the point of the product: every other wallet stops
+ * at "hold". So the last node carries a cyan ring and the line warms from
+ * navy to cyan as it travels — the colour arrives where the money does.
+ *
+ * The line is a single pseudo-element per step, which means the layout can
+ * flip from a vertical stack on a phone to a horizontal run on a tablet and
+ * up without any second copy of the markup. It draws in with the section
+ * (src/scripts/reveal.ts) and is inert for anyone who prefers reduced
+ * motion; the steps themselves are plain text and are always readable.
+ */
+interface Props {
+  items: Array<{ title: string; body: string }>;
+  locale: Locale;
+  class?: string;
+}
+const { items, locale, class: className } = Astro.props;
+
+/** One icon per step, in the order the copy declares them. */
+const icons: IconName[] = ['receive', 'wallet', 'send', 'cash'];
+const last = items.length - 1;
+---
+
+<ol class:list={['journey', className]} data-reveal>
+  {
+    items.map((item, i) => (
+      <li class:list={['journey-step', i === last && 'is-final']} data-reveal-child>
+        <span class="journey-node" aria-hidden="true">
+          <Icon name={icons[i] ?? 'check'} size={26} />
+        </span>
+        <div class="journey-text">
+          <span class="num text-body-sm font-semibold text-navy">
+            {formatNumber(i + 1, locale).padStart(2, '0')}
+          </span>
+          <h3 class="text-h3 font-display">{item.title}</h3>
+          <p class="text-body text-fg-2">{item.body}</p>
+        </div>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .journey {
+    --node: 3.5rem;
+    display: grid;
+    gap: 0;
+  }
+
+  .journey-step {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--node) 1fr;
+    align-items: start;
+    /* Steps are stretched to the tallest sibling. Without this, a step
+       whose body runs to three lines instead of four hands its slack to
+       the auto-sized rows, and its node drifts down out of line with the
+       others. */
+    align-content: start;
+    gap: 1.25rem;
+    padding-block-end: 2.25rem;
+  }
+  .journey-step:last-child {
+    padding-block-end: 0;
+  }
+
+  .journey-node {
+    display: grid;
+    place-items: center;
+    inline-size: var(--node);
+    block-size: var(--node);
+    border-radius: var(--radius-full);
+    background-color: var(--color-navy);
+    color: var(--color-white);
+    /* Sits above the connecting line so the line appears to enter it. */
+    position: relative;
+    z-index: 1;
+  }
+  /* Cash out: the step no card and no other wallet can do. */
+  .is-final .journey-node {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-cyan) 45%, transparent);
+  }
+
+  .journey-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-block-start: 0.35rem;
+  }
+
+  /*
+   * The line between nodes. It is drawn at rest by default, so it is there
+   * with no JavaScript, in print, and under forced colours. The collapsed
+   * state applies only while the section is genuinely pending reveal
+   * (src/scripts/reveal.ts), and that attribute is cleared by a timeout
+   * even if the observer never fires.
+   */
+  .journey-step::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: calc(var(--node) / 2 - 1px);
+    inset-block-start: var(--node);
+    inline-size: 2px;
+    block-size: calc(100% - var(--node));
+    background: linear-gradient(to bottom, var(--color-navy), color-mix(in srgb, var(--color-navy) 55%, var(--color-cyan)));
+    transform: none;
+    transform-origin: top;
+    transition: transform 0.7s var(--ease-out);
+  }
+  .journey-step.is-final::before {
+    display: none;
+  }
+  .journey-step:nth-child(2)::before {
+    transition-delay: 120ms;
+  }
+  .journey-step:nth-child(3)::before {
+    transition-delay: 240ms;
+  }
+
+  /* Stacked layout: the line grows downward. */
+  :global([data-reveal][data-reveal-pending]) .journey-step::before {
+    transform: scaleY(0);
+  }
+
+  /* Tablet and up: the journey runs across the page.
+     Declared after the stacked rules so its collapsed state wins here. */
+  @media (width >= 48rem) {
+    .journey {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 2rem;
+    }
+    .journey-step {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.25rem;
+      padding-block-end: 0;
+    }
+    .journey-text {
+      padding-block-start: 0;
+    }
+    .journey-step::before {
+      inset-inline-start: var(--node);
+      inset-block-start: calc(var(--node) / 2 - 1px);
+      /* From the edge of this node to the edge of the next one. */
+      inline-size: calc(100% - var(--node) + 2rem);
+      block-size: 2px;
+      background: linear-gradient(to right, var(--color-navy), color-mix(in srgb, var(--color-navy) 55%, var(--color-cyan)));
+      transform-origin: left;
+    }
+    /* A journey runs start to end, so in Arabic the line grows from the
+       right. (The globe does not mirror; a sequence does.) */
+    :global([dir='rtl']) .journey-step::before {
+      background: linear-gradient(to left, var(--color-navy), color-mix(in srgb, var(--color-navy) 55%, var(--color-cyan)));
+      transform-origin: right;
+    }
+    :global([data-reveal][data-reveal-pending]) .journey-step::before {
+      transform: scaleX(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .journey-step::before {
+      transform: none !important;
+      transition: none;
+    }
+  }
+
+  /* Never omit the line from a print-out or a forced-colours render. */
+  @media print, (forced-colors: active) {
+    .journey-step::before {
+      transform: none !important;
+    }
+  }
+</style>

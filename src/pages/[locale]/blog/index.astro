@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PageHeader from '../../../components/ui/PageHeader.astro';
+import Section from '../../../components/ui/Section.astro';
+import PostCard from '../../../components/blog/PostCard.astro';
+import Gap from '../../../components/ui/Gap.astro';
+import { blog } from '../../../copy/blog';
+import { common } from '../../../copy/common';
+import { getPosts, postSlug } from '../../../lib/blog';
+import { absoluteUrl, href, localeStaticPaths, type Locale } from '../../../i18n/config';
+import { SITE_URL } from '../../../config/site';
+
+export const getStaticPaths = localeStaticPaths;
+
+const locale = Astro.params.locale as Locale;
+const t = blog[locale];
+const posts = await getPosts(locale);
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: t.meta.title,
+    url: absoluteUrl(href(locale, 'blog')),
+    inLanguage: locale,
+    publisher: { '@id': `${SITE_URL}/#organization` },
+    blogPost: posts.slice(0, 20).map((p) => ({
+      '@type': 'BlogPosting',
+      headline: p.data.title,
+      url: absoluteUrl(`${href(locale, 'blog')}/${postSlug(p)}`),
+      datePublished: p.data.publishedAt.toISOString(),
+    })),
+  },
+];
+---
+
+<BaseLayout locale={locale} path="/blog" title={t.meta.title} description={t.meta.description} jsonLd={jsonLd}>
+  <PageHeader locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.blog.title }]} />
+  <Section>
+    {
+      posts.length > 0 ? (
+        <ul class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => (
+            <li>
+              <PostCard post={post} locale={locale} headingLevel="h2" />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div class="flex flex-col gap-4">
+          <p class="text-body-lg text-fg-2">{t.empty}</p>
+          <Gap
+            need="Blog posts. Migrate the 11 posts from the current site with `npm run import:legacy` (writes src/content/blog/en/*.md), review each, then translate into src/content/blog/ar/ with the same slug."
+            where="src/content/blog/<locale>/<slug>.md"
+          />
+        </div>
+      )
+    }
+  </Section>
+</BaseLayout>

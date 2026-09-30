@@ -1,0 +1,19 @@
+---
+/** Small section label. Cyan only on dark surfaces (never cyan on light: 1.59:1). */
+interface Props {
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+const { tone = 'light', class: className } = Astro.props;
+---
+
+<p
+  class:list={[
+    'flex items-center gap-3 text-label uppercase',
+    tone === 'dark' ? 'text-cyan' : 'text-navy',
+    className,
+  ]}
+>
+  <span aria-hidden="true" class:list={['h-px w-6', tone === 'dark' ? 'bg-cyan' : 'bg-navy']}></span>
+  <slot />
+</p>

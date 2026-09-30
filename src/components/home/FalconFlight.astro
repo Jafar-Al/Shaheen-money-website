@@ -1,0 +1,169 @@
+---
+import falcon from '../../assets/brand/falcon.svg?raw';
+
+/**
+ * The Shaheen falcon arrives: it stoops in from the upper left, pulls out of
+ * the dive, and its fanned feathers fold into the exact brand mark as it lands.
+ *
+ * Built from the real mark (src/assets/brand/falcon.svg), split into its six
+ * feathers. CSS only, transform + opacity only, runs once, ~1.6s. The stage
+ * reserves its final size, so nothing around it moves (no layout shift), and
+ * the slogan and button are usable from the first frame. Visitors who prefer
+ * reduced motion see the falcon already in place.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+
+const d = falcon.match(/ d="([^"]+)"/)?.[1] ?? '';
+const feathers = d.split(/(?=M)/).filter(Boolean);
+---
+
+<div class:list={['falcon-stage', className]} aria-hidden="true">
+  <div class="falcon-x">
+    <div class="falcon-y">
+      <svg class="falcon-svg" viewBox="0 0 240 240" focusable="false">
+        <g class="falcon-body">
+          {feathers.map((f) => <path class="feather" d={f} />)}
+        </g>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<style>
+  .falcon-stage {
+    inline-size: clamp(7.5rem, 5rem + 12vw, 13rem);
+    aspect-ratio: 1;
+    color: var(--color-white);
+  }
+  .falcon-svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: visible;
+    fill: currentColor;
+  }
+
+  /* Flight path: X and Y run on different curves, so the falcon drops steeply
+     first (the stoop) and then glides level into place. */
+  .falcon-x {
+    animation: falcon-x 1.6s cubic-bezier(0.45, 0.05, 0.25, 1) both;
+  }
+  .falcon-y {
+    animation: falcon-y 1.6s cubic-bezier(0.12, 0.75, 0.25, 1) both;
+  }
+  .falcon-body {
+    transform-origin: 50% 50%;
+    transform-box: view-box;
+    animation: falcon-body 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  @keyframes falcon-x {
+    from {
+      transform: translateX(-58vw);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes falcon-y {
+    from {
+      transform: translateY(-62vh);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes falcon-body {
+    0% {
+      opacity: 0;
+      transform: scale(0.42) rotate(-16deg);
+    }
+    14% {
+      opacity: 1;
+    }
+    80% {
+      transform: scale(1.04) rotate(1.5deg);
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Feathers start fanned out around the body and fold in on landing. */
+  .feather {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: feather-fold 1.6s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+  }
+  /* 1: long trailing wing */
+  .feather:nth-child(1) {
+    --fx: -30px;
+    --fy: -30px;
+    --fr: -4deg;
+  }
+  /* 2: upper-right feather */
+  .feather:nth-child(2) {
+    --fx: 22px;
+    --fy: -30px;
+    --fr: -22deg;
+    animation-delay: 40ms;
+  }
+  /* 3: head and beak lead the dive */
+  .feather:nth-child(3) {
+    --fx: 6px;
+    --fy: 6px;
+    --fr: 0deg;
+  }
+  /* 4: right feather */
+  .feather:nth-child(4) {
+    --fx: 30px;
+    --fy: -12px;
+    --fr: -14deg;
+    animation-delay: 70ms;
+  }
+  /* 5: lower-left feather */
+  .feather:nth-child(5) {
+    --fx: -30px;
+    --fy: 18px;
+    --fr: 18deg;
+    animation-delay: 90ms;
+  }
+  /* 6: lower feather */
+  .feather:nth-child(6) {
+    --fx: -12px;
+    --fy: 28px;
+    --fr: 12deg;
+    animation-delay: 60ms;
+  }
+  @keyframes feather-fold {
+    0%,
+    40% {
+      transform: translate(var(--fx), var(--fy)) rotate(var(--fr));
+    }
+    100% {
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .falcon-x,
+    .falcon-y,
+    .falcon-body,
+    .feather {
+      animation: none;
+    }
+  }
+
+  /* A small phone in portrait, or any phone held sideways, has no room for
+     a 13rem mark above the headline. This is the stage's size only: the
+     flight path, the timing and the feather fold are untouched. */
+  @media (height <= 44rem) {
+    .falcon-stage {
+      inline-size: clamp(4rem, 3rem + 7vw, 6.5rem);
+    }
+  }
+</style>

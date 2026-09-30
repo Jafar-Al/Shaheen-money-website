@@ -1,0 +1,112 @@
+---
+import Section from '../ui/Section.astro';
+import TextLink from '../ui/TextLink.astro';
+import Gap from '../ui/Gap.astro';
+import Icon from '../ui/Icon.astro';
+import SourceNote from '../ui/SourceNote.astro';
+import Photo from '../media/Photo.astro';
+import { common } from '../../copy/common';
+import { home } from '../../copy/home';
+import { facts } from '../../data/facts';
+import { formatDate, formatNumber } from '../../lib/format';
+import { showGaps } from '../../lib/gaps';
+import { href, type Locale } from '../../i18n/config';
+
+/**
+ * Audit P-09: third-party evidence only — real ratings with counts and a
+ * date, consented and attributed testimonials, real press. Two genuine
+ * testimonials beat six invented ones; with none, the section is omitted.
+ *
+ * Surface: white, which keeps the homepage alternating while this section
+ * is absent. When it does carry content it lands between two pale
+ * sections, so give it tone="navy" then and invert the cards with it —
+ * three sections of the same colour in a row is the flatness this page was
+ * redesigned out of.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = home[locale].proof;
+const c = common[locale].trust;
+const ratings = [
+  facts.ratings.ios && { store: 'App Store', r: facts.ratings.ios },
+  facts.ratings.android && { store: 'Google Play', r: facts.ratings.android },
+].filter((x) => Boolean(x)) as Array<{ store: string; r: NonNullable<typeof facts.ratings.ios> }>;
+const hasProof = ratings.length > 0 || facts.testimonials.length > 0 || facts.press.length > 0;
+---
+
+{
+  (hasProof || showGaps) && (
+    <Section tone="white" labelledby="proof-title">
+      <header class="flex max-w-3xl flex-col gap-4">
+        <p class="text-label uppercase text-navy">{t.label}</p>
+        <h2 id="proof-title" class="text-h1 font-display">{t.title}</h2>
+      </header>
+
+      <div class="mt-10 grid gap-6 lg:grid-cols-3">
+        {ratings.length > 0 ? (
+          <div class="flex flex-col gap-4 rounded-lg border border-line bg-white p-6 shadow-sm" data-card>
+            <h3 class="text-label uppercase text-navy">{t.ratingsTitle}</h3>
+            {ratings.map(({ store, r }) => (
+              <div class="flex flex-col gap-1">
+                <p class="flex items-center gap-2 text-h3 font-display">
+                  <Icon name="star" size={20} />
+                  <span class="num">{formatNumber(r.value.score, locale, 1)}</span>
+                  <span class="text-body text-fg-2 font-sans">{store}</span>
+                </p>
+                <p class="text-caption text-fg-2">
+                  <span class="num">{formatNumber(r.value.count, locale)}</span> {c.reviews}
+                </p>
+                <SourceNote source={r.source} locale={locale} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Gap need="App Store and Google Play ratings with review counts, pulled from the stores with a last-updated date." />
+        )}
+
+        {facts.testimonials.length > 0 ? (
+          facts.testimonials.slice(0, 2).map((q) => (
+            <figure class="flex flex-col gap-4 rounded-lg border border-line bg-white p-6 shadow-sm" data-card>
+              <blockquote class="text-body-lg">“{q.quote[locale]}”</blockquote>
+              <figcaption class="mt-auto flex items-center gap-3">
+                {q.photo && (
+                  <Photo src={q.photo} alt={q.name} width={48} sizes="48px" class="size-12 rounded-full object-cover" />
+                )}
+                <span class="flex flex-col">
+                  <span class="font-semibold">{q.name}</span>
+                  <span class="text-caption text-fg-2">{q.location[locale]}</span>
+                </span>
+              </figcaption>
+            </figure>
+          ))
+        ) : (
+          <Gap need="Two or three testimonials: real name, photo, location, and the date consent to publish was recorded (audit F.3 rule 5)." class="lg:col-span-2" />
+        )}
+      </div>
+
+      {facts.press.length > 0 && (
+        <div class="mt-10 flex flex-col gap-4">
+          <h3 class="text-label uppercase text-navy">{t.pressTitle}</h3>
+          <ul class="grid gap-4 md:grid-cols-3">
+            {facts.press.map((p) => (
+              <li>
+                <a href={p.url} target="_blank" rel="noopener noreferrer" class="flex flex-col gap-1 rounded-md border border-line bg-white p-5 hover:border-line-strong">
+                  <span class="text-caption text-fg-2">
+                    {p.outlet} · {formatDate(new Date(p.date), locale)}
+                  </span>
+                  <span class="font-semibold">{p.title[locale]}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <TextLink href={href(locale, 'security')} class="mt-8">
+        {t.securityCta}
+      </TextLink>
+    </Section>
+  )
+}

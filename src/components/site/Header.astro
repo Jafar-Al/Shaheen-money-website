@@ -1,0 +1,117 @@
+---
+import Logo from './Logo.astro';
+import LocaleSwitch from './LocaleSwitch.astro';
+import Icon from '../ui/Icon.astro';
+import { common } from '../../copy/common';
+import { href, pages, pathWithoutLocale, type Locale, type PageKey } from '../../i18n/config';
+import { downloadPath } from '../../config/download';
+
+/**
+ * Four destinations and one action.
+ *
+ * The previous header hid most of the site behind two dropdown panels. With
+ * the tree reduced to About, Business, Blog and Contact there is nothing
+ * left to hide, so every destination is a plain link: no JavaScript to open
+ * a menu on a desktop, no focus trap to get wrong, and no visitor who has
+ * to guess which panel a page is filed under. The mobile menu stays,
+ * because a phone has no room for five controls at once.
+ *
+ * Starts dark over the navy hero and turns light once the hero scrolls away
+ * (src/scripts/header.ts). Pages with a light top start light.
+ */
+interface Props {
+  locale: Locale;
+  switchHref: string;
+  tone?: 'dark' | 'light';
+}
+
+const { locale, switchHref, tone = 'light' } = Astro.props;
+const t = common[locale].nav;
+const current = pathWithoutLocale(Astro.url.pathname);
+/** `/business/apply` keeps Business marked as the current section. */
+const isWithin = (key: PageKey) => current === pages[key] || current.startsWith(`${pages[key]}/`);
+
+const links: Array<{ key: PageKey; label: string; desc: string }> = [
+  { key: 'about', label: t.about.title, desc: t.about.desc },
+  { key: 'business', label: t.business.title, desc: t.business.desc },
+  { key: 'blog', label: t.blog.title, desc: t.blog.desc },
+  { key: 'contact', label: t.contact.title, desc: t.contact.desc },
+];
+---
+
+<header data-site-header data-state={tone} class="site-header sticky top-0 z-50">
+  <div class="container-wide flex h-18 items-center gap-4">
+    <a
+      href={href(locale, 'home')}
+      aria-label={common[locale].homeLabel}
+      class="-ms-1 inline-flex min-h-11 items-center rounded-md px-1"
+    >
+      <Logo tone="dark" class="logo-dark" />
+      <Logo tone="light" class="logo-light" />
+    </a>
+
+    <nav data-nav="desktop" aria-label={t.label} class="ms-6 hidden lg:block">
+      <ul class="flex items-center gap-1">
+        {
+          links.map((item) => (
+            <li>
+              <a href={href(locale, item.key)} class="nav-item" aria-current={isWithin(item.key) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="ms-auto flex items-center gap-2">
+      <span class="locale-dark hidden sm:inline-flex"><LocaleSwitch locale={locale} href={switchHref} tone="dark" /></span>
+      <span class="locale-light hidden sm:inline-flex"><LocaleSwitch locale={locale} href={switchHref} tone="light" /></span>
+      <a href={downloadPath(locale)} class="header-cta hidden sm:inline-flex" data-smart-download data-btn="primary">
+        {t.getApp}
+      </a>
+      <button
+        type="button"
+        class="menu-toggle lg:hidden"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        aria-label={t.openMenu}
+        data-label-open={t.openMenu}
+        data-label-close={t.closeMenu}
+        data-menu-toggle
+      >
+        <Icon name="menu" size={24} class="icon-open" />
+        <Icon name="close" size={24} class="icon-close" />
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="mobile-menu lg:hidden" hidden>
+    <div class="container-page flex flex-col gap-8 pb-12 pt-6">
+      <a href={downloadPath(locale)} class="header-cta-block" data-smart-download data-btn="primary">{t.getApp}</a>
+      <nav data-nav="mobile" aria-label={t.label}>
+        <ul class="flex flex-col">
+          {
+            links.map((item) => (
+              <li class="border-b border-line-subtle">
+                <a
+                  href={href(locale, item.key)}
+                  class="flex min-h-14 flex-col justify-center py-2 text-h3 font-display text-fg"
+                  aria-current={isWithin(item.key) ? 'page' : undefined}
+                >
+                  {item.label}
+                  <span class="font-sans text-body-sm text-fg-2">{item.desc}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+      <LocaleSwitch locale={locale} href={switchHref} class="self-start" />
+    </div>
+  </div>
+</header>
+
+<script>
+  import '../../scripts/header';
+</script>

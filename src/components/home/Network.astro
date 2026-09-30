@@ -1,0 +1,81 @@
+---
+import Section from '../ui/Section.astro';
+import Button from '../ui/Button.astro';
+import TextLink from '../ui/TextLink.astro';
+import Gap from '../ui/Gap.astro';
+import SourceNote from '../ui/SourceNote.astro';
+import Globe from './Globe.astro';
+import { home } from '../../copy/home';
+import { facts } from '../../data/facts';
+import { formatAsOf, formatNumber, formatPercent } from '../../lib/format';
+import { href, type Locale } from '../../i18n/config';
+
+/**
+ * The network. Replaces the old "Live network activity — $1.2M moved today"
+ * string, which was hardcoded and never changed: figures appear only when
+ * sourced and dated, and nothing is called "live". The globe shows example
+ * corridors and says so. Keeps ids "network" and "connector" so old links land.
+ *
+ * The globe itself is real geography (Natural Earth) with great-circle
+ * corridors between real city coordinates, drawn at build time. Adding a
+ * city to it is a coverage claim, so src/data/network-map.ts only grows by
+ * corridors between cities already on the map.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = home[locale].network;
+const { activeConnectors, countries } = facts.network;
+const commission = facts.connectorProgram.commissionPercent;
+---
+
+<Section tone="navy" id="network" labelledby="network-title" class="overflow-clip">
+  <div class="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
+    <div class="flex flex-col gap-6 lg:col-span-5">
+      <p class="text-label uppercase text-cyan">{t.label}</p>
+      <h2 id="network-title" class="text-display-lg font-display">{t.title}</h2>
+      <p class="measure text-body-lg text-fg-inverse-2">{t.lead}</p>
+      {
+        activeConnectors && countries ? (
+          <div class="flex flex-col gap-2 border-s-2 border-cyan ps-5">
+            <p class="text-h3 font-display">
+              {t.figures(
+                formatNumber(activeConnectors.value, locale),
+                formatNumber(countries.value, locale),
+                formatAsOf(activeConnectors.source.asOf, locale),
+              )}
+            </p>
+            <SourceNote source={activeConnectors.source} locale={locale} tone="dark" />
+          </div>
+        ) : (
+          <Gap tone="dark" need="Network figures: active Connectors and countries, with as-of month and source. Never labelled 'live' unless fetched at request time." />
+        )
+      }
+      <TextLink href={href(locale, 'contact')} tone="dark">{t.coverageCta}</TextLink>
+
+      <div id="connector" class="mt-4 flex flex-col gap-4 rounded-lg border border-line-inverse bg-navy-800 p-6 md:p-8">
+        <p class="text-label uppercase text-cyan">{t.merchant.label}</p>
+        <h3 class="text-h2 font-display">{t.merchant.title}</h3>
+        <p class="text-body text-fg-inverse-2">{t.merchant.body}</p>
+        {
+          commission ? (
+            <div class="flex flex-col gap-1">
+              <p class="text-h3 font-display">{t.merchant.commission(formatPercent(commission.value, locale))}</p>
+              <SourceNote source={commission.source} locale={locale} tone="dark" />
+            </div>
+          ) : (
+            <Gap tone="dark" need="Connector commission (% per cash-out), with the date it applies from." />
+          )
+        }
+        <Button href={href(locale, 'business')} variant="inverse" arrow class="self-start">
+          {t.merchant.cta}
+        </Button>
+      </div>
+    </div>
+
+    <Globe locale={locale} label={t.globeLabel} class="mx-auto w-full max-w-2xl lg:col-span-7 lg:max-w-none lg:-me-16">
+      <figcaption class="mt-4 text-center text-caption text-fg-inverse-2">{t.caption}</figcaption>
+    </Globe>
+  </div>
+</Section>

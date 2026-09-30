@@ -1,0 +1,181 @@
+---
+import Section from '../ui/Section.astro';
+import Gap from '../ui/Gap.astro';
+import SourceNote from '../ui/SourceNote.astro';
+import { home } from '../../copy/home';
+import { facts } from '../../data/facts';
+import { problemStats } from '../../data/stats';
+import { formatPercent, formatUsd } from '../../lib/format';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * What it costs. Was /pricing.
+ *
+ * Order matters here. The schedule comes first because it is the answer to
+ * the question the heading asks, and because three lines that all say "no
+ * fee" are the strongest thing this page can say; the arithmetic that
+ * follows is the argument for why the answer is worth reading twice. The
+ * panel carries its own note rather than a bare table, so a short list is
+ * never mistaken for a complete one.
+ *
+ * The three parts of a transfer's true cost are ours to explain and always
+ * render: that is the argument, and it holds without a single figure of our
+ * own. Our fee schedule and the comparison table render only when
+ * src/data/facts.ts carries them with a source and an as-of date (audit
+ * P-08); until then the section teaches the arithmetic and says plainly
+ * that the example is not our prices. "Low fees" is never claimed here
+ * without a number behind it.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = home[locale].pricing;
+const schedule = facts.pricing.schedule;
+const comparison = facts.pricing.comparison;
+const benchmark = problemStats.find((s) => s.id === 'global-cost');
+
+const rows =
+  comparison?.value.rows.map((r) => {
+    const fx = (comparison.value.amountUsd * r.fxMarginPercent) / 100;
+    const total = r.fee + fx;
+    return { ...r, total, totalPct: (total / comparison.value.amountUsd) * 100 };
+  }) ?? [];
+---
+
+<Section id="pricing" tone="subtle" labelledby="pricing-title">
+  <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
+    <header class="sticky-col flex flex-col gap-5 lg:col-span-5">
+      <p class="text-label uppercase text-navy">{t.label}</p>
+      <h2 id="pricing-title" class="text-h1 font-display">{t.title}</h2>
+      <p class="measure text-body-lg text-fg-2">{t.lead}</p>
+      {
+        benchmark && (
+          <div class="flex flex-col gap-1 border-s-2 border-navy ps-5">
+            <p class="text-body text-fg">
+              {t.benchmark} <span class="num font-semibold">{benchmark.display}</span>.
+            </p>
+            <SourceNote source={benchmark.source} locale={locale} />
+          </div>
+        )
+      }
+    </header>
+
+    <div class="flex flex-col gap-10 lg:col-span-7 lg:ps-10">
+      {
+        schedule ? (
+          <div class="schedule flex flex-col gap-6 rounded-lg bg-navy p-6 text-fg-inverse md:p-8" data-surface="dark" data-reveal>
+            <h3 class="text-h3 font-display">{t.scheduleTitle}</h3>
+            <table class="w-full border-collapse text-start">
+              <caption class="sr-only">{t.scheduleTitle}</caption>
+              <thead class="sr-only">
+                <tr>
+                  <th scope="col">{t.item}</th>
+                  <th scope="col">{t.fee}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.value.map((row) => (
+                  <tr data-reveal-child>
+                    <th scope="row" class="py-4 text-start text-body font-normal text-fg-inverse-2">
+                      {row.item[locale]}
+                      {row.note && <span class="block text-caption text-fg-inverse-2">{row.note[locale]}</span>}
+                    </th>
+                    <td class="num py-4 text-end text-h3 font-display text-cyan">{row.fee[locale]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p class="text-body-sm text-fg-inverse-2">{t.scheduleNote}</p>
+            <SourceNote source={schedule.source} locale={locale} tone="dark" />
+          </div>
+        ) : (
+          <Gap need="Fee schedule: every fee a customer can be charged (receive, send, pay, cash out, inactivity, FX), with the date it applies from. A launch blocker: 'low fees' cannot be claimed without it (audit A.5 #5)." />
+        )
+      }
+
+      <ol class="grid gap-x-8 gap-y-8 sm:grid-cols-3" data-reveal>
+        {
+          t.parts.map((part, i) => (
+            <li
+              data-reveal-child
+              class:list={['flex flex-col gap-2 border-t-2 pt-5', i === 1 ? 'border-navy' : 'border-line']}
+            >
+              <span class="num text-body-sm font-semibold text-navy">{`0${i + 1}`}</span>
+              <h3 class="text-h3 font-display">{part.title}</h3>
+              <p class="text-body-sm text-fg-2">{part.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="flex flex-col gap-2 rounded-lg border border-line bg-white p-6 shadow-sm md:p-8" data-card>
+        <h3 class="text-h3 font-display">{t.exampleTitle}</h3>
+        <p class="text-body text-fg-2">{t.example}</p>
+        <p class="text-caption text-fg-3">{t.exampleNote}</p>
+      </div>
+
+      {
+        comparison ? (
+          <div class="flex flex-col gap-3">
+            <div
+              class="overflow-x-auto rounded-lg border border-line bg-white shadow-sm"
+              tabindex="0"
+              role="region"
+              aria-labelledby="pricing-caption"
+            >
+              <table class="w-full min-w-xl border-collapse text-start text-body-sm">
+                <caption id="pricing-caption" class="px-6 py-4 text-start text-body font-semibold">
+                  {t.caption(formatUsd(comparison.value.amountUsd, locale), comparison.value.corridor[locale])}
+                </caption>
+                <thead class="bg-subtle text-fg-2">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-start font-semibold">
+                      {t.provider}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-end font-semibold">
+                      {t.fee}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-end font-semibold">
+                      {t.fxMargin}
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-end font-semibold">
+                      {t.totalCost}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-line">
+                  {rows.map((r) => (
+                    <tr class={r.isShaheen ? 'bg-success-bg' : undefined}>
+                      <th scope="row" class="px-6 py-4 text-start font-semibold">
+                        {r.provider[locale]}
+                      </th>
+                      <td class="num px-6 py-4 text-end">{formatUsd(r.fee, locale)}</td>
+                      <td class="num px-6 py-4 text-end">{formatPercent(r.fxMarginPercent, locale)}</td>
+                      <td class:list={['num px-6 py-4 text-end font-semibold', r.isShaheen && 'text-success']}>
+                        {formatUsd(Math.round(r.total * 100) / 100, locale)} (
+                        {formatPercent(Math.round(r.totalPct * 100) / 100, locale)})
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <SourceNote source={comparison.source} locale={locale} />
+          </div>
+        ) : (
+          <Gap need="Pricing comparison: a named corridor and amount, Shaheen Money vs a bank wire vs a typical transfer operator, fee + FX margin + total, with source and as-of date (audit P-08)." />
+        )
+      }
+    </div>
+  </div>
+</Section>
+
+<style>
+  /* Rules inside the panel are drawn on the dark surface, so they come from
+     the inverse line token rather than the light one the table would
+     otherwise inherit. */
+  .schedule tbody tr + tr {
+    border-block-start: 1px solid var(--color-line-inverse);
+  }
+</style>

@@ -1,0 +1,164 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import Section from '../../components/ui/Section.astro';
+import TextLink from '../../components/ui/TextLink.astro';
+import Icon from '../../components/ui/Icon.astro';
+import BrandIcon from '../../components/ui/BrandIcon.astro';
+import SourceNote from '../../components/ui/SourceNote.astro';
+import Gap from '../../components/ui/Gap.astro';
+import { security } from '../../copy/trust';
+import { common } from '../../copy/common';
+import { contact, socials } from '../../config/site';
+import { facts } from '../../data/facts';
+import { showGaps } from '../../lib/gaps';
+import { href, localeStaticPaths, type Locale } from '../../i18n/config';
+
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const t = security[locale];
+const ui = common[locale].ui;
+const hasTrustFacts = facts.licences.length > 0 || facts.safeguarding !== null || facts.digitalDollar !== null;
+---
+
+<BaseLayout locale={locale} path="/security" title={t.meta.title} description={t.meta.description}>
+  <PageHeader locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.security }]} />
+
+  {(hasTrustFacts || showGaps) && (
+  <Section>
+    <div class="grid gap-12 lg:grid-cols-3 lg:gap-8">
+      {(facts.licences.length > 0 || showGaps) && (
+      <section aria-labelledby="licensing" class="flex flex-col gap-4 border-t-2 border-navy pt-6">
+        <h2 id="licensing" class="text-h3 font-display">{t.licensing}</h2>
+        {
+          facts.licences.length > 0 ? (
+            facts.licences.map((l) => (
+              <div class="flex flex-col gap-1 text-body">
+                <p class="font-semibold">{l.regulator[locale]}</p>
+                <p class="text-fg-2">
+                  {l.licenceType[locale]} · <span class="num">{l.number}</span> · {l.jurisdiction[locale]}
+                </p>
+                {l.registerUrl && (
+                  <TextLink href={l.registerUrl} external>
+                    {t.register}
+                  </TextLink>
+                )}
+              </div>
+            ))
+          ) : (
+            <Gap need="Licence / registration: regulator, type, number, jurisdiction, and a link to the public register." />
+          )
+        }
+      </section>
+      )}
+      {(facts.safeguarding || showGaps) && (
+      <section aria-labelledby="funds" class="flex flex-col gap-4 border-t-2 border-line pt-6">
+        <h2 id="funds" class="text-h3 font-display">{t.funds}</h2>
+        {
+          facts.safeguarding ? (
+            <>
+              <p class="text-body text-fg-2">{facts.safeguarding.value[locale]}</p>
+              <SourceNote source={facts.safeguarding.source} locale={locale} />
+            </>
+          ) : (
+            <Gap need="How customer funds are held (e.g. 1:1, segregated, at which institution)." />
+          )
+        }
+      </section>
+      )}
+      {(facts.digitalDollar || showGaps) && (
+      <section aria-labelledby="digital-dollar" class="flex flex-col gap-4 border-t-2 border-line pt-6">
+        <h2 id="digital-dollar" class="text-h3 font-display">{t.digitalDollar}</h2>
+        {
+          facts.digitalDollar ? (
+            <>
+              <p class="text-body text-fg-2">{facts.digitalDollar.value[locale]}</p>
+              <SourceNote source={facts.digitalDollar.source} locale={locale} />
+            </>
+          ) : (
+            <Gap need="What a digital dollar is and what backs it." />
+          )
+        }
+      </section>
+      )}
+    </div>
+  </Section>
+  )}
+
+  <Section tone="subtle" labelledby="account-title">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
+      <div class="flex flex-col gap-6 lg:col-span-7">
+        <h2 id="account-title" class="text-h2 font-display">{t.accountTitle}</h2>
+        <ul class="flex flex-col gap-4">
+          {
+            t.account.map((tip) => (
+              <li class="flex items-start gap-3 text-body-lg">
+                <Icon name="lock" size={22} class="mt-1 text-fg" />
+                <span>{tip}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <aside class="flex flex-col gap-4 self-start rounded-lg border border-line bg-white p-6 shadow-sm lg:col-span-4 lg:col-start-9" data-card>
+        <h2 class="text-h3 font-display">{t.scamTitle}</h2>
+        <p class="text-body text-fg-2">{t.scamBody}</p>
+        <TextLink href={href(locale, 'contact')}>{t.scamCta}</TextLink>
+      </aside>
+    </div>
+  </Section>
+
+  <Section labelledby="channels-title">
+    <div class="grid gap-12 lg:grid-cols-2 lg:gap-8">
+      <div class="flex flex-col gap-5">
+        <h2 id="channels-title" class="text-h2 font-display">{t.channelsTitle}</h2>
+        <p class="text-body-lg text-fg-2">{t.channelsBody}</p>
+        <ul class="flex flex-col divide-y divide-line border-y border-line">
+          <li>
+            <a href={`mailto:${contact.email}`} class="flex min-h-12 items-center gap-3 text-body hover:underline">
+              <Icon name="mail" size={20} />
+              <span dir="ltr">{contact.email}</span>
+            </a>
+          </li>
+          <li>
+            <span class="flex min-h-12 items-center gap-3 text-body">
+              <Icon name="globe" size={20} />
+              <span dir="ltr">shaheen.money</span>
+            </span>
+          </li>
+          {
+            socials.map((s) => (
+              <li>
+                <a href={s.href} target="_blank" rel="noopener noreferrer" class="flex min-h-12 items-center gap-3 text-body hover:underline">
+                  <BrandIcon name={s.network} size={20} />
+                  <span>{s.label}</span>
+                  <span class="sr-only">{ui.opensNewTab}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class="flex flex-col gap-10">
+        <section aria-labelledby="report-title" class="flex flex-col gap-4">
+          <h2 id="report-title" class="text-h2 font-display">{t.reportTitle}</h2>
+          <p class="text-body-lg text-fg-2">{t.reportBody(contact.securityEmail)}</p>
+          <TextLink href="/.well-known/security.txt">{t.reportCta}</TextLink>
+        </section>
+        <section aria-labelledby="site-title" class="flex flex-col gap-4">
+          <h2 id="site-title" class="text-h2 font-display">{t.siteTitle}</h2>
+          <ul class="flex flex-col gap-3">
+            {
+              t.site.map((line) => (
+                <li class="flex items-start gap-3 text-body">
+                  <Icon name="check" size={20} class="mt-0.5 text-navy" />
+                  <span>{line}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </section>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>

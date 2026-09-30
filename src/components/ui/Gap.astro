@@ -1,0 +1,39 @@
+---
+import { showGaps } from '../../lib/gaps';
+
+/**
+ * Marks where a fact or piece of content is missing. Visible only in dev and
+ * preview builds; renders nothing in production, so a missing fact removes
+ * its slot instead of shipping a placeholder (audit T.6).
+ */
+interface Props {
+  /** What is needed, in plain words. */
+  need: string;
+  /** Where to add it. */
+  where?: string;
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+
+const { need, where = 'src/data/facts.ts', tone = 'light', class: className } = Astro.props;
+---
+
+{
+  showGaps && (
+    <div
+      data-gap
+      role="note"
+      lang="en"
+      dir="ltr"
+      class:list={[
+        'flex flex-col gap-1 rounded-sm border border-dashed px-4 py-3 text-caption',
+        tone === 'dark' ? 'border-line-inverse-strong text-fg-inverse-2' : 'border-warning bg-warning-bg text-warning',
+        className,
+      ]}
+    >
+      <span class="text-label uppercase">Content needed</span>
+      <span>{need}</span>
+      <code class="font-mono text-caption opacity-80">{where}</code>
+    </div>
+  )
+}

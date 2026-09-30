@@ -1,0 +1,131 @@
+---
+import FalconFlight from './FalconFlight.astro';
+import HeroBackdrop from './HeroBackdrop.astro';
+import DownloadButton from '../site/DownloadButton.astro';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import Gap from '../ui/Gap.astro';
+import { home } from '../../copy/home';
+import { facts } from '../../data/facts';
+import { formatNumber, formatUsd } from '../../lib/format';
+import { href, type Locale } from '../../i18n/config';
+
+/**
+ * The first screen, for both visitors at once.
+ *
+ * The one who came to download never has to read: falcon, one slogan, one
+ * button that knows the device. The one who wants to understand first gets
+ * a one-line answer to "what is this" and a second, quieter control that
+ * takes them to the explanation further down, so neither has to scroll past
+ * the other's content.
+ *
+ * The slogan and both controls are static and usable from the first frame;
+ * only the falcon moves (FalconFlight.astro), and the backdrop behind it is
+ * inert build-time geometry (HeroBackdrop.astro).
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = home[locale].hero;
+
+const evidence: Array<{ label: string; href: string }> = [];
+if (facts.network.countries)
+  evidence.push({
+    label: t.evidence.countries(formatNumber(facts.network.countries.value, locale)),
+    href: href(locale, 'contact'),
+  });
+if (facts.pricing.minCashOutUsd)
+  evidence.push({ label: t.evidence.minCashOut(formatUsd(facts.pricing.minCashOutUsd.value, locale)), href: '#pricing' });
+if (facts.network.activeConnectors)
+  evidence.push({ label: t.evidence.connectors(formatNumber(facts.network.activeConnectors.value, locale)), href: '#network' });
+if (facts.pricing.noFxMargin) evidence.push({ label: t.evidence.noFxMargin, href: '#pricing' });
+---
+
+<section
+  data-dark-zone
+  data-surface="dark"
+  aria-labelledby="hero-title"
+  class="relative -mt-18 flex min-h-hero flex-col overflow-clip bg-navy pt-18 text-fg-inverse"
+>
+  <HeroBackdrop />
+
+  <div class="hero-stack container-page relative flex grow flex-col items-center justify-center gap-7 py-12 text-center">
+    <FalconFlight />
+    <h1 id="hero-title" class="text-display-xl font-display">
+      {
+        t.title.map((line, i) => (
+          <span class="block text-balance">
+            {line}
+            {i < t.title.length - 1 && ' '}
+          </span>
+        ))
+      }
+    </h1>
+    <p class="measure text-balance text-body-lg text-fg-inverse-2">{t.subtitle}</p>
+
+    <div class="flex flex-col items-center gap-3">
+      <div class="flex flex-col items-center gap-3 sm:flex-row">
+        <DownloadButton locale={locale} tone="dark" size="lg" />
+        <Button href="#how" variant="inverse-secondary" size="lg">
+          {t.explore}
+          <Icon name="chevron-down" size={18} />
+        </Button>
+      </div>
+      <p class="text-caption text-fg-inverse-2">{t.availability}</p>
+    </div>
+
+    {
+      evidence.length > 0 ? (
+        <ul class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-body-sm">
+          {evidence.map((e) => (
+            <li>
+              <a
+                href={e.href}
+                class="inline-flex min-h-6 items-center gap-2 text-fg-inverse-2 underline-offset-4 hover:text-fg-inverse hover:underline"
+              >
+                <Icon name="check" size={16} class="text-cyan" />
+                {e.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <Gap
+          tone="dark"
+          class="max-w-xl text-start"
+          need="Optional evidence row under the button: countries live, minimum cash-out, active Connectors, FX policy. Each sourced and dated; unsourced items never render."
+        />
+      )
+    }
+  </div>
+
+  <a
+    href="#why"
+    class="relative mx-auto mb-6 inline-flex min-h-11 items-center gap-2 px-3 text-body-sm text-fg-inverse-2 underline-offset-4 hover:text-fg-inverse hover:underline"
+  >
+    {t.more}
+    <Icon name="chevron-down" size={18} />
+  </a>
+</section>
+
+<style>
+  /*
+   * Short viewports: a 320x568 phone, or any phone in landscape. Everything
+   * the visitor came for - the mark, the slogan, and the button that knows
+   * their device - has to survive inside the first screen, so the rhythm
+   * tightens and the headline steps down one size on the scale. Tokens
+   * only; no new type sizes are invented here.
+   */
+  @media (height <= 44rem) {
+    .hero-stack {
+      gap: calc(var(--spacing) * 3);
+      padding-block: calc(var(--spacing) * 5);
+    }
+    .hero-stack :global(#hero-title) {
+      font-size: var(--text-display-lg);
+      line-height: var(--lh-display-lg);
+      letter-spacing: var(--ls-display-lg);
+    }
+  }
+</style>

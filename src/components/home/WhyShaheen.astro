@@ -1,0 +1,61 @@
+---
+import Section from '../ui/Section.astro';
+import Stat from '../ui/Stat.astro';
+import CostGap from './CostGap.astro';
+import { home } from '../../copy/home';
+import { problemStats } from '../../data/stats';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * Why Shaheen: the cost of the status quo, in sourced numbers (audit P-04).
+ *
+ * The two cost figures are the same measure, so they are one mark rather
+ * than two tiles the reader has to compare in their head (CostGap.astro).
+ * Whatever else src/data/stats.ts holds stays a stat tile beside it, which
+ * means adding a figure there needs no change here.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = home[locale].why;
+
+/** Everything the cost bar does not already show. */
+const inCostBar = new Set(['global-cost', 'sdg-target']);
+const tiles = problemStats.filter((s) => !inCostBar.has(s.id));
+---
+
+<Section id="why" labelledby="why-title">
+  <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
+    <header class="sticky-col flex flex-col gap-5 lg:col-span-5">
+      <p class="text-label uppercase text-navy">{t.label}</p>
+      <h2 id="why-title" class="text-h1 font-display">{t.title}</h2>
+      <p class="measure text-body-lg text-fg-2">{t.lead}</p>
+    </header>
+
+    <div class="flex flex-col gap-10 lg:col-span-7 lg:ps-10">
+      <CostGap
+        locale={locale}
+        title={t.cost.title}
+        targetLabel={t.cost.target}
+        excessLabel={t.cost.excess}
+        totalLabel={t.cost.total}
+        alt={t.cost.alt}
+      />
+
+      {
+        tiles.length > 0 && (
+          <div class="grid gap-10 border-t border-line pt-8 sm:grid-cols-2 sm:gap-8" data-reveal>
+            {tiles.map((s) => (
+              <div data-reveal-child>
+                <Stat stat={s} display={s.display} label={s.label[locale]} locale={locale} />
+              </div>
+            ))}
+          </div>
+        )
+      }
+
+      <p class="border-s-2 border-navy ps-5 text-body-lg text-fg">{t.example}</p>
+    </div>
+  </div>
+</Section>

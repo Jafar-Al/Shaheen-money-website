@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/ui/Section.astro';
+import Button from '../components/ui/Button.astro';
+import { notFound } from '../copy/misc';
+
+/**
+ * One 404 for every path. It has its own title and is never indexed
+ * (audit K-10: the old 404 carried the homepage's metadata). Both languages
+ * are offered, since the visitor's language cannot be known from a bad URL.
+ */
+const en = notFound.en;
+const ar = notFound.ar;
+---
+
+<BaseLayout locale="en" path="/404" title="Page not found — Shaheen Money" description={en.body} noindex errorPage>
+  <Section spacing="lg">
+    <div class="mx-auto flex max-w-2xl flex-col items-center gap-10 text-center">
+      <span class="grid size-16 place-items-center rounded-full bg-navy text-white" aria-hidden="true">
+        <svg viewBox="0 0 240 240" width="34" height="34" focusable="false"><use href="#falcon-mark"></use></svg>
+      </span>
+      <p class="num text-label uppercase text-fg-2">404</p>
+      <div class="flex flex-col gap-3">
+        <h1 class="text-display-lg font-display">{en.title}</h1>
+        <p class="text-body-lg text-fg-2">{en.body}</p>
+        <Button href="/en" variant="primary" class="self-center">{en.home}</Button>
+      </div>
+      <div class="flex w-full flex-col gap-3 border-t border-line pt-10" lang="ar" dir="rtl">
+        <h2 class="text-h1 font-display">{ar.title}</h2>
+        <p class="text-body-lg text-fg-2">{ar.body}</p>
+        <Button href="/ar" variant="secondary" class="self-center">{ar.home}</Button>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>

@@ -1,0 +1,44 @@
+---
+import Icon from './Icon.astro';
+
+/**
+ * Standalone "go somewhere" link, e.g. "See how it works →". Secondary
+ * actions use this instead of a second button, so each screen keeps one
+ * dominant action (audit A.9 §8).
+ */
+interface Props {
+  href: string;
+  tone?: 'light' | 'dark';
+  external?: boolean;
+  class?: string;
+  [key: `data-${string}`]: string | undefined;
+}
+
+const { href, tone = 'light', external = false, class: className, ...rest } = Astro.props;
+---
+
+<a
+  href={href}
+  class:list={[
+    'group inline-flex min-h-11 items-center gap-2 text-button underline-offset-4 hover:underline',
+    tone === 'dark' ? 'text-fg-inverse' : 'text-fg',
+    className,
+  ]}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+  {...rest}
+>
+  <slot />
+  {
+    external ? (
+      <Icon name="arrow-up-right" size={18} directional />
+    ) : (
+      <Icon
+        name="arrow-right"
+        size={18}
+        directional
+        class="transition-transform duration-150 group-hover:translate-x-1 rtl:group-hover:-translate-x-1"
+      />
+    )
+  }
+</a>

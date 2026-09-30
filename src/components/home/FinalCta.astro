@@ -1,0 +1,71 @@
+---
+import Section from '../ui/Section.astro';
+import DownloadButton from '../site/DownloadButton.astro';
+import AppScreen from './AppScreen.astro';
+import { home } from '../../copy/home';
+import { href, type Locale } from '../../i18n/config';
+
+/**
+ * Close for the reader: the same single download button (primary), then
+ * talking to us and becoming a Connector.
+ * id="download" keeps old /#download links working.
+ *
+ * Navy, and the only other place on the page the wallet itself appears.
+ * The page opens on the night side of the planet and had been ending on
+ * the palest band it owns, which reads as running out rather than
+ * arriving; closing on the same field it opened with makes the two ends
+ * of the page answer each other, and puts the product beside the button
+ * at the one moment the reader is deciding whether to press it.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = home[locale].final;
+---
+
+<Section tone="navy" id="download" labelledby="final-title" spacing="lg" class="final">
+  <div class="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
+    <div class="flex flex-col items-center gap-6 text-center lg:col-span-7 lg:items-start lg:text-start">
+      <span class="grid size-14 place-items-center rounded-full bg-white text-navy" aria-hidden="true">
+        <svg viewBox="0 0 240 240" width="30" height="30" focusable="false"><use href="#falcon-mark"></use></svg>
+      </span>
+      <h2 id="final-title" class="text-display-lg font-display">{t.title}</h2>
+      <p class="measure text-body-lg text-fg-inverse-2">{t.lead}</p>
+
+      <DownloadButton locale={locale} size="lg" tone="dark" class="mt-2" />
+
+      <div class="mt-2 flex flex-wrap items-center justify-center gap-x-8 gap-y-1 lg:justify-start">
+        <a
+          href={href(locale, 'contact')}
+          class="inline-flex min-h-11 items-center text-body-sm font-semibold text-fg-inverse underline underline-offset-4"
+        >
+          {t.coverage}
+        </a>
+        <a
+          href={href(locale, 'business')}
+          class="inline-flex min-h-11 items-center text-body-sm text-fg-inverse-2 underline underline-offset-4 hover:text-fg-inverse"
+        >
+          {t.connector}
+        </a>
+      </div>
+    </div>
+
+    <div class="lg:col-span-5">
+      <AppScreen locale={locale} variant="wallet" />
+    </div>
+  </div>
+</Section>
+
+<style>
+  /* The same light source as the hero, on the opposite edge, so the page
+     closes on a field that rhymes with the one it opened on instead of
+     repeating it exactly. */
+  .final {
+    background-image: radial-gradient(
+      56% 60% at 88% 4%,
+      color-mix(in srgb, var(--color-navy-600) 85%, transparent),
+      transparent 70%
+    );
+  }
+</style>

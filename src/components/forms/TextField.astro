@@ -1,0 +1,45 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+/**
+ * Label + input + hint + error slot (audit O.4 "Inputs"): always a visible
+ * label, never placeholder-as-label; the hint is replaced by the error, which
+ * pairs an icon and text with the red border (never colour alone).
+ */
+type Props = {
+  name: string;
+  label: string;
+  hint?: string;
+  optionalLabel?: string;
+  multiline?: boolean;
+  rows?: number;
+} & Omit<HTMLAttributes<'input'>, 'name'>;
+
+const { name, label, hint, optionalLabel, multiline = false, rows = 5, required, class: className, ...rest } = Astro.props;
+const id = `f-${name}`;
+const describedBy = [hint && `${id}-hint`, `${id}-error`].filter(Boolean).join(' ');
+const control =
+  'block w-full rounded-sm border border-line-strong bg-white px-4 text-body text-fg transition duration-150 aria-invalid:border-error aria-invalid:bg-error-bg';
+---
+
+<div class:list={['flex flex-col gap-2', className]} data-field={name}>
+  <label for={id} class="text-body-sm font-semibold text-fg">
+    {label}
+    {!required && optionalLabel && <span class="font-normal text-fg-2"> {optionalLabel}</span>}
+  </label>
+  {
+    multiline ? (
+      <textarea id={id} name={name} rows={rows} required={required} aria-describedby={describedBy} class:list={[control, 'py-3']} {...(rest as HTMLAttributes<'textarea'>)} />
+    ) : (
+      <input id={id} name={name} required={required} aria-describedby={describedBy} class:list={[control, 'min-h-12']} {...rest} />
+    )
+  }
+  {hint && <p id={`${id}-hint`} class="text-body-sm text-fg-2" data-hint>{hint}</p>}
+  <p id={`${id}-error`} class="flex items-start gap-2 text-body-sm font-semibold text-error" data-error hidden>
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="mt-0.5 shrink-0">
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M12 7.5v5.5M12 16.2v.3"></path>
+    </svg>
+    <span data-error-text></span>
+  </p>
+</div>
