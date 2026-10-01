@@ -67,8 +67,6 @@ export const common = defineCopy({
     },
     download: {
       label: 'Download the app',
-      ios: 'Download for iPhone',
-      android: 'Download for Android',
       dialogTitle: 'Scan to download',
       dialogBody: 'Point your phone’s camera at the code. It opens the right store for your phone.',
       or: 'Or open a store directly',
@@ -161,8 +159,6 @@ export const common = defineCopy({
     },
     download: {
       label: 'حمّل التطبيق',
-      ios: 'حمّل لآيفون',
-      android: 'حمّل لأندرويد',
       dialogTitle: 'امسح الرمز للتحميل',
       dialogBody: 'وجّه كاميرا موبايلك على الرمز، وبيفتحلك المتجر المناسب لجهازك.',
       or: 'أو افتح المتجر مباشرة',

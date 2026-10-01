@@ -1,23 +1,20 @@
 ---
-// In the browser: src/scripts/home/faq.ts (loaded once by the homepage).
 import Chapter from '../ui/Chapter.astro';
 import Emph from '../ui/Emph.astro';
 import Accordion from '../ui/Accordion.astro';
-import Slip from '../ui/Slip.astro';
-import Button from '../ui/Button.astro';
+import TextLink from '../ui/TextLink.astro';
 import { home } from '../../copy/home';
 import { common } from '../../copy/common';
 import { href, type Locale, type PageKey } from '../../i18n/config';
 
 /**
- * 06 — The questions we are asked most. Was /help.
+ * 05 — The questions we are asked most. Was /help.
  *
  * Native <details>: keyboard and screen-reader support without a line of
  * JavaScript, and the answers are in the HTML whether or not anyone opens
  * them. The page emits matching FAQPage structured data (index.astro),
  * which is honest only because the answer a search engine reads is the
- * answer a visitor reads. A small filter narrows the list as you type
- * (enhancement only: nothing is hidden without it).
+ * answer a visitor reads.
  */
 interface Props {
   locale: Locale;
@@ -46,20 +43,14 @@ const items = t.items.map((item) => ({
     <header class="faq-head">
       <Chapter n={n} label={t.label} />
       <h2 id="faq-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
-      <Slip as="aside" no={t.stillTitle} class="faq-help" labelledby="faq-help-title">
-        <h3 id="faq-help-title" class="faq-help-title font-display">{t.stillTitle}</h3>
-        <p class="faq-help-body">{t.stillBody}</p>
-        <Button href={href(locale, 'contact')}>{t.stillCta}</Button>
-      </Slip>
+      <p class="faq-help">
+        <span>{t.stillTitle}</span>
+        <TextLink href={href(locale, 'contact')}>{t.stillCta}</TextLink>
+      </p>
     </header>
 
-    <div class="faq-list" data-faq>
-      <label class="faq-filter" hidden data-faq-filter>
-        <span class="label">{t.filterLabel}</span>
-        <input type="search" autocomplete="off" enterkeyhint="search" />
-      </label>
+    <div class="faq-list">
       <Accordion items={items} />
-      <p class="faq-empty" hidden data-faq-empty aria-live="polite">{t.filterEmpty}</p>
     </div>
   </div>
 </section>
@@ -75,12 +66,13 @@ const items = t.items.map((item) => ({
     column-gap: var(--gutter);
     row-gap: 3rem;
     align-items: start;
+    padding-block: var(--section);
   }
   .faq-head {
     grid-column: 1 / span 4;
     display: flex;
     flex-direction: column;
-    gap: 1.75rem;
+    gap: 1.5rem;
   }
   @media (width >= 64rem) {
     .faq-head {
@@ -91,53 +83,20 @@ const items = t.items.map((item) => ({
   .faq-head h2 {
     max-inline-size: 10ch;
   }
-  .faq-grid :global(.faq-help) {
-    margin-block-start: 1rem;
-    rotate: -1deg;
-  }
-  .faq-help-title {
-    font-size: var(--text-h3);
-  }
-  .faq-help-body {
-    margin-block: 0.75rem 1.25rem;
+  .faq-help {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 1rem;
     color: var(--fg-2);
   }
   .faq-list {
     grid-column: 6 / -1;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  .faq-filter {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    color: var(--fg-2);
-  }
-  .faq-filter input {
-    min-block-size: 3rem;
-    border: 0;
-    border-block-end: 1px solid var(--line-strong);
-    background: transparent;
-    color: var(--fg);
-    font-size: var(--text-body-l);
-    outline: none;
-  }
-  .faq-filter input:focus-visible {
-    border-block-end-color: var(--accent);
-    outline: var(--focus-width) solid var(--focus);
-    outline-offset: var(--focus-offset);
-  }
-  .faq-empty {
-    color: var(--fg-2);
   }
   @media (width < 64rem) {
     .faq-head,
     .faq-list {
       grid-column: 1 / -1;
-    }
-    .faq-grid :global(.faq-help) {
-      order: 2;
     }
   }
 </style>

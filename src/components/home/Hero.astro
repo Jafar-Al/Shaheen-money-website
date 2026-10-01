@@ -32,10 +32,8 @@ import { common } from '../../copy/common';
  */
 interface Props {
   locale: Locale;
-  /** How many chapters the page has: the scroll cue counts them. */
-  chapters: number;
 }
-const { locale, chapters } = Astro.props;
+const { locale } = Astro.props;
 const t = home[locale].hero;
 
 /* The falcon's box is set in CSS below in round percentages of each frame;
@@ -57,6 +55,10 @@ if (facts.pricing.minCashOutUsd)
 if (facts.network.activeConnectors)
   evidence.push({ label: t.evidence.connectors(formatNumber(facts.network.activeConnectors.value, locale)), href: '#network' });
 if (facts.pricing.noFxMargin) evidence.push({ label: t.evidence.noFxMargin, href: '#pricing' });
+// "No fees to receive, send or pay" is the fee schedule in one line: it shows
+// only while src/data/facts.ts holds that schedule and every row says no fee.
+const schedule = facts.pricing.schedule;
+if (schedule && schedule.value.every((row) => row.fee.en === 'No fee')) evidence.unshift({ label: t.evidence.noFees, href: '#pricing' });
 
 /** "Money without borders." → ["Money without ", "borders."]: the last word is the emphasised one. */
 const split = (line: string) => {
@@ -89,7 +91,6 @@ const split = (line: string) => {
       <div class="hero-actions">
         <DownloadButton locale={locale} />
         <Button href="#how" variant="line" arrow="down">{t.explore}</Button>
-        <p class="hero-avail label">{t.availability}</p>
       </div>
       {
         evidence.length > 0 ? (
@@ -108,11 +109,6 @@ const split = (line: string) => {
       }
     </div>
 
-    <a href="#why" class="hero-scroll label">
-      <span>{t.more}</span>
-      <span class="hero-scroll-rule" aria-hidden="true"></span>
-      <span class="num" aria-hidden="true">01/{String(chapters).padStart(2, '0')}</span>
-    </a>
   </div>
 
   {/* The art follows the words in the source: the headline (the page's
@@ -338,39 +334,12 @@ const split = (line: string) => {
     align-items: center;
     gap: 0.75rem;
   }
-  .hero-avail {
-    margin-inline-start: 0.75rem;
-    color: var(--fg-3);
-  }
   .hero-evidence {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem 1.5rem;
     font-size: var(--text-body-s);
     color: var(--fg-2);
-  }
-
-  .hero-scroll {
-    display: none;
-    align-items: center;
-    gap: 0.75rem;
-    justify-self: start;
-    min-block-size: var(--target-min);
-    margin-block-start: 1.5rem;
-    color: var(--fg-2);
-  }
-  .hero-scroll:hover {
-    color: var(--fg);
-  }
-  @media (height >= 50rem) and (width >= 48rem) {
-    .hero-scroll {
-      display: inline-flex;
-    }
-  }
-  .hero-scroll-rule {
-    inline-size: 3rem;
-    block-size: 1px;
-    background-color: var(--line-strong);
   }
 
   /* ── Tablet and phone ──────────────────────────────────────────────── */
@@ -421,12 +390,17 @@ const split = (line: string) => {
     .hero-actions :global(.dl-button) {
       inline-size: 100%;
     }
-    .hero-scroll {
-      display: none;
+  }
+  /* On a phone tall enough to spare it (not an SE, not on its side) the
+     buttons stack at the foot of the screen, which would push the line about
+     fees below the fold: it goes above them. The button always comes first on
+     a short screen. */
+  @media (width < 48rem) and (height >= 40rem) {
+    .hero-evidence {
+      order: 1;
     }
-    .hero-avail {
-      margin-inline-start: 0;
-      align-self: center;
+    .hero-actions {
+      order: 2;
     }
   }
   @media (height <= 44rem) and (width >= 48rem) {
@@ -498,7 +472,6 @@ const split = (line: string) => {
     .hero-actions :global(.dl-button) {
       inline-size: auto;
     }
-    .hero-scroll,
     .hero-marks {
       display: none;
     }
@@ -516,9 +489,6 @@ const split = (line: string) => {
     }
     :global(:lang(ar)) .hero-title {
       font-size: min(4.6vw, 9svh);
-    }
-    .hero-avail {
-      display: none;
     }
   }
 </style>

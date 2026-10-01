@@ -1,15 +1,17 @@
 import { defineCopy } from './define';
 
 /**
- * The homepage serves two visitors at once, and never makes the first one
- * scroll past anything to leave:
+ * The homepage is short on purpose. It serves two visitors and never makes
+ * the first one scroll past anything to leave:
  *
- *  1. the one who came to download: falcon, one slogan, one button that
- *     knows the device, done inside the first screen;
- *  2. the one who wants to understand first: the problem, how it works,
- *     how cash comes out, the network, what it costs, who says so, and the
- *     questions we are asked most, in that order, each answerable without
- *     leaving the page.
+ *  1. the one who came to download: the falcon, one slogan and one button
+ *     that knows the device, all inside the first screen;
+ *  2. the one who wants to understand first, in the order they ask: how it
+ *     works (with the 10-second film), where the cash comes from, what it
+ *     costs, where it works, and the questions we are asked most.
+ *
+ * One idea per section, a sentence or two each. Anything longer lives on
+ * its own page (About, Business, Security).
  *
  * The sections marked (was …) carry the content of pages the site no longer
  * has. Their URLs still resolve (src/config/redirects.mjs).
@@ -24,100 +26,67 @@ export const home = defineCopy({
     hero: {
       title: ['Money without borders.', 'Access without limits.'],
       subtitle: 'Receive money from abroad, hold it in digital dollars, and collect it as cash from a shop near you.',
-      availability: 'Sign up in the app · iPhone and Android',
       explore: 'How it works',
-      more: 'Why Shaheen?',
       evidence: {
         countries: (n: string) => `Live in ${n} countries`,
         minCashOut: (amount: string) => `Cash out from ${amount}`,
         connectors: (n: string) => `${n} Connectors`,
         noFxMargin: 'No hidden exchange-rate margin',
+        /* Only shown while the fee schedule (facts.pricing.schedule) says so. */
+        noFees: 'No fees to receive, send or pay',
       },
-    },
-    why: {
-      label: 'Why Shaheen',
-      title: 'Sending money home still costs *too much.*',
-      lead:
-        'Families who depend on money from abroad lose part of every transfer to fees and exchange-rate markups. Many have no account to receive it into at all.',
-      cost: {
-        title: 'What sending money across a border costs today',
-        target: 'The UN’s 2030 target',
-        excess: 'Charged above it',
-        total:
-          'More than half of what a family pays is cost the world already agreed should not be there. These are global figures, not Shaheen Money’s prices.',
-        alt: (actual: string, target: string) =>
-          `Bar showing the average global cost of sending money, ${actual}, split into the UN’s 2030 target of ${target} and the amount charged above it.`,
-      },
-      example:
-        'For example, a family in Amman that receives $300 a month loses about $19 of every transfer at the global average cost. That is more than $220 a year.',
     },
     /* was /how-it-works */
     steps: {
       label: 'How it works',
-      title: 'From a transfer abroad to cash in *your hand.*',
-      lead: 'Four steps, and you choose where to stop.',
+      title: 'Four steps, *one app.*',
+      lead: 'From a transfer abroad to cash in your hand. You choose where to stop.',
       items: [
-        {
-          title: 'Receive',
-          body: 'Money can come from family, a client, an employer or another compatible wallet. When it arrives, it shows in your balance.',
-        },
-        {
-          title: 'Hold in dollars',
-          body: 'Your balance is held in digital dollars: a balance in US dollars, not in your local currency. You decide when to use it.',
-        },
-        { title: 'Send and pay', body: 'Send part of your balance to someone else, or pay directly from the app.' },
-        {
-          title: 'Cash out',
-          body: 'When you need physical cash, ask for it in the app and collect it from a Connector: a local business in the Shaheen network.',
-        },
+        { title: 'Receive', body: 'Money comes from family, a client or an employer, and shows in your balance when it arrives.' },
+        { title: 'Hold in dollars', body: 'Your balance is held in digital dollars, not in your local currency. You decide when to use it.' },
+        { title: 'Send and pay', body: 'Send part of your balance to someone else, or pay straight from the app.' },
+        { title: 'Cash out', body: 'Ask for cash in the app and collect it from a Connector: a local shop in the Shaheen network.' },
       ],
-      goodToKnow: 'Good to know',
-      facts: [
-        {
-          title: 'Your balance is in US dollars',
-          body: 'Not in your local currency, so it keeps its dollar value until you use it.',
-        },
-        {
-          title: 'Cash comes from people',
-          body: 'Connectors are local shops, not machines. You collect your money from someone in your area.',
-        },
-        {
-          title: 'Fees are published',
-          body: 'Every fee is written down, with the date it applies from. Nothing is added at the counter.',
-        },
-      ],
-      audiencesTitle: 'Who it’s for',
-      audiences: [
-        { title: 'Families', body: 'Your son sends money from Berlin. You collect it as cash down the street.' },
-        { title: 'Freelancers', body: 'A client in Europe pays your invoice. You keep it in dollars until you need it.' },
-        { title: 'People abroad', body: 'You send support home. Your parents collect it where and when it suits them.' },
-        { title: 'Shop owners', body: 'Your shop becomes a Connector and earns on every cash-out it hands over.' },
-      ],
+      dollarTitle: 'What is a digital dollar?',
+    },
+    /* The 10-second film beside the steps (public/media/shaheen-money-film.mp4). */
+    film: {
+      alt: 'A ten-second film: your money as cash in your hand. Receive from abroad, hold it in dollars, send or pay, take it out as cash.',
+      play: 'Play the film',
+      pause: 'Pause the film',
     },
     /* was /cash-out */
     cashOut: {
       label: 'Cash out',
-      title: 'Your money leaves the app at a shop you *already know.*',
+      title: 'Cash from a shop you *already know.*',
       lead:
-        'Connectors are local businesses in the Shaheen network. They hand over cash to Shaheen Money users, so a digital balance becomes money in your hand.',
+        'Connectors are local shops in the Shaheen network. They hand you the cash, so your digital balance becomes money in your hand.',
       steps: [
         { title: 'Ask for cash in the app', body: 'Choose how much you want to take out.' },
         { title: 'Visit a Connector', body: 'Go to a Connector near you.' },
         { title: 'Collect your cash', body: 'Count it before you leave.' },
       ],
       minimum: (amount: string) => `The smallest cash-out is ${amount}.`,
-      safetyTitle: 'Stay safe',
-      safety: [
-        'Count your cash before you leave the shop.',
-        'Never share your password or PIN with anyone, including someone who says they work for Shaheen Money.',
-        'Keep your phone locked with a PIN or biometrics.',
-      ],
+    },
+    /* was /pricing */
+    cost: {
+      label: 'What it costs',
+      title: 'Zero commission *on Shaheen.*',
+      lead: 'Receiving, sending and paying cost nothing.',
+      benchmark: 'For reference, the global average cost of sending money is',
+      scheduleTitle: 'What we charge',
+      /* The list is three lines long and every line says nothing. Without
+         this sentence a reader could take it for the whole schedule; with
+         it, the page promises where the rest will appear. */
+      scheduleNote: 'Any other charge will be listed here, with the date it applies from, before it reaches you.',
+      item: 'Item',
+      fee: 'Fee',
     },
     network: {
       label: 'The network',
       title: 'Cities apart. *Connected* by Shaheen.',
       lead:
-        'Between the city where someone earns and the town where their family lives, Shaheen carries the money across the border. A Connector near home hands it over as cash.',
+        'Shaheen carries money from the city where someone earns to the town where their family lives. A Connector near home hands it over as cash.',
       caption: 'Example corridors. Ask us about your country and we will tell you what is available today.',
       figures: (connectors: string, countries: string, month: string) =>
         `As of ${month}, ${connectors} active Connectors across ${countries} countries.`,
@@ -131,48 +100,6 @@ export const home = defineCopy({
         cta: 'Become a Connector',
       },
     },
-    /* was /pricing */
-    pricing: {
-      label: 'What it costs',
-      title: 'See the full cost *before* you send.',
-      lead: 'The cost of a transfer is more than the fee on the screen. It has three parts.',
-      parts: [
-        { title: 'The fee', body: 'What the provider charges upfront. The easy part to see.' },
-        {
-          title: 'The exchange-rate margin',
-          body: 'The gap between the rate you get and the mid-market rate. Often the largest cost, and the least visible.',
-        },
-        { title: 'The cash-out cost', body: 'What it costs the person receiving to turn the money into cash.' },
-      ],
-      exampleTitle: 'Do the arithmetic',
-      example:
-        'Sending $300 with a $5 fee and an exchange rate 2% below the mid-market rate costs $5 + $6 = $11. That is 3.7% of what you sent.',
-      exampleNote: 'An illustration of the arithmetic, not our prices.',
-      /* The worked example as a small calculator (same numbers by default). */
-      calc: {
-        label: 'Try it with your numbers',
-        amount: 'You send',
-        fee: 'Upfront fee',
-        margin: 'Rate margin',
-        feePart: 'Fee',
-        marginPart: 'Margin',
-        total: 'Total cost',
-        share: 'of what you sent',
-      },
-      benchmark: 'For reference, the global average cost of sending money is',
-      scheduleTitle: 'What we charge',
-      /* The list is three lines long and every line says nothing. Without
-         this sentence a reader could take it for the whole schedule; with
-         it, the page promises where the rest will appear. */
-      scheduleNote:
-        'Any other charge will be listed here, with the date it applies from, before it reaches you.',
-      item: 'Item',
-      fee: 'Fee',
-      caption: (amount: string, corridor: string) => `Sending ${amount}: ${corridor}`,
-      provider: 'Provider',
-      fxMargin: 'Exchange-rate margin',
-      totalCost: 'Total cost',
-    },
     proof: {
       label: 'In their words',
       title: 'People who use Shaheen Money.',
@@ -185,10 +112,7 @@ export const home = defineCopy({
       label: 'Questions',
       title: 'The things people ask us *most.*',
       stillTitle: 'Still need help?',
-      stillBody: 'Tell us what happened and we’ll get back to you.',
       stillCta: 'Contact us',
-      filterLabel: 'Filter the questions',
-      filterEmpty: 'No question matches that. Try another word, or contact us.',
       items: [
         {
           q: 'What is Shaheen Money?',
@@ -226,37 +150,13 @@ export const home = defineCopy({
         },
       ],
     },
-    blog: {
-      label: 'From the blog',
-      title: 'Thinking about access, trust and *money.*',
-      all: 'All posts',
-    },
     /**
-     * Labels on the app, drawn in code (components/app). The screens follow
-     * the real app (the owner's screenshots, 30 Sep 2026): Cash Balance, the
-     * USDc selector, Add Funds · Withdraw · Send · Request, and the
-     * Marketplace · Home · History bar. Every figure is an example and every
-     * screen carries the "Illustrative" stamp: they show what the app does,
-     * never what anyone holds. The amounts are one story told across the
-     * page: 940.00, then +300.00 from abroad makes 1,240.00; sending and
-     * paying take it to 1,176.50; a 200.00 cash-out leaves 976.50.
+     * The cash slip on the Cash out section. The screens follow the owner's
+     * screenshots; the amount and the code are an example, and the slip is
+     * stamped "Illustrative": it shows what the app does, never what anyone
+     * holds.
      */
     app: {
-      balanceLabel: 'Cash Balance',
-      currency: 'USDc',
-      balanceBefore: '940.00',
-      balance: '1,240.00',
-      balanceAfterSpend: '1,176.50',
-      balanceAfterCash: '976.50',
-      actions: { add: 'Add Funds', withdraw: 'Withdraw', send: 'Send', request: 'Request', swap: 'Swap' },
-      tabs: ['Marketplace', 'Home', 'History'],
-      historyTitle: 'History',
-      rows: [
-        { label: 'Received', meta: 'From abroad', amount: '+300.00', kind: 'in' },
-        { label: 'Sent', meta: 'To another wallet', amount: '−45.00', kind: 'out' },
-        { label: 'Paid', meta: 'From your balance', amount: '−18.50', kind: 'out' },
-        { label: 'Cash out', meta: 'At a Connector', amount: '−200.00', kind: 'cash' },
-      ],
       collect: {
         title: 'Collect your cash',
         at: 'At a Connector near you',
@@ -271,8 +171,6 @@ export const home = defineCopy({
       lead: 'Receive from abroad, send anywhere, and cash out close to home.',
       steps: ['Download the app', 'Create your account', 'Receive your first transfer'],
       stepsLabel: 'Getting started',
-      coverage: 'Talk to us',
-      connector: 'Run a shop? Become a Connector',
     },
   },
   ar: {
@@ -284,98 +182,58 @@ export const home = defineCopy({
     hero: {
       title: ['أموالك بلا حدود.', 'وصولك بلا قيود.'],
       subtitle: 'استقبل مصاريك من برّا، واحتفظ فيها بالدولار الرقمي، واسحبها كاش من محل قريب منك.',
-      availability: 'سجّل من التطبيق · آيفون وأندرويد',
       explore: 'كيف بيشتغل',
-      more: 'ليش شاهين؟',
       evidence: {
         countries: (n: string) => `متوفر في ${n} دولة`,
         minCashOut: (amount: string) => `سحب كاش ابتداءً من ${amount}`,
         connectors: (n: string) => `${n} موصّل`,
         noFxMargin: 'بدون هامش مخفي على سعر الصرف',
+        noFees: 'بدون رسوم على الاستقبال والإرسال والدفع',
       },
-    },
-    why: {
-      label: 'ليش شاهين',
-      title: 'لسّا إرسال المصاري للأهل *مكلف كتير.*',
-      lead:
-        'العائلات اللي بتعتمد على مصاري من برّا بتخسر جزء من كل حوالة على الرسوم وفروقات سعر الصرف، وكتير منهم ما عندهم حساب يستقبلوا عليه أصلاً.',
-      cost: {
-        title: 'قديش بتكلّف اليوم حوالة عبر الحدود',
-        target: 'هدف الأمم المتحدة لعام 2030',
-        excess: 'المبلغ المأخوذ فوقه',
-        total:
-          'أكتر من نص اللي بتدفعه العائلة هو كلفة العالم كله متفق إنها ما لازم تكون. هاي أرقام عالمية، مش أسعار شاهين موني.',
-        alt: (actual: string, target: string) =>
-          `رسم بياني بيوضّح المتوسط العالمي لكلفة إرسال الأموال، ${actual}، مقسوم إلى هدف الأمم المتحدة لعام 2030 وهو ${target}، والمبلغ المأخوذ فوقه.`,
-      },
-      example:
-        'مثلاً، عائلة في عمّان بتستقبل 300 دولار بالشهر بتخسر حوالي 19 دولار من كل حوالة حسب المتوسط العالمي للكلفة. يعني أكثر من 220 دولار بالسنة.',
     },
     steps: {
       label: 'كيف بيشتغل',
-      title: 'من حوالة بالخارج لكاش *بإيدك.*',
-      lead: 'أربع خطوات، وإنت بتقرر وين بدك توقف.',
+      title: 'أربع خطوات، *تطبيق واحد.*',
+      lead: 'من حوالة بالخارج لكاش بإيدك، وإنت بتقرر وين بدك توقف.',
       items: [
-        {
-          title: 'استقبل',
-          body: 'بتوصلك المصاري من أهلك أو عميل أو شغلك برّا، أو من محفظة متوافقة، وبتظهر برصيدك أول ما توصل.',
-        },
-        {
-          title: 'احتفظ بالدولار',
-          body: 'رصيدك محفوظ بالدولار الرقمي، يعني رصيد بالدولار الأمريكي مش بعملتك المحلية. وإنت بتقرر إمتى تستخدمه.',
-        },
+        { title: 'استقبل', body: 'بتوصلك المصاري من أهلك أو عميل أو شغلك برّا، وبتظهر برصيدك أول ما توصل.' },
+        { title: 'احتفظ بالدولار', body: 'رصيدك محفوظ بالدولار الرقمي، مش بعملتك المحلية، وإنت بتقرر إمتى تستخدمه.' },
         { title: 'ابعت وادفع', body: 'ابعت جزء من رصيدك لحدا تاني، أو ادفع مباشرة من التطبيق.' },
-        {
-          title: 'اسحب كاش',
-          body: 'لما تحتاج كاش، اطلبه من التطبيق واستلمه من موصّل: محل قريب منك ضمن شبكة شاهين.',
-        },
+        { title: 'اسحب كاش', body: 'اطلب الكاش من التطبيق واستلمه من موصّل: محل قريب منك ضمن شبكة شاهين.' },
       ],
-      goodToKnow: 'حلو تعرف',
-      facts: [
-        {
-          title: 'رصيدك بالدولار الأمريكي',
-          body: 'مش بعملتك المحلية، فبيحافظ على قيمته بالدولار لحد ما تستخدمه.',
-        },
-        {
-          title: 'الكاش بيجي من ناس',
-          body: 'الموصّلون محلات من الحي، مش أجهزة صراف. بتستلم مصاريك من حدا بمنطقتك.',
-        },
-        {
-          title: 'الرسوم منشورة',
-          body: 'كل رسم مكتوب، ومعه تاريخ بدء العمل فيه. ما في إشي بينضاف عند الشبّاك.',
-        },
-      ],
-      audiencesTitle: 'لمين شاهين؟',
-      audiences: [
-        { title: 'العائلات', body: 'ابنك بيبعتلك من برلين، وإنت بتسحبها كاش بآخر الشارع.' },
-        { title: 'المستقلون', body: 'عميلك في أوروبا بيدفعلك الفاتورة، وإنت بتحتفظ فيها بالدولار لحد ما تحتاجها.' },
-        { title: 'المغتربون', body: 'بتبعت لأهلك، وهنّي بيسحبوها وين ووقت ما بيناسبهم.' },
-        { title: 'أصحاب المحلات', body: 'محلّك بيصير موصّل، وبتكسب من كل عملية سحب بتسلّمها.' },
-      ],
+      dollarTitle: 'شو يعني دولار رقمي؟',
+    },
+    film: {
+      alt: 'فيديو مدته عشر ثوانٍ: فلوسك كاش بإيدك. استقبل من برّا، احتفظ فيها بالدولار، ابعت أو ادفع، واسحبها كاش.',
+      play: 'شغّل الفيديو',
+      pause: 'أوقف الفيديو',
     },
     cashOut: {
       label: 'السحب النقدي',
-      title: 'مصاريك بتطلع من التطبيق عند محل *بتعرفه.*',
-      lead:
-        'الموصّلون محلات من الحي ضمن شبكة شاهين، بيسلّموا الكاش لمستخدمي شاهين موني. هيك الرصيد الرقمي بيصير مصاري بإيدك.',
+      title: 'كاش من محل *بتعرفه.*',
+      lead: 'الموصّلون محلات من الحي ضمن شبكة شاهين، بيسلّموك الكاش، وهيك رصيدك الرقمي بيصير مصاري بإيدك.',
       steps: [
         { title: 'اطلب كاش من التطبيق', body: 'اختار قديش بدك تسحب.' },
         { title: 'روح لموصّل', body: 'روح لموصّل قريب منك.' },
         { title: 'استلم مصاريك', body: 'عدّها قبل ما تطلع.' },
       ],
       minimum: (amount: string) => `أقل مبلغ للسحب هو ${amount}.`,
-      safetyTitle: 'خليك بأمان',
-      safety: [
-        'عدّ مصاريك قبل ما تطلع من المحل.',
-        'لا تعطي كلمة السر أو الرقم السري لأي حدا، حتى لو قال إنه من شاهين موني.',
-        'خلّي موبايلك مقفول برقم سري أو ببصمة.',
-      ],
+    },
+    cost: {
+      label: 'الكلفة',
+      title: 'صفر عمولة *على شاهين.*',
+      lead: 'استقبال الأموال وإرسالها والدفع من رصيدك دون أي رسوم.',
+      benchmark: 'للمقارنة، المتوسط العالمي لكلفة إرسال الأموال هو',
+      scheduleTitle: 'ما نتقاضاه',
+      scheduleNote: 'أي رسوم أخرى سنكتبها هنا، مع تاريخ بدء العمل بها، قبل أن تصلك.',
+      item: 'البند',
+      fee: 'الرسوم',
     },
     network: {
       label: 'الشبكة',
       title: 'مدن بعيدة، وشاهين *بيوصلها* ببعض.',
       lead:
-        'بين المدينة اللي حدا بيشتغل فيها والبلد اللي أهله عايشين فيه، شاهين بيوصّل المصاري عبر الحدود، وموصّل قريب من البيت بيسلّمها كاش.',
+        'شاهين بيوصّل المصاري من المدينة اللي حدا بيشتغل فيها للبلد اللي أهله عايشين فيه، وموصّل قريب من البيت بيسلّمها كاش.',
       caption: 'أمثلة على مسارات التحويل. اسألنا عن بلدك ومنقلك شو المتاح اليوم.',
       figures: (connectors: string, countries: string, month: string) =>
         `حتى ${month}: ${connectors} موصّل فعّال في ${countries} دولة.`,
@@ -389,43 +247,6 @@ export const home = defineCopy({
         cta: 'صير موصّل',
       },
     },
-    pricing: {
-      label: 'الكلفة',
-      title: 'اعرف الكلفة الكاملة *قبل* ما تبعت.',
-      lead: 'كلفة التحويل أكتر من الرقم اللي بتشوفه على الشاشة، وإلها ثلاث أجزاء.',
-      parts: [
-        { title: 'الرسوم', body: 'اللي بياخده مقدّم الخدمة مباشرة، وهو الجزء الأسهل ما تشوفه.' },
-        {
-          title: 'هامش سعر الصرف',
-          body: 'الفرق بين السعر اللي بتاخده وسعر السوق الوسطي. غالباً هو أكبر كلفة وأقلها وضوح.',
-        },
-        { title: 'كلفة السحب', body: 'اللي بيدفعه المستلم لما يحوّل المبلغ لكاش.' },
-      ],
-      exampleTitle: 'اعمل الحسبة',
-      example:
-        'إرسال 300 دولار برسوم 5 دولارات وسعر صرف أقل من سعر السوق الوسطي بنسبة 2% بيكلّف 5 + 6 = 11 دولار، يعني 3.7% من المبلغ اللي بعتّه.',
-      exampleNote: 'توضيح للحسبة بس، مش أسعارنا.',
-      calc: {
-        label: 'جرّبها بأرقامك',
-        amount: 'المبلغ اللي بتبعته',
-        fee: 'الرسوم المقدّمة',
-        margin: 'هامش سعر الصرف',
-        feePart: 'الرسوم',
-        marginPart: 'الهامش',
-        total: 'الكلفة الإجمالية',
-        share: 'من المبلغ اللي بعتّه',
-      },
-      benchmark: 'للمقارنة، المتوسط العالمي لكلفة إرسال الأموال هو',
-      scheduleTitle: 'شو بناخذ',
-      scheduleNote:
-        'أي رسوم ثانية رح نكتبها هون، مع تاريخ بداية العمل فيها، قبل ما توصلك.',
-      item: 'البند',
-      fee: 'الرسوم',
-      caption: (amount: string, corridor: string) => `إرسال ${amount}: ${corridor}`,
-      provider: 'مقدّم الخدمة',
-      fxMargin: 'هامش سعر الصرف',
-      totalCost: 'الكلفة الإجمالية',
-    },
     proof: {
       label: 'بكلماتهم',
       title: 'ناس بتستخدم شاهين موني.',
@@ -437,10 +258,7 @@ export const home = defineCopy({
       label: 'أسئلة',
       title: 'أكتر إشي *بيسألونا* عنه.',
       stillTitle: 'لسّا بتحتاج مساعدة؟',
-      stillBody: 'احكيلنا شو صار ومنرجعلك.',
       stillCta: 'تواصل معنا',
-      filterLabel: 'ابحث في الأسئلة',
-      filterEmpty: 'ما في سؤال بيطابق هالكلمة. جرّب كلمة ثانية، أو تواصل معنا.',
       items: [
         {
           q: 'شو هو شاهين موني؟',
@@ -478,27 +296,7 @@ export const home = defineCopy({
         },
       ],
     },
-    blog: {
-      label: 'من المدونة',
-      title: 'أفكار عن الوصول والثقة *والمال.*',
-      all: 'كل المقالات',
-    },
     app: {
-      balanceLabel: 'الرصيد النقدي',
-      currency: 'USDc',
-      balanceBefore: '940.00',
-      balance: '1,240.00',
-      balanceAfterSpend: '1,176.50',
-      balanceAfterCash: '976.50',
-      actions: { add: 'إضافة رصيد', withdraw: 'سحب', send: 'إرسال', request: 'طلب', swap: 'تبديل' },
-      tabs: ['السوق', 'الرئيسية', 'السجل'],
-      historyTitle: 'السجل',
-      rows: [
-        { label: 'استلمت', meta: 'من برّا', amount: '+300.00', kind: 'in' },
-        { label: 'بعثت', meta: 'لمحفظة ثانية', amount: '−45.00', kind: 'out' },
-        { label: 'دفعت', meta: 'من رصيدك', amount: '−18.50', kind: 'out' },
-        { label: 'سحب كاش', meta: 'عند موصّل', amount: '−200.00', kind: 'cash' },
-      ],
       collect: {
         title: 'استلم كاشك',
         at: 'عند موصّل قريب منك',
@@ -513,8 +311,6 @@ export const home = defineCopy({
       lead: 'استقبل من برّا، ابعت لأي مكان، واسحب كاش قريب منك.',
       steps: ['حمّل التطبيق', 'افتح حسابك', 'استقبل أول حوالة'],
       stepsLabel: 'كيف تبدأ',
-      coverage: 'احكي معنا',
-      connector: 'عندك محل؟ صير موصّل',
     },
   },
 });

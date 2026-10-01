@@ -38,7 +38,6 @@ if (!facts.coverage) add('SHOULD', 'Verified country list. The globe shows examp
 if (!facts.pricing.minCashOutUsd) add('SHOULD', 'Minimum cash-out amount (homepage "Cash out", hero evidence row)');
 
 // ── Business funnel (audit A.5 #1) ──────────────────────────────────────
-if (!facts.connectorProgram.commissionPercent) add('SHOULD', 'Connector commission % (homepage + /business)');
 if (!facts.connectorProgram.eligibility) add('SHOULD', 'Who can become a Connector (/business)');
 
 // ── Proof (audit P-09) ───────────────────────────────────────────────────
@@ -48,7 +47,6 @@ if (!facts.connectorStory) add('SHOULD', "One Connector's story (name, photo, pl
 if (!facts.network.activeConnectors || !facts.network.countries)
   add('SHOULD', 'Network figures: active Connectors and countries, dated');
 for (const p of facts.team) {
-  if (!p.photo) add('SHOULD', `Photo of ${p.name} (consented)`);
   if (!p.nameAr) add('SHOULD', `Arabic spelling of ${p.name}`);
 }
 if (facts.press.length === 0)

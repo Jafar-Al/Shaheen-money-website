@@ -674,17 +674,6 @@
 
 /* ── Smart download button + QR dialog ────────────────────────────────── */
 @layer components {
-  .dl-button .dl-when-ios,
-  .dl-button .dl-when-android,
-  html[data-platform='ios'] .dl-button .dl-when-desktop,
-  html[data-platform='android'] .dl-button .dl-when-desktop {
-    display: none;
-  }
-  html[data-platform='ios'] .dl-button .dl-when-ios,
-  html[data-platform='android'] .dl-button .dl-when-android {
-    display: inline-flex;
-  }
-
   .download-dialog {
     margin: auto;
     inline-size: min(26rem, calc(100vw - 2rem));

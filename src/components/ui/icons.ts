@@ -19,6 +19,8 @@ export const icons = {
   close: '<path d="m6 6 12 12M18 6 6 18"/>',
   menu: '<path d="M3.5 9h17M3.5 15h17"/>',
   download: `<path fill="currentColor" stroke="none" d="M11.25 3.5v11.25h1.5V5z"/><path d="M7.25 10.5 12 15.25l4.75-4.75M4.5 19.75h15"/>`,
+  play: '<path fill="currentColor" stroke="none" d="M8 5.25v13.5L19 12z"/>',
+  pause: '<path fill="currentColor" stroke="none" d="M7 5.5h3.5v13H7zM13.5 5.5H17v13h-3.5z"/>',
   mail: '<path d="M3.5 5.75h17v12.5h-17z"/><path d="m3.75 6.25 8.25 6.5 8.25-6.5"/>',
   phone: '<path d="M7.25 2.75h9.5v18.5h-9.5z"/><path d="M10.75 18h2.5"/>',
   pin: '<path d="M12 21.25S5.75 15.6 5.75 10.25a6.25 6.25 0 0 1 12.5 0C18.25 15.6 12 21.25 12 21.25z"/><path d="M12 12.25a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>',

@@ -25,25 +25,6 @@ export function finePointer(): boolean {
   return motionLevel() === 'full' && matchMedia('(hover: hover) and (pointer: fine)').matches;
 }
 
-/** Phones never pin or scrub: every scene becomes a stack that reveals in place. */
-export function scrubbing(): boolean {
-  return motionLevel() !== 'reduced' && matchMedia('(min-width: 64rem)').matches;
-}
-
-/**
- * Pins only what fits. A pinned stage taller than the screen under the
- * header (a laptop under its browser's toolbars, a short window) would keep
- * its foot out of sight for as long as it is pinned, so there the scene rests
- * in place instead. `stage` is the padded box the pinned state trims to
- * 1.5rem a side; measured before pinning.
- */
-export function fitsPinned(stage: HTMLElement): boolean {
-  const style = getComputedStyle(stage);
-  const content = stage.getBoundingClientRect().height - parseFloat(style.paddingBlockStart) - parseFloat(style.paddingBlockEnd);
-  const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0;
-  return content + 48 <= window.innerHeight - header;
-}
-
 export function onMotionChange(callback: () => void): void {
   reducedQuery.addEventListener('change', callback);
 }

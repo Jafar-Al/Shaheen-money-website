@@ -6,19 +6,19 @@ import Slip from '../../components/ui/Slip.astro';
 import Button from '../../components/ui/Button.astro';
 import IndexRow from '../../components/ui/IndexRow.astro';
 import Icon from '../../components/ui/Icon.astro';
-import Gap from '../../components/ui/Gap.astro';
 import Device from '../../components/app/Device.astro';
 import { media } from '../../copy/business';
 import { common } from '../../copy/common';
 import { brand, contact } from '../../config/site';
 import { facts } from '../../data/facts';
-import { appScreens, brandAssets, brandColours, brandFonts, documentsFor } from '../../data/media';
+import { appScreens, brandAssets, brandColours, brandFonts, documentsFor, film } from '../../data/media';
 import { href, localeStaticPaths, type Locale } from '../../i18n/config';
 
 /**
- * The press kit: the mark in the files we actually ship, the rules for
- * using it, the palette and the type, the company documents, and the facts
- * a newsroom needs. Every download is generated from
+ * The press kit, in the order people ask for it: the company documents and
+ * the film first, then the mark in the files we actually ship (with the
+ * rules for using it), the palette and the type, the app's screens, and the
+ * facts a newsroom needs. Every download is generated from
  * src/assets/brand/falcon.svg (npm run media), and src/data/media.ts fails
  * the build if a listed file is missing.
  */
@@ -33,7 +33,36 @@ const founder = facts.team[0];
 <BaseLayout locale={locale} path="/media" title={t.meta.title} description={t.meta.description} bothScripts>
   <PageHero locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.media }]} seed="media" />
 
-  <!-- 1. The mark. -->
+  <!-- 1. The documents and the film: what most people come for. -->
+  <section class="t-night grain m-sec" data-temp="night" aria-labelledby="docs-title">
+    <div class="page rhythm m-split">
+      <header class="m-head">
+        <h2 id="docs-title" class="m-h2 font-display">{t.docsTitle}</h2>
+      </header>
+      <div class="m-doc-list m-split-main">
+        {
+          documents.map((doc, i) => (
+            <IndexRow
+              n={i + 1}
+              title={doc.title[locale]}
+              text={doc.description[locale]}
+              meta={`${doc.download!.format} · ${doc.download!.sizeKb} KB`}
+              href={doc.download!.file}
+            />
+          ))
+        }
+        <IndexRow
+          n={documents.length + 1}
+          title={film.title[locale]}
+          text={film.description[locale]}
+          meta={`${film.download.format} · ${film.download.sizeKb} KB`}
+          href={film.download.file}
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. The mark, in the files we ship, and how to use it. -->
   <section class="t-paper grain m-sec" data-temp="paper" aria-labelledby="logo-title">
     <div class="page rhythm">
       <header class="m-head">
@@ -68,14 +97,10 @@ const founder = facts.team[0];
           ))
         }
       </ul>
-    </div>
-  </section>
-
-  <!-- 2. How to use it. -->
-  <section class="t-night grain m-sec" data-temp="night" aria-labelledby="rules-title">
-    <div class="page rhythm m-split">
-      <h2 id="rules-title" class="m-h2 font-display">{t.rulesTitle}</h2>
-      <Ledger items={t.rules.map((r) => ({ title: r.title, body: r.body }))} class="m-split-main" />
+      <div class="m-split m-rules">
+        <h3 class="m-h3 font-display">{t.rulesTitle}</h3>
+        <Ledger items={t.rules.map((r) => ({ title: r.title, body: r.body }))} class="m-split-main" />
+      </div>
     </div>
   </section>
 
@@ -154,33 +179,10 @@ const founder = facts.team[0];
     </div>
   </section>
 
-  <!-- 5. Company documents and the facts a newsroom needs. -->
+  <!-- 5. The facts a newsroom needs, and who to ask. -->
   <section class="t-paper grain m-sec" data-temp="paper">
     <div class="page rhythm m-split">
       <div class="m-docs">
-        {
-          documents.length > 0 ? (
-            <>
-              <h2 class="m-h2 font-display">{t.docsTitle}</h2>
-              <div class="m-doc-list">
-                {documents.map((doc, i) => (
-                  <IndexRow
-                    n={i + 1}
-                    title={doc.title[locale]}
-                    text={doc.description[locale]}
-                    meta={`${doc.download!.format} · ${doc.download!.sizeKb} KB`}
-                    href={doc.download!.file}
-                  />
-                ))}
-              </div>
-            </>
-          ) : (
-            <Gap
-              where="public/media/ + src/data/media.ts"
-              need="Pitch deck, company profile and brand guidelines as PDFs. Drop each file into public/media/ and set its `file` in src/data/media.ts."
-            />
-          )
-        }
         <Slip as="section" no={t.pressTitle} class="m-press" labelledby="press-title">
           <h2 id="press-title" class="m-press-title font-display">{t.pressTitle}</h2>
           <p class="m-press-body">{t.pressBody}</p>
@@ -203,6 +205,17 @@ const founder = facts.team[0];
             <dd dir="ltr" lang="en">{brand.name} · shaheen.money</dd>
           </div>
           {
+            facts.company.legalName && (
+              <div>
+                <dt class="label">{t.company}</dt>
+                <dd>
+                  {facts.company.legalName}
+                  {facts.company.jurisdiction && `, ${facts.company.jurisdiction[locale]}`}
+                </dd>
+              </div>
+            )
+          }
+          {
             founder && (
               <div>
                 <dt class="label">{t.founded}</dt>
@@ -211,11 +224,6 @@ const founder = facts.team[0];
             )
           }
         </dl>
-        {
-          !facts.company.legalName && (
-            <Gap need="Registered entity, jurisdiction and founding year for the newsroom fact box. A journalist who cannot find the legal entity writes 'could not be verified'." />
-          )
-        }
       </div>
     </div>
   </section>
@@ -236,6 +244,13 @@ const founder = facts.team[0];
     font-size: var(--text-display-m);
     line-height: var(--lh-display-m);
   }
+  .m-h3 {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+  }
+  .m-rules {
+    margin-block-start: clamp(3rem, 6vw, 5rem);
+  }
   .m-split {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -244,6 +259,7 @@ const founder = facts.team[0];
     align-items: start;
   }
   .m-split > h2,
+  .m-split > h3,
   .m-split > .m-head,
   .m-docs {
     grid-column: 1 / span 5;

@@ -1,0 +1,82 @@
+---
+import Icon from '../ui/Icon.astro';
+
+/**
+ * The owner's ten-second film, as a quiet inline player: silent, looping,
+ * playing only while it is on screen and only if the visitor has not asked
+ * for less motion (reduced motion and Data Saver keep the poster frame until
+ * the visitor presses play). A pause button is always there, because
+ * anything that moves for more than five seconds has to be stoppable.
+ *
+ * The film carries its words inside the picture, so the text alternative is
+ * the numbered steps beside it (HowItWorks.astro) plus `alt` here.
+ * Nothing is fetched until it plays (preload="none"): the poster is the
+ * only weight. In the browser: src/scripts/home/film.ts.
+ */
+interface Props {
+  /** The film, an MP4 in public/media/. */
+  src: string;
+  poster: string;
+  /** What the film shows, in words. */
+  alt: string;
+  play: string;
+  pause: string;
+  class?: string;
+}
+const { src, poster, alt, play, pause, class: className } = Astro.props;
+---
+
+<figure class:list={['film', className]} data-film data-state="paused">
+  <video class="film-video" muted loop playsinline preload="none" width="1280" height="720" poster={poster} aria-label={alt}>
+    <source src={src} type="video/mp4" />
+  </video>
+  <button type="button" class="film-toggle" data-film-toggle data-label-play={play} data-label-pause={pause} aria-label={play} hidden>
+    <Icon name="play" size={16} class="film-play" />
+    <Icon name="pause" size={16} class="film-pause" />
+  </button>
+</figure>
+
+<style>
+  .film {
+    position: relative;
+    margin: 0;
+  }
+  .film-video {
+    display: block;
+    inline-size: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-navy-800);
+  }
+  .film-toggle {
+    position: absolute;
+    inset-block-end: 0.75rem;
+    inset-inline-end: 0.75rem;
+    display: grid;
+    place-items: center;
+    inline-size: var(--target-min);
+    block-size: var(--target-min);
+    border-radius: var(--radius-full);
+    background-color: var(--fg);
+    color: var(--bg);
+    transition: scale var(--motion-hover) var(--ease-hover);
+  }
+  .film-toggle:hover {
+    scale: 1.06;
+  }
+  .film-toggle[hidden] {
+    display: none;
+  }
+  /* The button shows what pressing it does. */
+  .film[data-state='playing'] .film-play,
+  .film[data-state='paused'] .film-pause {
+    display: none;
+  }
+  @media (forced-colors: active) {
+    .film-toggle {
+      border: 1px solid CanvasText;
+    }
+  }
+</style>

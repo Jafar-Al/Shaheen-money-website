@@ -223,6 +223,7 @@ export const media = defineCopy({
     pressBody: 'For interviews, comment or anything else, write to us and say it is a press enquiry.',
     pressCta: 'Contact us',
     factsTitle: 'The facts',
+    company: 'Company',
     founded: 'Founder and CEO',
     description: 'What Shaheen Money is',
     descriptionBody:
@@ -266,7 +267,8 @@ export const media = defineCopy({
     pressBody: 'للمقابلات أو التعليقات أو أي شيء آخر، راسلنا واذكر أن الاستفسار صحفي.',
     pressCta: 'تواصل معنا',
     factsTitle: 'معلومات أساسية',
-    founded: 'المؤسس والرئيس التنفيذي',
+    company: 'الشركة',
+    founded:'المؤسس والرئيس التنفيذي',
     description: 'ما هو شاهين موني',
     descriptionBody:
       'محفظة بالدولار الرقمي بتخلي الناس تستقبل أموالها من الخارج، وتحتفظ فيها بالدولار الأمريكي، وتبعت وتدفع، وتستلمها كاش من موصّل: محل قريب ضمن شبكة شاهين.',

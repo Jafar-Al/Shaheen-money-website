@@ -15,9 +15,9 @@ import { href, type Locale } from '../../i18n/config';
  * real store ratings with counts and a date. Two genuine voices beat six
  * invented ones.
  *
- * Until src/data/facts.ts carries any, the section has no heading and no
- * empty frame: it is a slim trust strip instead, with the three statements
- * the page can already stand behind and the way to the security page.
+ * Until src/data/facts.ts carries any, the section is simply not there: no
+ * heading, no empty frame, no filler strip (the strip above every page
+ * already says the money is self-custodial and links to the security page).
  */
 interface Props {
   locale: Locale;
@@ -26,7 +26,6 @@ interface Props {
 }
 const { locale, n } = Astro.props;
 const t = home[locale].proof;
-const s = home[locale].steps;
 const c = common[locale];
 const ratings = [
   facts.ratings.ios && { store: 'App Store', r: facts.ratings.ios },
@@ -35,7 +34,6 @@ const ratings = [
 const voices = facts.testimonials.slice(0, 2);
 const hasVoices = voices.length > 0 || ratings.length > 0;
 
-const statements = [c.trust.selfCustody, s.facts[2]?.title, s.facts[1]?.title].filter((x): x is string => Boolean(x));
 ---
 
 {
@@ -79,76 +77,11 @@ const statements = [c.trust.selfCustody, s.facts[2]?.title, s.facts[1]?.title].f
       </div>
     </section>
   ) : (
-    <aside class="trust t-paper" data-temp="paper" aria-label={c.trust.label}>
-      <div class="page trust-row">
-        <ul class="trust-list">
-          {statements.map((line, i) => (
-            <li class="trust-item">
-              <span class="num trust-n" aria-hidden="true">
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              <span class="font-display trust-text">{line}</span>
-            </li>
-          ))}
-        </ul>
-        <TextLink href={href(locale, 'security')}>{t.securityCta}</TextLink>
-      </div>
-      <Gap need="Two or three consented testimonials (name, photo, location, consent date) and store ratings with review counts and a date. Until then this is a trust strip, not a section." />
-    </aside>
+    <Gap need="Two or three consented testimonials (name, photo, location, consent date) and store ratings with review counts and a date. Until then the section does not render." />
   )
 }
 
 <style>
-  .trust {
-    background-color: var(--bg);
-    color: var(--fg);
-    border-block: 1px solid var(--line);
-  }
-  .trust-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem 3rem;
-    padding-block: 2.25rem;
-  }
-  .trust-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem 0;
-  }
-  .trust-item {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    padding-inline: 0 2.25rem;
-  }
-  .trust-item + .trust-item {
-    padding-inline-start: 2.25rem;
-    border-inline-start: 1px solid var(--line);
-  }
-  .trust-n {
-    font-size: var(--text-label);
-    color: var(--accent);
-  }
-  .trust-text {
-    font-size: var(--text-h4);
-    line-height: var(--lh-h4);
-  }
-  :global(:lang(ar)) .trust-text {
-    font-weight: 500;
-  }
-  @media (width < 64rem) {
-    .trust-list {
-      flex-direction: column;
-    }
-    .trust-item,
-    .trust-item + .trust-item {
-      padding-inline: 0;
-      border: 0;
-    }
-  }
-
   .voices {
     background-color: var(--bg);
     color: var(--fg);

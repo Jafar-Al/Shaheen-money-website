@@ -140,7 +140,7 @@ const WINDOWS_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 
 test.describe('on an iPhone', () => {
   test.use({ userAgent: IOS_UA, viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
-  test('every download control goes to the App Store, and says so', async ({ page }) => {
+  test('every download control goes to the App Store, and never names a platform', async ({ page }) => {
     await page.goto('/en');
     const links = page.locator(DOWNLOAD_CONTROLS);
     const count = await links.count();
@@ -148,7 +148,7 @@ test.describe('on an iPhone', () => {
     for (let i = 0; i < count; i++) {
       await expect(links.nth(i)).toHaveAttribute('href', /^https:\/\/apps\.apple\.com\//);
     }
-    await expect(page.locator(HERO_DOWNLOAD)).toContainText('iPhone');
+    await expect(page.locator(HERO_DOWNLOAD)).toHaveText(/^\s*Download the app\s*$/);
     await expect(page.locator('html')).toHaveAttribute('data-platform', 'ios');
   });
 });
@@ -175,6 +175,8 @@ test.describe('on an Android phone', () => {
         await expect(links.nth(i)).toHaveAttribute('href', /^https:\/\/play\.google\.com\//);
       }
       await expect(page.locator('html')).toHaveAttribute('data-platform', 'android');
+      // The same plain label as everywhere else: the button never says Android.
+      await expect(page.locator(HERO_DOWNLOAD)).toHaveText(path === '/en' ? /^\s*Download the app\s*$/ : /^\s*حمّل التطبيق\s*$/);
     }
   });
 });
@@ -200,6 +202,26 @@ test.describe('on a computer', () => {
     await expect(page.locator('#download-dialog')).toBeHidden();
     await expect(button).toBeFocused();
   });
+});
+
+test.describe('the button reads the same on every device', () => {
+  for (const [name, userAgent] of [
+    ['iPhone', IOS_UA],
+    ['Android phone', ANDROID_PHONE_UA],
+    ['computer', WINDOWS_UA],
+  ] as const) {
+    test(`${name}: no platform named, same hero label`, async ({ browser }) => {
+      const context = await browser.newContext({ userAgent });
+      const page = await context.newPage();
+      await page.goto('http://localhost:4321/en');
+      const labels = await page.locator(DOWNLOAD_CONTROLS).allInnerTexts();
+      expect(labels.length).toBeGreaterThan(0);
+      // Every control (the header's "Get the app" included) is platform-free.
+      for (const label of labels) expect(label, 'a download control names a platform').not.toMatch(/iphone|android|ipad|app store|google play/i);
+      await expect(page.locator(HERO_DOWNLOAD)).toHaveText(/^\s*Download the app\s*$/);
+      await context.close();
+    });
+  }
 });
 
 test.describe('with JavaScript turned off', () => {
@@ -239,6 +261,75 @@ test('the edge sends /download to the right store by user agent', async ({ playw
     expect(response.headers()['vary']).toContain('User-Agent');
     await api.dispose();
   }
+});
+
+// ── The pages the owner asked for are all there, and linked ─────────────
+test('the five pages are in the menu; Media and both documents are one click on', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/en');
+  const nav = page.locator('header nav').first();
+  for (const name of ['About', 'Business', 'Blog', 'Contact']) {
+    await expect(nav.getByRole('link', { name, exact: true })).toBeVisible();
+  }
+  // The home page is the logo.
+  await expect(page.locator('header a[href="/en"]').first()).toBeVisible();
+  for (const path of ['/en/about', '/en/business', '/en/blog', '/en/contact', '/en/media', '/ar/about', '/ar/business', '/ar/blog', '/ar/contact', '/ar/media']) {
+    const response = await page.goto(path);
+    expect(response?.status(), path).toBe(200);
+  }
+});
+
+test('the pitch deck and the company profile are on Media, in both languages, and are real PDFs', async ({ page, request }) => {
+  for (const locale of ['en', 'ar']) {
+    await page.goto(`/${locale}/media`);
+    const hrefs = await page.locator('a[href$=".pdf"]').evaluateAll((links) => links.map((a) => (a as HTMLAnchorElement).getAttribute('href')!));
+    for (const id of ['pitch-deck', 'company-profile']) {
+      const href = hrefs.find((h) => h.includes(id) && h.includes(`-${locale}.pdf`));
+      expect(href, `${locale}: ${id}`).toBeTruthy();
+      const response = await request.get(href!);
+      expect(response.status(), href!).toBe(200);
+      expect((await response.body()).subarray(0, 5).toString(), href!).toBe('%PDF-');
+    }
+  }
+});
+
+// ── The homepage stays short and simple ─────────────────────────────────
+test('the homepage is a short story: the hero and six sections at most', async ({ page }) => {
+  for (const path of ['/en', '/ar']) {
+    await page.goto(path);
+    expect(await page.locator('main > section').count(), path).toBeLessThanOrEqual(7);
+  }
+});
+
+// ── The film: silent, only while seen, stoppable ────────────────────────
+test('the film plays by itself while in view, is silent, and stays paused once paused', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/en');
+  const video = page.locator('[data-film] video');
+  await expect(video).toHaveJSProperty('muted', true);
+  await expect(video).toHaveJSProperty('paused', true);
+  await page.locator('#how').scrollIntoViewIfNeeded();
+  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused), { timeout: 8000 }).toBe(true);
+  const toggle = page.locator('[data-film-toggle]');
+  await expect(toggle).toHaveAttribute('aria-label', 'Pause the film');
+  await toggle.click();
+  await expect(video).toHaveJSProperty('paused', true);
+  await expect(toggle).toHaveAttribute('aria-label', 'Play the film');
+  // Away and back: a visitor who paused it keeps it paused.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.locator('#how').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(600);
+  await expect(video).toHaveJSProperty('paused', true);
+});
+
+test('with reduced motion the film waits for the visitor', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/en');
+  await page.locator('#how').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(900);
+  await expect(page.locator('[data-film] video')).toHaveJSProperty('paused', true);
+  await expect(page.locator('[data-film-toggle]')).toHaveAttribute('aria-label', 'Play the film');
 });
 
 // ── The hero: an atlas behind the falcon, decorative and calm ───────────

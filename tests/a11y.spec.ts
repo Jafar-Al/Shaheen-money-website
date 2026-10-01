@@ -21,36 +21,17 @@ for (const path of allPaths) {
 }
 
 /**
- * The runs above use reduced motion, where every scene shows its final,
- * full-strength state. Under full motion the pinned "How it works" scene
- * tones down the steps that are not playing; those tones must pass too.
+ * The runs above use reduced motion, where the film waits on its poster.
+ * Under full motion the film plays; the section must pass with it running.
  */
 for (const path of ['/en', '/ar']) {
-  test(`axe with full motion, inside the pinned scene: ${path}`, async ({ page }) => {
+  test(`axe with full motion, with the film playing: ${path}`, async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(path);
-    const track = page.locator('.how-track');
-    const box = await track.boundingBox();
-    expect(box).not.toBeNull();
-    // A third of the way through the pinned track: one step playing, three toned down.
-    await page.evaluate((y) => window.scrollTo(0, y), box!.y + box!.height / 3);
-    await expect(page.locator('.how-track[data-scene]')).toHaveCount(1);
-    // Judge the scene at rest, not halfway through a step's transition.
-    await expect
-      .poll(
-        () =>
-          page.evaluate(
-            () =>
-              document
-                .getAnimations()
-                .filter((a) => a.playState === 'running' && ((a.effect as KeyframeEffect | null)?.target as Element | null)?.closest('.how-track'))
-                .length,
-          ),
-        { timeout: 5000 },
-      )
-      .toBe(0);
+    await page.locator('#how').scrollIntoViewIfNeeded();
+    await expect.poll(() => page.locator('[data-film] video').evaluate((v: HTMLVideoElement) => !v.paused), { timeout: 8000 }).toBe(true);
     const results = await new AxeBuilder({ page })
-      .include('.how-track')
+      .include('#how')
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
       .analyze();
     const summary = results.violations.flatMap((v) =>

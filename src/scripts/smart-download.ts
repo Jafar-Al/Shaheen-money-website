@@ -3,10 +3,10 @@
  *   iOS / iPadOS → App Store, Android → Google Play, anything else → QR dialog.
  *
  * The platform was already decided before first paint, by the inline script
- * in src/layouts/BaseLayout.astro, which is why the button's label and icon
- * never shift. This module reads that answer off <html data-platform>
- * instead of working it out again: one rule, in one place, so the label a
- * visitor sees and the store the link opens can never disagree.
+ * in src/layouts/BaseLayout.astro. This module reads that answer off
+ * <html data-platform> instead of working it out again: one rule, in one
+ * place. The button itself never names a platform (one label, one glyph on
+ * every device), so nothing on the page can disagree with the store it opens.
  *
  * All this layer adds is pointing every [data-smart-download] link straight
  * at the store, saving the /download redirect hop. Without JavaScript the

@@ -85,7 +85,7 @@ const lastWord = (line: string) => {
   <section class="sheet t-paper">
     <div class="sheet-inner">
       <p class="label doc-chapter"><span class="num">01</span><span class="doc-chapter-label">{d.problem}</span></p>
-      <h2 class="doc-title s-title"><Emph text={h.why.title} /></h2>
+      <h2 class="doc-title s-title"><Emph text={d.problemTitle} /></h2>
       <div class="s-figures">
         {
           [globalCost, target, lebanon].map((stat, i) =>
@@ -208,7 +208,7 @@ const lastWord = (line: string) => {
   <section class="sheet t-paper">
     <div class="sheet-inner">
       <p class="label doc-chapter"><span class="num">06</span><span class="doc-chapter-label">{d.pricing}</span></p>
-      <h2 class="doc-title s-title"><Emph text={h.pricing.title} /></h2>
+      <h2 class="doc-title s-title"><Emph text={h.cost.title} /></h2>
       {
         fees && (
           <div class="s-fees">
@@ -248,10 +248,10 @@ const lastWord = (line: string) => {
   {/* 9. Who it's for */}
   <section class="sheet t-paper">
     <div class="sheet-inner">
-      <p class="label doc-chapter"><span class="num">08</span><span class="doc-chapter-label">{h.steps.audiencesTitle}</span></p>
+      <p class="label doc-chapter"><span class="num">08</span><span class="doc-chapter-label">{d.audiencesTitle}</span></p>
       <ul class="s-audiences">
         {
-          h.steps.audiences.map((x, i) => (
+          d.audiences.map((x, i) => (
             <li>
               <span class="num">{String(i + 1).padStart(2, '0')}</span>
               <span class="doc-title s-audience-title">{x.title}</span>

@@ -1,41 +1,27 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Hero from '../../components/home/Hero.astro';
-import WhyShaheen from '../../components/home/WhyShaheen.astro';
 import HowItWorks from '../../components/home/HowItWorks.astro';
 import CashOut from '../../components/home/CashOut.astro';
 import Network from '../../components/home/Network.astro';
-import Pricing from '../../components/home/Pricing.astro';
+import Cost from '../../components/home/Cost.astro';
 import Proof from '../../components/home/Proof.astro';
 import HomeFaq from '../../components/home/HomeFaq.astro';
-import LatestPosts from '../../components/home/LatestPosts.astro';
 import FinalCta from '../../components/home/FinalCta.astro';
 import { home } from '../../copy/home';
 import { brand, SITE_URL, stores } from '../../config/site';
 import { facts } from '../../data/facts';
 import { localeStaticPaths, type Locale } from '../../i18n/config';
-import { getPosts } from '../../lib/blog';
 
 export const getStaticPaths = localeStaticPaths;
 
 const locale = Astro.params.locale as Locale;
 const t = home[locale];
 
-// The page is one story in numbered chapters; the hero counts them. A
-// chapter only exists when it has something true to show.
+// The page is one short story in numbered chapters. A chapter only exists
+// when it has something true to show.
 const hasVoices = facts.testimonials.length > 0 || Boolean(facts.ratings.ios || facts.ratings.android);
-const hasPosts = (await getPosts(locale)).length > 0;
-const order = [
-  'why',
-  'how',
-  'cashOut',
-  'network',
-  'pricing',
-  ...(hasVoices ? ['voices'] : []),
-  'faq',
-  ...(hasPosts ? ['blog'] : []),
-  'download',
-];
+const order = ['how', 'cashOut', 'cost', 'network', ...(hasVoices ? ['voices'] : []), 'faq', 'download'];
 const ch = (key: string) => order.indexOf(key) + 1;
 
 const ratings = [facts.ratings.ios, facts.ratings.android].filter((r) => r !== null);
@@ -95,16 +81,14 @@ const jsonLd = [
   jsonLd={jsonLd}
 >
   <!-- 1. For the visitor who came to download: the whole job, first screen. -->
-  <Hero locale={locale} chapters={order.length} />
+  <Hero locale={locale} />
   <!-- 2. For the visitor who wants to understand first, in the order they ask. -->
-  <WhyShaheen locale={locale} n={ch('why')} />
-  <HowItWorks locale={locale} n={ch('how')} footnote={4} />
+  <HowItWorks locale={locale} n={ch('how')} />
   <CashOut locale={locale} n={ch('cashOut')} />
+  <Cost locale={locale} n={ch('cost')} />
   <Network locale={locale} n={ch('network')} />
-  <Pricing locale={locale} n={ch('pricing')} />
   <Proof locale={locale} n={ch('voices')} />
   <HomeFaq locale={locale} n={ch('faq')} />
-  <LatestPosts locale={locale} n={ch('blog')} />
   <FinalCta locale={locale} n={ch('download')} />
 </BaseLayout>
 

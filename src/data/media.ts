@@ -168,6 +168,20 @@ export const documentsFor = (locale: Locale) =>
   resolved.map(({ downloads, ...slot }) => ({ ...slot, download: downloads ? downloads[locale] : null }));
 
 /**
+ * The owner's ten-second film (the one beside "How it works"). One file for
+ * both languages: its words are in both, burned in. The site plays it
+ * silent; the download has its sound.
+ */
+export const film = {
+  title: { en: 'Brand film', ar: 'فيديو الهوية' } satisfies Localized,
+  description: {
+    en: 'Ten seconds: your money, as cash, in your hand. Four steps, one app. With its sound; on the site it plays silent.',
+    ar: 'عشر ثوانٍ: فلوسك كاش بإيدك. أربع خطوات، تطبيق واحد. مع صوته؛ وعلى الموقع بيشتغل بدون صوت.',
+  } satisfies Localized,
+  download: describe('/media/shaheen-money-film.mp4', { en: 'Brand film (MP4)', ar: 'فيديو الهوية (MP4)' }),
+};
+
+/**
  * The app as it is: the owner's renders of the home screen, cropped to the
  * screen (the same images the site shows, src/assets/app/).
  */

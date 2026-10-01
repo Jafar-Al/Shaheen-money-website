@@ -57,8 +57,7 @@ they earn.
 
 | What | field | Appears | Your answer |
 |---|---|---|---|
-| Commission per cash-out, as a % | `connectorProgram.commissionPercent` | Homepage network card + `/business` | |
-| Date it applies from | same `.source.asOf` | | |
+| *(Optional)* What a Connector earns per cash-out, if you want it stated. Shaheen's own commission is zero, and the site says only that; it states nothing about what shops earn until this is filled | `connectorProgram.commissionPercent` + `.source.asOf` | Homepage network band + `/business` | |
 | Who can apply — registration, fixed premises, opening hours, cash on hand, per country | `connectorProgram.eligibility` | `/business` | |
 
 ### 2.2 Network figures
@@ -112,9 +111,11 @@ needs the most care: figures must be real, dated, and checked.
 
 ### 2.7 Leadership
 
+No founder photo is needed: the About page shows the founder's name, role and quote, and
+nothing else. (A photo is optional; if one is added it goes in `team[].photo`, with consent.)
+
 | What | field | Appears | Your answer |
 |---|---|---|---|
-| Photo of Moataz Alobaid, with consent to publish | `team[].photo` | `/about` | |
 | His name in Arabic, spelled the way he writes it | `team[].nameAr` | `/about`, `/media` | |
 | Confirm the founder quote on `/about` is still what he wants to say — it is the wording from the current site | copy | `/about` | |
 
@@ -133,7 +134,6 @@ quietly rot.
 | **Brand guidelines (PDF)** | `public/media/` | same | `/media`, under the logo rules. |
 | **Vector master of the full logo** (falcon **+** the "Shaheen Money" wordmark) | `src/assets/brand/` | — | Today the site only holds the falcon, and it was **traced from a 239-pixel PNG**, not drawn. The wordmark is set in live type, so there is no file to hand a journalist or a printer. This is the one brand asset genuinely missing. |
 | ~~App screenshots~~ **done** | `src/assets/app/`, `public/media/` | `appScreens` in `src/data/media.ts` | The home screen on iPhone and Android, on the site and downloadable from `/media`. More real screens (sending, a cash-out code) are welcome; real screens only, no invented names or balances. |
-| **Founder photo** | `src/assets/` | `team[].photo` | `/about` |
 | **Connector photo** | `src/assets/` | `connectorStory` | Homepage proof section |
 
 ---

@@ -139,8 +139,8 @@ const lastWord = (line: string) => {
   <section class="sheet t-paper">
     <div class="sheet-inner">
       <p class="label doc-chapter"><span class="num">03</span><span class="doc-chapter-label">{d.whyItMatters}</span></p>
-      <h2 class="doc-title p-title"><Emph text={h.why.title} /></h2>
-      <p class="doc-lead p-lead">{h.why.lead}</p>
+      <h2 class="doc-title p-title"><Emph text={d.problemTitle} /></h2>
+      <p class="doc-lead p-lead">{d.problemLead}</p>
       <div class="p-figures">
         {
           [globalCost, lebanon].map((stat, i) =>
@@ -154,10 +154,10 @@ const lastWord = (line: string) => {
           )
         }
       </div>
-      <h3 class="doc-sub p-sub">{h.steps.audiencesTitle}</h3>
+      <h3 class="doc-sub p-sub">{d.audiencesTitle}</h3>
       <ul class="p-audiences">
         {
-          h.steps.audiences.map((x) => (
+          d.audiences.map((x) => (
             <li>
               <span class="doc-row-title">{x.title}</span>
               <span class="doc-row-body">{x.body}</span>

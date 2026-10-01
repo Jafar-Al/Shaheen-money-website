@@ -52,7 +52,7 @@ particles, shield/globe/coin icons, and purple.
 Text on each ground is a set of opacities of one colour (chalk on Night,
 ink on Paper), so hierarchy never introduces a new hue. The `app-*` colours
 (`#0701FC`, `#1E3AED`, `#031535`, `#04DCFA`, `#193655`) are sampled from
-the real app and appear only inside the app shards.
+the real app and appear only where the app is shown (the phones, the film).
 
 Rules, each enforced by a check rather than by memory:
 
@@ -154,7 +154,8 @@ in Arabic, and only the legibility mask moves to the other side.
 | `home/Hero`, `home/HeroAtlas` | Equal Earth atlas (d3-geo, world-atlas 110m): the land a soft tone on navy, no grid lines, only the five corridor cities named; routes from the falcon's feather tips to them; nothing else on the map. Three compositions: wide (Amman at 66%, words below the falcon), tall (phones), and a phone on its side (Amman moved to the far side, the left in Arabic, so the headline never meets the falcon) |
 | `art/FeatherField` | seeded hairline feathers (`src/lib/feather.ts`): `strip`, `cover`, `corner`, `single` (+ `trail` on the 404) |
 | `art/ShopCounter`, `art/Rails` | line drawings for the cash-out shop and the partner rails |
-| `app/UiShard`, `app/AppIcon` | app screens rebuilt in HTML from the owner's screenshots, always stamped *Illustrative* |
+| `app/AppIcon` | the app icon |
+| `media/Film` | the owner's ten-second film as a quiet inline player: silent, looping, playing only while on screen and never under reduced motion or Data Saver, with a pause button; nothing is fetched until it plays |
 | `app/Device` | the owner's own renders of the home screen (iPhone and Android, `src/assets/app/`) in the site's handset: one phone, or the pair, sized so both phones fit any column down to a 320px screen; stamped *Illustrative* |
 | `layouts/PrintLayout`, `pages/[locale]/media/company-profile`, `…/pitch-deck` | the company profile (A4, five pages) and the pitch deck (16:9, eleven slides), made of the site's own components and copy and printed to PDF by `npm run docs` |
 | `ui/Chapter`, `ui/PageHero` | the homepage chapter frame; the inner-page hero with its feather strip |
@@ -168,23 +169,20 @@ in Arabic, and only the legibility mask moves to the other side.
 
 ## Motion
 
-Six verbs, each with one job:
+Five verbs, each with one job, and the film:
 
 - **Draw** — hairlines stroke themselves in once (routes, feathers, the shop).
 - **Land** — groups arrive as they scroll into view, children in order.
-- **Flip** — the cash-out card turns from the app's code to the cash.
-- **Print** — a stamp lands in one step, the way a stamp does.
+- **Print** — a stamp lands in one step, the way a stamp does, and a receipt prints its rows.
 - **Packet** — a single signal dash runs a route, one route at a time.
-- **Temperature** — a section and the header change from Night to Paper
-  (`@property --t`, so the change is a real transition).
+- **Temperature** — the page turns from Night to Paper at a plain edge, and
+  the header takes the temperature of whatever is under it.
 
-It is built on CSS and five small modules in `src/lib/motion/` (level,
-reveal, scenes, count, pointer): about 5 KB of JavaScript on the homepage,
-gzipped. There is no GSAP. The site needed scroll progress, two pinned
-scenes, one count-up and a pointer parallax; those are a few dozen lines on
-`requestAnimationFrame` and `IntersectionObserver`, where GSAP and
-ScrollTrigger would add ~45 KB and a dependency for the same four effects.
-Scrolling is native.
+The homepage no longer pins or scrubs anything: the owner found the first
+version crowded, and the film now does what the pinned "How it works" scene
+did, with less. It is built on CSS and small modules in `src/lib/motion/`
+(level, reveal, scenes, count, pointer): a few KB of JavaScript on the
+homepage, gzipped. There is no GSAP. Scrolling is native.
 
 - `prefers-reduced-motion` is honoured everywhere: everything goes to its
   final frame (routes drawn, balance at its value, cards unflipped), and
@@ -193,10 +191,9 @@ Scrolling is native.
 - Content can never be left invisible: only an element the reveal script is
   watching is hidden, and a four-second rescue reveals anything still
   pending.
-- A scene pins only if it fits the screen under the header
-  (`fitsPinned()` in `src/lib/motion/level.ts`). "How it works" is taller
-  than a 1366 × 768 laptop's browser window; pinned there, its foot stayed
-  out of sight for the whole scene, so on such a screen it rests in place.
+- The film (`src/scripts/home/film.ts`) plays only while 40% of it is on
+  screen, is always silent on the page, stays paused once the visitor has
+  paused it, and waits on its poster under reduced motion and Data Saver.
 - Draw-in strokes scale with their drawing. Under `non-scaling-stroke`,
   Chromium measures dashes in screen pixels, so a `pathLength` draw stops
   short on any drawing shown above 1:1 (the hero's routes stopped short of
@@ -216,13 +213,22 @@ Scrolling is native.
   the brief's version (a redrawn falcon, no globe), that is a separate,
   deliberate change to those rules.
 - **The app is shown, never mocked.** The phones (`app/Device`) show the
-  owner's own renders of the home screen, cropped to the screen. The app
-  screens inside the scenes are rebuilt in HTML from the owner's screenshots
-  (so they are sharp, translatable and light), and their amounts tell one
-  consistent story (940.00 + 300.00 received = 1,240.00; − 63.50 paid and
-  sent; − 200.00 cashed out with code 482 719). The owner's AI-made scene
-  renders and the generated portrait were not used: the rule against
-  generated people and AI-looking images covers them.
+  owner's own renders of the home screen, cropped to the screen. The cash
+  slip shows the example $200.00 and code 482 719 and is stamped
+  *Illustrative*. One of the owner's AI-made scene renders (the phone on a
+  blue landscape, no face, no invented names) is on the homepage's closing
+  section, at the owner's request on 1 October 2026; the others, which
+  carry a generated portrait and invented names, are not used.
+- **Simple on purpose.** The owner found the first redesign crowded and hard
+  to follow. The homepage went from nine chapters and about 19,000 px (1440
+  wide) to six sections and about 9,000 px: how it works (with the film),
+  cash out, what it costs, the network, the questions, the download. Gone:
+  the cost ruler, the receipt example, the calculator and comparison table,
+  the three pinned or scrubbed scenes, the city list, the question filter,
+  the blog teaser and the audiences list. Each section says one thing in a
+  sentence or two; longer material has its own page. The download button
+  says "Download the app" on every device and goes straight to the right
+  store, so the visitor never has to choose.
 - **Every screen size.** Every page is checked for sideways scrolling at
   thirteen widths from 320 to 1280 px (desktop emulation, which does not
   hide overflow the way phone emulation can), and the homepage on phones

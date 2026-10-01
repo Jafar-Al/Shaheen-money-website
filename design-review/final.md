@@ -48,6 +48,48 @@ answers in place of the legal placeholders. What changed:
   the GENIUS Act (Public Law 119-27, sections 4(a) and 4(e)). Fees: none on
   receiving, sending or paying.
 
+## Round three: simpler
+
+The owner found the site crowded and hard to follow, and asked for something
+anyone can use on a phone, an iPad or a laptop. What changed:
+
+- **The homepage is half as long.** Nine chapters and about 19,100 px at
+  1440 wide (20,300 px on a phone) became six sections and about 9,200 px
+  (11,000 px on a phone): how it works, cash out, what it costs, the
+  network, the questions, the download. Removed: the cost ruler and its
+  receipt example, the fee calculator and comparison table, the pinned and
+  scrubbed scenes, the city list and the question filter, the blog teaser,
+  the audiences list, the stay-safe slip, the app shards. Every section is
+  a sentence or two and one picture.
+- **The owner's film** (10 seconds, four steps) plays beside "How it
+  works": silent, only while on screen, with a pause button, and waiting on
+  its poster under reduced motion and Data Saver. It is also a download on
+  Media.
+- **One download button, no platform named.** "Download the app" on every
+  device; it goes straight to the App Store on an iPhone or iPad and to
+  Google Play on Android, and on a computer opens a QR code that sends
+  whichever phone scans it to its own store. Tests cover an iPhone, an
+  iPad, an Android phone, an Android tablet, a computer and JavaScript off.
+- **Zero commission, said once.** "Zero commission on Shaheen": receiving,
+  sending and paying print as "No fee" on a receipt, dated; one sourced
+  line for scale (the global average cost of sending money). Nothing else
+  about fees is on the page.
+- **One of the owner's phone renders** (the face-free one) closes the
+  homepage, stamped Illustrative; the renders with a generated portrait
+  and invented names are not used.
+- **Media** now opens with the pitch deck, the company profile and the
+  film; the rules for using the mark sit with the mark.
+- **No founder photo** is needed; that ask is gone from the checklists.
+- **Checks:** every page and both languages at thirteen widths with no
+  sideways scroll; the five pages, Media and both PDFs reachable (tests);
+  every external link answers (the three that block automated requests
+  were opened in a browser: Facebook, the World Bank prices site, which
+  shows a bot check, and TikTok, which did not load from this network).
+  Lighthouse 12, median of three, the brief's 4G profile: `/en` 99
+  (LCP 1.88 s, CLS 0, TBT 0), `/ar` 99 (1.89 s), `/en/business` 100
+  (1.54 s), `/en/media` 99 (1.72 s); accessibility, best practices and SEO
+  100 on all four. On Lighthouse's slow-4G default the same pages score 96 to 99, LCP 2.40 s on `/en`, `/ar` (2.41 s) and `/en/media`, 1.95 s on `/en/business`: the same as before this round, because the largest paint is the headline.
+
 ## The questions
 
 **Does the result still look like the old website with a new skin? — No.**

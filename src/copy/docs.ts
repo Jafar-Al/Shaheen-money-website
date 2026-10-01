@@ -29,6 +29,16 @@ export const docs = defineCopy({
     appLead: 'One balance in digital dollars, four actions, on iPhone and Android.',
     connectors: 'Connectors',
     pricing: 'Pricing',
+    problemTitle: 'Sending money home still costs *too much.*',
+    problemLead:
+      'Families who depend on money from abroad lose part of every transfer to fees and exchange-rate markups. Many have no account to receive it into at all.',
+    audiencesTitle: 'Who it’s for',
+    audiences: [
+      { title: 'Families', body: 'Your son sends money from Berlin. You collect it as cash down the street.' },
+      { title: 'Freelancers', body: 'A client in Europe pays your invoice. You keep it in dollars until you need it.' },
+      { title: 'People abroad', body: 'You send support home. Your parents collect it where and when it suits them.' },
+      { title: 'Shop owners', body: 'Your shop becomes a Connector and earns on every cash-out it hands over.' },
+    ],
     trust: 'Trust',
     team: 'Team',
     contact: 'Contact',
@@ -57,6 +67,16 @@ export const docs = defineCopy({
     appLead: 'رصيد واحد بالدولار الرقمي، وأربع عمليات، على آيفون وأندرويد.',
     connectors: 'الموصّلون',
     pricing: 'الأسعار',
+    problemTitle: 'لسّا إرسال المصاري للأهل *مكلف كتير.*',
+    problemLead:
+      'العائلات اللي بتعتمد على مصاري من برّا بتخسر جزء من كل حوالة على الرسوم وفروقات سعر الصرف، وكتير منهم ما عندهم حساب يستقبلوا عليه أصلاً.',
+    audiencesTitle: 'لمين شاهين؟',
+    audiences: [
+      { title: 'العائلات', body: 'ابنك بيبعتلك من برلين، وإنت بتسحبها كاش بآخر الشارع.' },
+      { title: 'المستقلون', body: 'عميلك في أوروبا بيدفعلك الفاتورة، وإنت بتحتفظ فيها بالدولار لحد ما تحتاجها.' },
+      { title: 'المغتربون', body: 'بتبعت لأهلك، وهنّي بيسحبوها وين ووقت ما بيناسبهم.' },
+      { title: 'أصحاب المحلات', body: 'محلّك بيصير موصّل، وبتكسب من كل عملية سحب بتسلّمها.' },
+    ],
     trust: 'الثقة',
     team: 'الفريق',
     contact: 'التواصل',

@@ -1,20 +1,23 @@
 ---
-import BrandIcon from '../ui/BrandIcon.astro';
 import Icon from '../ui/Icon.astro';
 import { common } from '../../copy/common';
 import { downloadPath } from '../../config/download';
 import type { Locale } from '../../i18n/config';
 
 /**
- * The one download button. It works out the visitor's device by itself:
- *   iPhone/iPad → App Store, Android → Google Play (label and glyph adapt),
- *   computer    → opens a QR code to scan with the phone.
- * Without JavaScript the link still works: /download redirects on the server
- * by user agent (scripts/postbuild.mjs). Label and glyph switch with CSS on
- * html[data-platform], decided before first paint, so nothing shifts.
+ * The one download button. One label, one glyph, on every device: it never
+ * says iPhone or Android, because it does not have to. It works out the
+ * visitor's device by itself and goes straight to the right store:
+ *   iPhone/iPad → App Store, Android → Google Play,
+ *   computer    → a QR code to scan with the phone (the code opens the right
+ *                 store for whichever phone scans it).
+ * The device is read from html[data-platform], decided before first paint by
+ * the inline script in BaseLayout.astro; src/scripts/smart-download.ts then
+ * points the link at the store. Without JavaScript the link still works:
+ * /download redirects on the server by user agent (scripts/postbuild.mjs).
  *
- * Drawn as the system's pill (global .btn): the platform glyph sits in the
- * circle where other buttons carry their arrow.
+ * Drawn as the system's pill (global .btn), the download arrow in the circle
+ * where other buttons carry theirs.
  */
 interface Props {
   locale: Locale;
@@ -35,14 +38,8 @@ const t = common[locale].download;
   data-magnetic
   class:list={['btn', `btn-${variant}`, 'dl-button', block && 'btn-block', className]}
 >
-  <span class="btn-label">
-    <span class="dl-when-desktop">{t.label}</span>
-    <span class="dl-when-ios">{t.ios}</span>
-    <span class="dl-when-android">{t.android}</span>
-  </span>
+  <span class="btn-label">{t.label}</span>
   <span class="btn-mark" aria-hidden="true">
-    <span class="dl-when-desktop"><Icon name="download" size={18} class="btn-arrow btn-arrow-down" /></span>
-    <span class="dl-when-ios"><BrandIcon name="apple" size={17} /></span>
-    <span class="dl-when-android"><BrandIcon name="googleplay" size={15} /></span>
+    <Icon name="download" size={18} class="btn-arrow btn-arrow-down" />
   </span>
 </a>

@@ -104,6 +104,10 @@ for (const file of htmlFiles) {
   for (const m of html.matchAll(/href="(\/[^"]*)"/g)) {
     if (!resolves(m[1])) warn(rel, `broken internal link: ${m[1]}`);
   }
+  // Files the page loads (the film and its poster, scripts, images) must exist too.
+  for (const m of html.matchAll(/\b(?:src|poster)="(\/[^"]+)"/g)) {
+    if (!resolves(m[1])) warn(rel, `missing file: ${m[1]}`);
+  }
   for (const m of html.matchAll(/href="(https:\/\/(?:apps\.apple\.com|play\.google\.com)[^"]*)"/g)) {
     const url = m[1].replaceAll('&amp;', '&');
     if (url !== stores.ios && url !== stores.android) warn(rel, `store link not in allow-list: ${url}`);

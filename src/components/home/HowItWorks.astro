@@ -1,443 +1,189 @@
 ---
-// In the browser: src/scripts/home/how.ts (loaded once by the homepage).
+// In the browser: src/scripts/home/film.ts (loaded once by the homepage).
 import Chapter from '../ui/Chapter.astro';
 import Emph from '../ui/Emph.astro';
 import Ledger from '../ui/Ledger.astro';
-import IndexRow from '../ui/IndexRow.astro';
 import SourceNote from '../ui/SourceNote.astro';
 import Gap from '../ui/Gap.astro';
-import UiShard from '../app/UiShard.astro';
+import Film from '../media/Film.astro';
 import { home } from '../../copy/home';
 import { common } from '../../copy/common';
 import { facts } from '../../data/facts';
 import type { Locale } from '../../i18n/config';
 
 /**
- * 02 — How it works: one transfer, four moves.
+ * 01 — How it works: four steps, one app.
  *
- * On a desktop the section pins while it scrolls (a sticky stage inside a
- * tall track, native scrolling throughout) and the app acts the steps out
- * beside the words: +300.00 lands from abroad; the balance holds in USDc;
- * Send and Pay take it to 1,176.50; a 200.00 cash-out leaves 976.50 and
- * brings up the code that the next chapter is about. The amounts are one
- * example told across the page, and every screen is stamped Illustrative.
- *
- * Without JavaScript, with reduced motion, and on phones, nothing pins: the
- * markup's resting state is the final state, and on a phone every step
- * carries its own screen. Then the three things worth knowing, the note on
- * what a digital dollar is (sourced), and who it is for, as an index.
+ * Two things, side by side: the four steps in words (the page's text
+ * alternative to the film) and the owner's ten-second film that plays them.
+ * Nothing pins, nothing scrubs; the film plays by itself while it is on
+ * screen. Below, what a digital dollar is, closed until asked for: the full
+ * sourced paragraph (src/data/facts.ts) stays in the page for anyone who
+ * wants it, without putting a wall of text in the way of everyone who does
+ * not.
  */
 interface Props {
   locale: Locale;
   n: number;
-  /** Footnote number for the digital-dollar source. */
-  footnote: number;
 }
-const { locale, n, footnote } = Astro.props;
+const { locale, n } = Astro.props;
 const t = home[locale].steps;
+const film = home[locale].film;
 const ui = common[locale].ui;
 const dollar = facts.digitalDollar;
 ---
 
 <section id="how" class="how t-night cv-auto" data-temp="night" aria-labelledby="how-title">
-  <div class="page how-intro">
-    <Chapter n={n} label={t.label} />
-    <h2 id="how-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
-    <p class="lead">{t.lead}</p>
-  </div>
+  <div class="page rhythm how-grid">
+    <header class="how-head">
+      <Chapter n={n} label={t.label} />
+      <h2 id="how-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
+      <p class="lead">{t.lead}</p>
+    </header>
 
-  <div class="how-track" data-how data-step="3">
-    <div class="how-sticky">
-      <div class="page how-scene">
-        <div class="how-steps-col">
-        <div class="how-rail" aria-hidden="true"><span class="how-rail-fill"></span></div>
-        <ol class="how-steps">
-          {
-            t.items.map((item, i) => (
-              <li class="how-step" data-step-item={i}>
-                <span class="how-step-n num" aria-hidden="true">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <div class="how-step-text">
-                  <h3 class="how-step-title">{item.title}</h3>
-                  <p class="how-step-body">{item.body}</p>
-                </div>
-                <div class="how-step-shard">
-                  {i === 0 && <UiShard locale={locale} variant="balance" incoming />}
-                  {i === 1 && <UiShard locale={locale} variant="balance" amount="balance" class="how-hold" />}
-                  {i === 2 && <UiShard locale={locale} variant="history" rows={[0, 1, 2]} />}
-                  {i === 3 && <UiShard locale={locale} variant="code" />}
-                </div>
-              </li>
-            ))
-          }
-        </ol>
-        </div>
+    <div class="how-steps">
+      <Ledger items={t.items} titleFace="sans" />
+    </div>
 
-        <div class="how-stage" aria-hidden="true">
-          <div class="how-layer how-layer-balance">
-            <UiShard locale={locale} variant="balance" incoming amount="balanceAfterCash" data-how-balance="" />
-            <p class="how-tag label">{t.facts[0]?.title}</p>
-          </div>
-          <div class="how-layer how-layer-actions">
-            <UiShard locale={locale} variant="actions" stamp={false} />
-          </div>
-          <div class="how-layer how-layer-history">
-            <UiShard locale={locale} variant="history" rows={[0, 1, 2, 3]} stamp={false} />
-          </div>
-          <div class="how-layer how-layer-code">
-            <UiShard locale={locale} variant="code" stampTilt={3} />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    <Film
+      class="how-film"
+      src="/media/shaheen-money-film.mp4"
+      poster="/media/shaheen-money-film-poster.webp"
+      alt={film.alt}
+      play={film.play}
+      pause={film.pause}
+    />
 
-  <div class="page how-after">
-    <div class="how-know">
-      <h3 class="how-sub font-display">{t.goodToKnow}</h3>
-      <Ledger items={t.facts.map((f) => ({ title: f.title, body: f.body }))} />
-      {
-        dollar ? (
-          <aside class="how-note" data-reveal>
-            <p class="label how-note-kicker">{ui.note}</p>
-            <p class="how-note-text">{dollar.value[locale]}</p>
-            <SourceNote source={dollar.source} locale={locale} n={footnote} />
-          </aside>
-        ) : (
-          <Gap need="What a digital dollar is and what backs it, in one paragraph, in both languages (audit B.2)." />
-        )
-      }
-    </div>
-    <div class="how-who">
-      <h3 class="how-sub font-display">{t.audiencesTitle}</h3>
-      <div class="how-who-list" data-reveal>
-        {
-          t.audiences.map((a, i) => (
-            <div data-reveal-child>
-              <IndexRow n={i + 1} title={a.title} text={a.body} headingLevel="h4" />
-            </div>
-          ))
-        }
-      </div>
-    </div>
+    {
+      dollar ? (
+        <details class="how-dollar">
+          <summary class="how-dollar-summary">
+            <span class="font-display">{t.dollarTitle}</span>
+            <span class="how-dollar-mark" aria-hidden="true"></span>
+          </summary>
+          <div class="how-dollar-body">
+            <p class="label how-dollar-kicker">{ui.note}</p>
+            <p class="how-dollar-text">{dollar.value[locale]}</p>
+            <SourceNote source={dollar.source} locale={locale} />
+          </div>
+        </details>
+      ) : (
+        <Gap need="What a digital dollar is and what backs it, in one paragraph, in both languages (audit B.2)." />
+      )
+    }
   </div>
 </section>
 
 <style>
   .how {
-    position: relative;
     background-color: var(--bg);
     color: var(--fg);
   }
-  .how-intro {
-    display: flex;
-    flex-direction: column;
-    gap: 1.75rem;
-    padding-block-start: var(--section);
-  }
-  .how-intro h2 {
-    max-inline-size: 16ch;
-  }
-
-  /* ── The scene ─────────────────────────────────────────────────────── */
-  .how-scene {
+  .how-grid {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: var(--gutter);
-    padding-block: clamp(3rem, 6vw, 5rem);
+    row-gap: clamp(2.5rem, 5vw, 4rem);
+    align-items: start;
+    padding-block: var(--section);
   }
-  .how-steps-col {
+  .how-head {
     grid-column: 1 / span 5;
-    position: relative;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .how-head h2 {
+    max-inline-size: 11ch;
   }
   .how-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
-    padding-inline-start: 2rem;
+    grid-column: 1 / span 5;
+    grid-row: 2;
   }
-  .how-step {
-    display: grid;
-    grid-template-columns: 3rem minmax(0, 1fr);
-    gap: 0.25rem 1rem;
-    transition:
-      opacity var(--motion-standard) var(--ease-out),
-      translate var(--motion-standard) var(--ease-out);
-  }
-  .how-step-n {
-    padding-block-start: 0.6rem;
-    font-size: var(--text-label);
-    color: var(--accent);
-  }
-  .how-step-title {
-    font-size: var(--text-h3);
-    line-height: var(--lh-h3);
-  }
-  .how-step-body {
-    margin-block-start: 0.5rem;
-    max-inline-size: 38ch;
-    color: var(--fg-2);
-  }
-  .how-step-shard {
-    display: none;
-  }
-
-  .how-rail {
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0;
-    inline-size: 1px;
-    background-color: var(--line);
-  }
-  .how-rail-fill {
-    display: block;
-    inline-size: 100%;
-    block-size: 100%;
-    background-color: var(--accent);
-    transform-origin: top;
-    scale: 1 var(--p, 1);
-  }
-
-  .how-stage {
+  .how-grid :global(.how-film) {
     grid-column: 7 / -1;
-    position: relative;
-    min-block-size: 36rem;
-    perspective: 1400px;
-  }
-  .how-layer {
-    position: absolute;
-    transition:
-      opacity 0.6s var(--ease-out),
-      translate 0.7s var(--ease-out),
-      rotate 0.7s var(--ease-out);
-  }
-  .how-layer-balance {
-    inset-block-start: 0;
-    inset-inline-start: 4%;
-    inline-size: 52%;
-    z-index: 3;
-    rotate: -2deg;
-  }
-  .how-layer-actions {
-    inset-block-start: 10%;
-    inset-inline-end: 0;
-    inline-size: 44%;
-    z-index: 1;
-    rotate: 3deg;
-  }
-  .how-layer-history {
-    inset-block-start: 52%;
-    inset-inline-start: 0;
-    inline-size: 56%;
-    z-index: 2;
-    rotate: 1.5deg;
-  }
-  .how-layer-code {
-    inset-block-start: 46%;
-    inset-inline-end: 2%;
-    inline-size: 42%;
-    z-index: 4;
-    rotate: -3deg;
-  }
-  .how-tag {
-    position: absolute;
-    inset-block-start: 58%;
-    inset-inline-end: -8%;
-    padding: 0.4rem 0.7rem;
-    border-radius: var(--radius-sm);
-    background-color: var(--color-paper-50);
-    color: var(--color-ink);
-    rotate: 4deg;
-    white-space: nowrap;
-  }
-  :global(:lang(ar)) .how-tag {
-    color: var(--color-ink);
+    grid-row: 1 / span 2;
+    align-self: center;
   }
 
-  /*
-   * Scene states. The markup rests on the final state (data-step="3") so
-   * nothing is hidden without a script; the script only turns the pinning
-   * on (data-scene) and moves data-step as the track scrolls.
-   */
-  .how-track[data-scene] {
-    block-size: 330vh;
+  /* What a digital dollar is: a closed disclosure, one hairline. */
+  .how-dollar {
+    grid-column: 1 / span 8;
+    border-block: 1px solid var(--line);
   }
-  .how-track[data-scene] .how-sticky {
-    position: sticky;
-    inset-block-start: var(--header-h);
+  .how-dollar-summary {
     display: flex;
     align-items: center;
-    min-block-size: calc(100vh - var(--header-h));
-  }
-  /* Pinned, the scene is centred under the header; the trimmed padding is
-     what src/lib/motion/level.ts fitsPinned() allows for. */
-  .how-track[data-scene] .how-scene {
-    inline-size: 100%;
-    padding-block: 1.5rem;
-  }
-  /* The steps that are not playing step back a tone, not into the dark:
-     each tone is a text token that passes AA on Night (an opacity dim
-     took them to 2:1). */
-  .how-track[data-scene] .how-step :is(.how-step-n, .how-step-title, .how-step-body) {
-    transition: color var(--motion-standard) var(--ease-out);
-  }
-  .how-track[data-scene] .how-step .how-step-n,
-  .how-track[data-scene] .how-step .how-step-body {
-    color: var(--fg-3);
-  }
-  .how-track[data-scene] .how-step .how-step-title {
-    color: var(--fg-2);
-  }
-  .how-track[data-scene][data-step='0'] [data-step-item='0'],
-  .how-track[data-scene][data-step='1'] [data-step-item='1'],
-  .how-track[data-scene][data-step='2'] [data-step-item='2'],
-  .how-track[data-scene][data-step='3'] [data-step-item='3'] {
-    translate: calc(6px * var(--dir)) 0;
-  }
-  .how-track[data-scene][data-step='0'] [data-step-item='0'] .how-step-n,
-  .how-track[data-scene][data-step='1'] [data-step-item='1'] .how-step-n,
-  .how-track[data-scene][data-step='2'] [data-step-item='2'] .how-step-n,
-  .how-track[data-scene][data-step='3'] [data-step-item='3'] .how-step-n {
-    color: var(--accent);
-  }
-  .how-track[data-scene][data-step='0'] [data-step-item='0'] .how-step-title,
-  .how-track[data-scene][data-step='1'] [data-step-item='1'] .how-step-title,
-  .how-track[data-scene][data-step='2'] [data-step-item='2'] .how-step-title,
-  .how-track[data-scene][data-step='3'] [data-step-item='3'] .how-step-title {
-    color: var(--fg);
-  }
-  .how-track[data-scene][data-step='0'] [data-step-item='0'] .how-step-body,
-  .how-track[data-scene][data-step='1'] [data-step-item='1'] .how-step-body,
-  .how-track[data-scene][data-step='2'] [data-step-item='2'] .how-step-body,
-  .how-track[data-scene][data-step='3'] [data-step-item='3'] .how-step-body {
-    color: var(--fg-2);
-  }
-
-  /* Step 0: the transfer arrives. Actions, history and code wait. */
-  .how-track[data-step='0'] .how-layer-actions,
-  .how-track[data-step='0'] .how-layer-history,
-  .how-track[data-step='0'] .how-layer-code,
-  .how-track[data-step='1'] .how-layer-actions,
-  .how-track[data-step='1'] .how-layer-history,
-  .how-track[data-step='1'] .how-layer-code,
-  .how-track[data-step='2'] .how-layer-code {
-    opacity: 0;
-    translate: 0 2rem;
-  }
-  .how-track[data-step='0'] .how-tag,
-  .how-track[data-step='2'] .how-tag,
-  .how-track[data-step='3'] .how-tag {
-    opacity: 0;
-  }
-  .how-tag {
-    transition: opacity 0.5s var(--ease-out);
-  }
-  /* Step 1: the balance holds, in dollars. */
-  .how-track[data-step='1'] .how-layer-balance {
-    rotate: 0deg;
-    translate: 0 1.5rem;
-  }
-  .how-track[data-step='1'] :global(.app-currency) {
-    outline: 2px solid var(--color-app-cyan);
-    outline-offset: 3px;
-  }
-  /* History rows arrive with their step. */
-  .how-layer-history :global(.app-row) {
-    transition: opacity 0.5s var(--ease-out);
-  }
-  .how-track[data-step='0'] .how-layer-history :global([data-row='1']),
-  .how-track[data-step='0'] .how-layer-history :global([data-row='2']),
-  .how-track[data-step='0'] .how-layer-history :global([data-row='3']),
-  .how-track[data-step='1'] .how-layer-history :global([data-row='1']),
-  .how-track[data-step='1'] .how-layer-history :global([data-row='2']),
-  .how-track[data-step='1'] .how-layer-history :global([data-row='3']),
-  .how-track[data-step='2'] .how-layer-history :global([data-row='3']) {
-    opacity: 0;
-  }
-  /* Step 2: Send is pressed. */
-  .how-track[data-step='2'] :global([data-tile='send']) {
-    outline: 2px solid var(--color-app-cyan);
-    outline-offset: -2px;
-  }
-  /* Step 3: the cash-out and its code. */
-  .how-track[data-step='3'] .how-layer-code :global(.app-code-value) {
-    animation: code-glint 1.2s var(--ease-out) 0.2s both;
-  }
-  @keyframes code-glint {
-    0% {
-      opacity: 0.2;
-      letter-spacing: 0.3em;
-    }
-    100% {
-      opacity: 1;
-      letter-spacing: 0.08em;
-    }
-  }
-
-  /* ── After the scene ───────────────────────────────────────────────── */
-  .how-after {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: var(--gutter);
-    row-gap: 4rem;
-    padding-block: clamp(3rem, 6vw, 6rem) var(--section);
-  }
-  .how-know {
-    grid-column: 1 / span 6;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-  }
-  .how-who {
-    grid-column: 8 / -1;
-    display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     gap: 1rem;
+    min-block-size: 3.5rem;
+    padding-block: 0.75rem;
+    font-size: var(--text-h4);
+    line-height: var(--lh-h4);
+    cursor: pointer;
+    list-style: none;
   }
-  .how-sub {
-    font-size: var(--text-h3);
-    line-height: var(--lh-h3);
+  .how-dollar-summary::-webkit-details-marker {
+    display: none;
   }
-  .how-note {
+  /* A plus that turns into a minus: two hairlines. */
+  .how-dollar-mark {
+    position: relative;
+    flex: none;
+    inline-size: 1rem;
+    block-size: 1rem;
+  }
+  .how-dollar-mark::before,
+  .how-dollar-mark::after {
+    content: '';
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline: 0;
+    block-size: 1.5px;
+    background-color: currentColor;
+    transition: rotate var(--motion-standard) var(--ease-out);
+  }
+  .how-dollar-mark::after {
+    rotate: 90deg;
+  }
+  .how-dollar[open] .how-dollar-mark::after {
+    rotate: 0deg;
+  }
+  .how-dollar-body {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    padding-block-start: 1.5rem;
-    border-block-start: 1px solid var(--line);
+    padding-block: 0.5rem 1.5rem;
   }
-  .how-note-kicker {
+  .how-dollar-kicker {
     color: var(--accent);
   }
-  .how-note-text {
+  .how-dollar-text {
     max-inline-size: var(--measure);
     color: var(--fg-2);
   }
-  .how-who-list {
-    border-block-start: 1px solid var(--line);
-  }
 
-  /* ── Tablet and phone: a stack, each step with its own screen ─────── */
   @media (width < 64rem) {
-    .how-stage {
-      display: none;
-    }
-    .how-steps-col {
+    .how-head,
+    .how-steps,
+    .how-grid :global(.how-film),
+    .how-dollar {
       grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    /* On a phone: the film right after the headline, then the steps. */
+    .how-grid :global(.how-film) {
+      order: 1;
+    }
+    .how-head {
+      order: 0;
     }
     .how-steps {
-      gap: 4rem;
-      padding-inline-start: 1.25rem;
+      order: 2;
     }
-    .how-step-shard {
-      display: block;
-      grid-column: 2;
-      max-inline-size: 22rem;
-      margin-block-start: 1.75rem;
-    }
-    .how-know,
-    .how-who {
-      grid-column: 1 / -1;
+    .how-dollar {
+      order: 3;
     }
   }
 </style>

@@ -1,13 +1,11 @@
 ---
-// In the browser: src/scripts/home/cash-out.ts (loaded once by the homepage).
 import Chapter from '../ui/Chapter.astro';
 import Emph from '../ui/Emph.astro';
+import Ledger from '../ui/Ledger.astro';
 import Slip from '../ui/Slip.astro';
 import Stamp from '../ui/Stamp.astro';
 import Gap from '../ui/Gap.astro';
 import SourceNote from '../ui/SourceNote.astro';
-import UiShard from '../app/UiShard.astro';
-import FeatherField from '../art/FeatherField.astro';
 import ShopCounter from '../art/ShopCounter.astro';
 import { home } from '../../copy/home';
 import { common } from '../../copy/common';
@@ -16,18 +14,13 @@ import { formatUsd } from '../../lib/format';
 import type { Locale } from '../../i18n/config';
 
 /**
- * 03 — Cash out, and the page's turn: digital money becoming physical.
+ * 02 — Cash out: digital money becoming physical, on Paper.
  *
- * The chapter opens on Night. As it scrolls, a pinned stage eases the whole
- * page from Night to Paper (the temperature is scrubbed, the feathers turn
- * from signal to ink), and the app's dark code panel flips over, once, into
- * a paper slip: the same $200.00 and the same 482 719, now a document you
- * could hand across a counter. It comes to rest on an engraved shop, with
- * the three steps and the three safety rules on paper beneath it.
- *
- * Without a script, with reduced motion, and on phones there is no pin and
- * no scrub: Night gives way to Paper at a plain edge, the slip is simply
- * paper, and on a phone the flip plays once when it comes into view.
+ * The page turns from Night to Paper here, at a plain edge. Three steps in
+ * words, the engraved shop where cash changes hands, and the slip the
+ * Connector works from: the same $200.00 and code the app shows. The slip
+ * is an example and says so (stamped Illustrative). No pin, no scrub, no
+ * script: it lands as it is scrolled to, and stays put.
  */
 interface Props {
   locale: Locale;
@@ -40,182 +33,99 @@ const ui = common[locale].ui;
 const minimum = facts.pricing.minCashOutUsd;
 ---
 
-<section id="cash-out" class="co cv-auto" aria-labelledby="cash-out-title">
-  <div class="co-night t-night" data-temp="night">
-    <div class="page co-intro">
+<section id="cash-out" class="co t-paper grain cv-auto" data-temp="paper" aria-labelledby="cash-out-title">
+  <div class="page rhythm co-grid">
+    <header class="co-head">
       <Chapter n={n} label={t.label} />
       <h2 id="cash-out-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
       <p class="lead">{t.lead}</p>
-    </div>
-  </div>
+    </header>
 
-  <div class="co-shift" data-co-shift data-temp="night">
-    <div class="co-sticky">
-      <div class="co-field" aria-hidden="true">
-        <FeatherField seed="cash-out" variant="strip" follow />
-      </div>
-      <div class="co-card-wrap">
-        <div class="co-card" data-co-card>
-          <div class="co-face co-face-app" aria-hidden="true">
-            <UiShard locale={locale} variant="code" stamp={false} />
+    <div class="co-steps">
+      <Ledger items={t.steps} titleFace="sans" />
+      {
+        minimum ? (
+          <div class="co-minimum">
+            <p class="co-minimum-text font-display">{t.minimum(formatUsd(minimum.value, locale))}</p>
+            <SourceNote source={minimum.source} locale={locale} />
           </div>
-          <div class="co-face co-face-paper">
-            <Slip no={app.title} class="co-slip">
-              <p class="co-amount num">
-                <bdi>{app.amount}</bdi>
-              </p>
-              <p class="co-at">{app.at}</p>
-              <p class="co-code-label label">{app.codeLabel}</p>
-              <p class="co-code num" lang="en" dir="ltr">{app.code}</p>
-              <p class="co-note">{app.note}</p>
-            </Slip>
-          </div>
-        </div>
-        <Stamp locale={locale} kind="illustrative" tilt={-3} class="co-stamp" />
-      </div>
+        ) : (
+          <Gap need="Minimum cash-out amount in USD, with the date it applies from." />
+        )
+      }
     </div>
-  </div>
 
-  <div class="co-paper t-paper grain" data-temp="paper">
-    <div class="page co-grid">
+    <div class="co-art">
       <div class="co-shop">
         <ShopCounter />
       </div>
-
-      <div class="co-steps">
-        <ol class="co-timeline" data-reveal>
-          {
-            t.steps.map((step, i) => (
-              <li class="co-tl-item" data-reveal-child>
-                <span class="co-tl-n num" aria-hidden="true">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <span class="co-tl-rule" aria-hidden="true" />
-                <h3 class="co-tl-title">{step.title}</h3>
-                <p class="co-tl-body">{step.body}</p>
-              </li>
-            ))
-          }
-        </ol>
-        {
-          minimum ? (
-            <div class="co-minimum">
-              <p class="co-minimum-text font-display">{t.minimum(formatUsd(minimum.value, locale))}</p>
-              <SourceNote source={minimum.source} locale={locale} />
-            </div>
-          ) : (
-            <Gap need="Minimum cash-out amount in USD, with the date it applies from." />
-          )
-        }
-        <p class="co-hint label">
-          {ui.illustrative} · {ui.illustrativeHint}
-        </p>
-      </div>
-
-      <Slip as="aside" no={t.safetyTitle} class="co-safe" labelledby="co-safe-title">
-        <Stamp locale={locale} kind="note" tilt={2} class="co-safe-stamp" />
-        <h3 id="co-safe-title" class="co-safe-title font-display">{t.safetyTitle}</h3>
-        <ol class="co-safe-list">
-          {
-            t.safety.map((line, i) => (
-              <li>
-                <span class="num" aria-hidden="true">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <span>{line}</span>
-              </li>
-            ))
-          }
-        </ol>
+      <Slip no={app.title} class="co-slip" data-reveal>
+        <Stamp locale={locale} kind="illustrative" tilt={-3} class="co-stamp" />
+        <p class="co-amount num"><bdi>{app.amount}</bdi></p>
+        <p class="co-at">{app.at}</p>
+        <p class="co-code-label label">{app.codeLabel}</p>
+        <p class="co-code num" lang="en" dir="ltr">{app.code}</p>
+        <p class="co-note">{app.note}</p>
       </Slip>
+      <p class="co-hint label">{ui.illustrative} · {ui.illustrativeHint}</p>
     </div>
   </div>
 </section>
 
 <style>
-  /* The temperature, registered so it can be transitioned as well as
-     scrubbed: 0 is Night, 1 is Paper. */
-  @property --t {
-    syntax: '<number>';
-    inherits: true;
-    initial-value: 1;
-  }
-  .co-night {
+  .co {
     background-color: var(--bg);
     color: var(--fg);
   }
-  .co-intro {
+  .co-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: clamp(2.5rem, 5vw, 4rem);
+    align-items: start;
+    padding-block: var(--section);
+  }
+  .co-head {
+    grid-column: 1 / span 6;
+    grid-row: 1;
     display: flex;
     flex-direction: column;
-    gap: 1.75rem;
-    padding-block: var(--section) clamp(3rem, 6vw, 5rem);
+    gap: 1.5rem;
   }
-  .co-intro h2 {
-    max-inline-size: 15ch;
+  .co-head h2 {
+    max-inline-size: 12ch;
   }
-
-  /* ── The turn ──────────────────────────────────────────────────────── */
-  .co-shift {
-    --t: 1;
-    position: relative;
-    /* Resting state (no script): a plain edge from Night to Paper. */
-    background: linear-gradient(var(--color-night-900) 0 38%, var(--color-paper-50) 38% 100%);
+  .co-steps {
+    grid-column: 1 / span 5;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
   }
-  .co-sticky {
-    position: relative;
-    display: grid;
-    place-items: center;
-    min-block-size: 36rem;
-    overflow: clip;
-    padding-block: 4rem;
+  .co-minimum-text {
+    font-size: var(--text-h3);
   }
-  .co-field {
-    position: absolute;
-    inset: 12% 0 auto;
-    block-size: 60%;
-    color: color-mix(in oklab, var(--color-chalk) calc((1 - var(--t)) * 100%), var(--color-ink));
-    --accent: color-mix(in oklab, var(--color-signal) calc((1 - var(--t)) * 100%), var(--color-signal-ink));
+  .co-art {
+    grid-column: 7 / -1;
+    grid-row: 1 / span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
   }
-  .co-card-wrap {
-    position: relative;
-    inline-size: min(24rem, 86vw);
-    perspective: 1600px;
+  .co-shop {
+    max-inline-size: 34rem;
   }
-  .co-card {
-    position: relative;
-    display: grid;
-    transform-style: preserve-3d;
-    transition: rotate 0.9s var(--ease-out);
-  }
-  .co-face {
-    grid-area: 1 / 1;
-    backface-visibility: hidden;
-  }
-  /* Resting state: the paper face. The flip is the script's to run. */
-  .co-face-app {
-    display: none;
-  }
-  .co-card.is-armed .co-face-app {
-    display: block;
-    align-self: center;
-  }
-  .co-card.is-armed .co-face-paper {
-    rotate: y 180deg;
-  }
-  .co-card.is-armed.is-flipped {
-    rotate: y 180deg;
+  /* The slip rests across the foot of the shop, on its inside corner. */
+  .co-art :global(.co-slip) {
+    inline-size: min(100%, 21rem);
+    align-self: flex-end;
+    margin-block-start: -4rem;
+    rotate: -1.5deg;
   }
   .co-stamp {
     position: absolute;
-    inset-block-start: -1rem;
-    inset-inline-end: -1.5rem;
-    z-index: 2;
-    --stamp-ink: color-mix(in oklab, var(--color-signal) calc((1 - var(--t)) * 100%), var(--color-signal-ink));
-  }
-
-  /* The slip itself. */
-  .co-slip {
-    rotate: -1.5deg;
+    inset-block-start: 0.875rem;
+    inset-inline-end: 1rem;
   }
   .co-amount {
     font-size: clamp(2.75rem, 5vw, 3.75rem);
@@ -246,136 +156,20 @@ const minimum = facts.pricing.minCashOutUsd;
     font-size: var(--text-body-s);
     color: var(--fg-2);
   }
-
-  /* Scrubbed (desktop, full or lite motion): the stage pins and the
-     temperature follows --t, set from the scroll by the script below. */
-  .co-shift[data-scene] {
-    block-size: 170vh;
-    background: color-mix(in oklab, var(--color-night-900) calc((1 - var(--t)) * 100%), var(--color-paper-50));
-  }
-  .co-shift[data-scene] .co-sticky {
-    position: sticky;
-    inset-block-start: var(--header-h);
-    min-block-size: calc(100vh - var(--header-h));
-    /* What src/lib/motion/level.ts fitsPinned() allows for. */
-    padding-block: 1.5rem;
-  }
-  /* Phones and small tablets: no pin; the turn plays once, in view. */
-  .co-shift[data-fade] {
-    background: color-mix(in oklab, var(--color-night-900) calc((1 - var(--t)) * 100%), var(--color-paper-50));
-    transition: --t 0.9s var(--ease-in-out);
-  }
-
-  /* ── Paper ─────────────────────────────────────────────────────────── */
-  .co-paper {
-    background-color: var(--bg);
-    color: var(--fg);
-  }
-  .co-grid {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: var(--gutter);
-    row-gap: 4rem;
-    padding-block: clamp(3rem, 6vw, 5rem) var(--section);
-  }
-  .co-shop {
-    grid-column: 1 / span 6;
-    grid-row: 1 / span 2;
-    align-self: end;
-  }
-  .co-steps {
-    grid-column: 7 / -1;
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
-  }
-  .co-timeline {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.5rem;
-  }
-  .co-tl-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-  }
-  .co-tl-n {
-    font-size: var(--text-label);
-    color: var(--accent);
-  }
-  .co-tl-rule {
-    display: block;
-    block-size: 1px;
-    background-color: var(--line-strong);
-  }
-  .co-tl-item:last-child .co-tl-rule {
-    background-color: var(--cash);
-    block-size: 2px;
-  }
-  .co-tl-title {
-    font-size: var(--text-h4);
-    line-height: var(--lh-h4);
-  }
-  .co-tl-body {
-    font-size: var(--text-body-s);
-    color: var(--fg-2);
-  }
-  .co-minimum-text {
-    font-size: var(--text-h3);
-  }
   .co-hint {
     color: var(--fg-3);
   }
-  .co-safe {
-    grid-column: 8 / -1;
-    rotate: 1deg;
-  }
-  .co-safe-stamp {
-    position: absolute;
-    inset-block-start: 0.875rem;
-    inset-inline-end: 1rem;
-  }
-  .co-safe-title {
-    font-size: var(--text-h3);
-    line-height: var(--lh-h3);
-  }
-  .co-safe-list {
-    display: flex;
-    flex-direction: column;
-    margin-block-start: 1rem;
-  }
-  .co-safe-list li {
-    display: grid;
-    grid-template-columns: 2rem minmax(0, 1fr);
-    gap: 0.5rem;
-    padding-block: 0.75rem;
-    border-block-start: 1px solid var(--line);
-    font-size: var(--text-body-s);
-  }
-  .co-safe-list .num {
-    font-size: var(--text-label);
-    color: var(--accent);
-    padding-block-start: 0.2rem;
-  }
 
   @media (width < 64rem) {
-    .co-shop,
+    .co-head,
     .co-steps,
-    .co-safe {
+    .co-art {
       grid-column: 1 / -1;
       grid-row: auto;
     }
-    .co-shop {
-      max-inline-size: 34rem;
-    }
-    .co-timeline {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 1.75rem;
-      padding-inline-start: 1.25rem;
-      border-inline-start: 1px solid var(--line-strong);
-    }
-    .co-tl-rule {
-      display: none;
+    .co-art :global(.co-slip) {
+      align-self: center;
+      margin-block-start: -2rem;
     }
   }
 </style>
