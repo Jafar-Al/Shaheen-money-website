@@ -5,14 +5,14 @@ import { getPosts, postSlug } from '../lib/blog';
 
 /**
  * Every indexable URL in both locales, each with its reciprocal hreflang
- * alternates and x-default (audit M.3). Pages that render noindex (a legal
- * document still in draft) are left out.
+ * alternates and x-default (audit M.3). A legal page whose document is
+ * missing renders noindex, and is left out.
  */
 export const GET: APIRoute = async () => {
   const skip = new Set<PageKey>();
   for (const doc of ['privacy', 'terms', 'cookies'] as const) {
     const entries = await Promise.all(locales.map((l) => getEntry('legal', `${l}/${doc}`)));
-    if (entries.some((e) => !e || e.data.status === 'draft')) skip.add(doc);
+    if (entries.some((e) => !e)) skip.add(doc);
   }
 
   const urls: string[] = [];

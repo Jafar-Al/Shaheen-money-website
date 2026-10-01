@@ -3,14 +3,15 @@
  * behaviour (src/scripts/home/index.ts) so the page makes one request for it.
  */
 import { scene } from '../../lib/motion/scenes';
-import { afterFirstPaint, motionLevel, scrubbing } from '../../lib/motion/level';
+import { afterFirstPaint, fitsPinned, motionLevel, scrubbing } from '../../lib/motion/level';
 
 const shift = document.querySelector<HTMLElement>('[data-co-shift]');
 const card = shift?.querySelector<HTMLElement>('[data-co-card]');
-if (shift && card && motionLevel() !== 'reduced') afterFirstPaint(() => {
+const stage = shift?.querySelector<HTMLElement>('.co-sticky');
+if (shift && card && stage && motionLevel() !== 'reduced') afterFirstPaint(() => {
   card.classList.add('is-armed');
   shift.style.setProperty('--t', '0');
-  if (scrubbing()) {
+  if (scrubbing() && fitsPinned(stage)) {
     shift.dataset.scene = '';
     scene(shift, 'pin', (p) => {
       // Night holds, turns over the middle of the track, then Paper holds.

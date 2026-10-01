@@ -1,0 +1,447 @@
+---
+import PrintLayout from '../../../layouts/PrintLayout.astro';
+import Logo from '../../../components/site/Logo.astro';
+import FeatherField from '../../../components/art/FeatherField.astro';
+import SourceNote from '../../../components/ui/SourceNote.astro';
+import Emph from '../../../components/ui/Emph.astro';
+import Device from '../../../components/app/Device.astro';
+import { docs } from '../../../copy/docs';
+import { about } from '../../../copy/trust';
+import { home } from '../../../copy/home';
+import { facts } from '../../../data/facts';
+import { problemStats } from '../../../data/stats';
+import { figureHTML } from '../../../lib/figure';
+import { contact, socials } from '../../../config/site';
+import { localeStaticPaths, type Locale } from '../../../i18n/config';
+
+/**
+ * The company profile, five A4 pages, printed to
+ * public/media/shaheen-money-company-profile-<locale>.pdf by
+ * scripts/build-docs.mjs. Every sentence is the site's own copy or a sourced
+ * fact: nothing here is written only for the PDF except its labels.
+ */
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const d = docs[locale];
+const a = about[locale];
+const h = home[locale];
+const founder = facts.team[0];
+const office = facts.company.office?.value;
+const fees = facts.pricing.schedule;
+const [globalCost, , lebanon] = problemStats;
+const pages = 5;
+const foot = (n: number) => `${String(n).padStart(2, '0')} / ${String(pages).padStart(2, '0')}`;
+const lastWord = (line: string) => {
+  const i = line.lastIndexOf(' ');
+  return [line.slice(0, i + 1), line.slice(i + 1)] as const;
+};
+---
+
+<PrintLayout locale={locale} title={`${d.profile.title} — Shaheen Money`} description={d.profile.description} format="a4">
+  <!-- 1. Cover -->
+  <section class="sheet t-night cover">
+    <div class="cover-field" aria-hidden="true"><FeatherField seed="company-profile" variant="strip" follow /></div>
+    <div class="sheet-inner">
+      <header class="cover-top">
+        <Logo size="lg" />
+        <span class="label" dir="ltr">shaheen.money</span>
+      </header>
+      <div class="cover-main">
+        <p class="label cover-kicker">{d.profile.title}</p>
+        <h1 class="doc-title cover-title">
+          {
+            h.hero.title.map((line) => {
+              const [lead, word] = lastWord(line);
+              return (
+                <span class="cover-line">
+                  {lead}
+                  <em class="emph">{word}</em>
+                </span>
+              );
+            })
+          }
+        </h1>
+        <p class="cover-sub">{h.hero.subtitle}</p>
+      </div>
+      <footer class="cover-foot label">
+        <span>{d.company}</span>
+        <span>{d.edition}</span>
+      </footer>
+    </div>
+  </section>
+
+  <!-- 2. Who we are -->
+  <section class="sheet t-paper">
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">01</span><span class="doc-chapter-label">{d.whoWeAre}</span></p>
+      <h2 class="doc-title p-title"><Emph text={a.title} /></h2>
+      <p class="doc-lead p-lead">{a.lead}</p>
+      <h3 class="doc-sub p-sub">{a.missionTitle}</h3>
+      <div class="p-cols">
+        {a.mission.map((para) => <p class="p-text">{para}</p>)}
+      </div>
+      <h3 class="doc-sub p-sub">{a.storyTitle}</h3>
+      <ol class="p-story">
+        {
+          a.chapters.map((c, i) => (
+            <li>
+              <span class="num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="doc-row-title p-story-name">{c.name}</span>
+              <span class="doc-row-body">{c.body}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money · {d.profile.title}</span><span class="num">{foot(2)}</span></footer>
+  </section>
+
+  <!-- 3. The product -->
+  <section class="sheet t-paper">
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">02</span><span class="doc-chapter-label">{d.product}</span></p>
+      <h2 class="doc-title p-title"><Emph text={h.steps.title} /></h2>
+      <div class="p-split">
+        <ol class="doc-rows">
+          {
+            h.steps.items.map((s, i) => (
+              <li class="doc-row">
+                <span class="num">{String(i + 1).padStart(2, '0')}</span>
+                <span class="doc-row-title">{s.title}</span>
+                <span class="doc-row-body">{s.body}</span>
+              </li>
+            ))
+          }
+        </ol>
+        <Device locale={locale} class="p-device" />
+      </div>
+      {
+        fees && (
+          <div class="p-fees">
+            <h3 class="doc-sub p-sub">{d.pricing}</h3>
+            <ul class="doc-fees">
+              {fees.value.map((row) => (
+                <li class="doc-fee">
+                  <span>{row.item[locale]}</span>
+                  <span class="doc-fee-value">{row.fee[locale]}</span>
+                </li>
+              ))}
+            </ul>
+            <SourceNote source={fees.source} locale={locale} />
+          </div>
+        )
+      }
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money · {d.profile.title}</span><span class="num">{foot(3)}</span></footer>
+  </section>
+
+  <!-- 4. Why it matters -->
+  <section class="sheet t-paper">
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">03</span><span class="doc-chapter-label">{d.whyItMatters}</span></p>
+      <h2 class="doc-title p-title"><Emph text={h.why.title} /></h2>
+      <p class="doc-lead p-lead">{h.why.lead}</p>
+      <div class="p-figures">
+        {
+          [globalCost, lebanon].map((stat, i) =>
+            stat ? (
+              <figure class="p-figure">
+                <p class="doc-figure-num p-figure-num" dir="ltr" set:html={figureHTML(stat.display)} />
+                <figcaption class="doc-figure-label">{stat.label[locale]}</figcaption>
+                <SourceNote source={stat.source} locale={locale} n={i + 1} />
+              </figure>
+            ) : null,
+          )
+        }
+      </div>
+      <h3 class="doc-sub p-sub">{h.steps.audiencesTitle}</h3>
+      <ul class="p-audiences">
+        {
+          h.steps.audiences.map((x) => (
+            <li>
+              <span class="doc-row-title">{x.title}</span>
+              <span class="doc-row-body">{x.body}</span>
+            </li>
+          ))
+        }
+      </ul>
+      {
+        facts.safeguarding && (
+          <div class="p-trust">
+            <p class="doc-quote p-trust-text">{facts.safeguarding.value[locale]}</p>
+          </div>
+        )
+      }
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money · {d.profile.title}</span><span class="num">{foot(4)}</span></footer>
+  </section>
+
+  <!-- 5. People, principles, contact -->
+  <section class="sheet t-paper">
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">04</span><span class="doc-chapter-label">{d.people}</span></p>
+      <blockquote class="doc-quote p-quote">“{a.quote}”</blockquote>
+      {
+        founder && (
+          <p class="label p-founder">
+            <span dir="ltr">{(locale === 'ar' && founder.nameAr) || founder.name}</span> · {founder.role[locale]}
+          </p>
+        )
+      }
+      <h3 class="doc-sub p-sub">{a.principlesTitle}</h3>
+      <ol class="doc-rows p-principles">
+        {
+          a.principles.map((x, i) => (
+            <li class="doc-row">
+              <span class="num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="doc-row-title">{x.title}</span>
+              <span class="doc-row-body">{x.body}</span>
+            </li>
+          ))
+        }
+      </ol>
+      {
+        facts.digitalDollar && (
+          <div class="p-dollar">
+            <p class="p-dollar-text">{facts.digitalDollar.value[locale]}</p>
+            <SourceNote source={facts.digitalDollar.source} locale={locale} n={3} />
+          </div>
+        )
+      }
+      <div class="p-contact">
+        <h3 class="doc-sub p-sub">{d.reach}</h3>
+        <ul class="p-contact-list">
+          <li>
+            {d.company}
+            {facts.company.jurisdiction && <> · {facts.company.jurisdiction[locale]}</>}
+          </li>
+          {
+            office && (
+              <li>
+                <bdi dir="ltr">{office.address}</bdi> · <span dir="ltr" class="num">{office.phone}</span>
+              </li>
+            )
+          }
+          <li>
+            <span dir="ltr">{contact.email}</span> · <span dir="ltr">shaheen.money</span>
+          </li>
+          <li class="p-socials"><bdi dir="ltr">{socials.map((x) => x.label).join(' · ')}</bdi></li>
+        </ul>
+      </div>
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money · {d.profile.title}</span><span class="num">{foot(5)}</span></footer>
+  </section>
+</PrintLayout>
+
+<style is:global>
+  @page {
+    size: A4;
+  }
+</style>
+
+<style>
+  .sheet {
+    --doc-pad-x: 64px;
+    --doc-pad-y: 64px;
+  }
+  .sheet-inner {
+    padding: var(--doc-pad-y) var(--doc-pad-x) calc(var(--doc-pad-y) * 1.4);
+    gap: 18px;
+  }
+
+  /* Cover */
+  .cover {
+    background-color: var(--color-navy-800);
+  }
+  .cover-field {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 34%;
+    block-size: 300px;
+    opacity: 0.7;
+  }
+  .cover-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--fg-2);
+  }
+  .cover-main {
+    margin-block-start: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .cover-kicker {
+    color: var(--accent);
+  }
+  .cover-title {
+    font-size: 66px;
+  }
+  :global(:lang(ar)) .cover-title {
+    font-size: 58px;
+  }
+  .cover-line {
+    display: block;
+  }
+  .cover-sub {
+    max-inline-size: 30em;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--fg-2);
+  }
+  .cover-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-block-start: 48px;
+    padding-block-start: 16px;
+    border-block-start: 1px solid var(--line);
+    color: var(--fg-3);
+  }
+
+  /* Inner pages */
+  .p-title {
+    font-size: 42px;
+    max-inline-size: 15em;
+  }
+  :global(:lang(ar)) .p-title {
+    font-size: 36px;
+  }
+  .p-lead {
+    max-inline-size: 36em;
+    font-size: 15.5px;
+    line-height: 1.6;
+  }
+  .p-sub {
+    margin-block-start: 10px;
+    font-size: 22px;
+  }
+  .p-cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .p-text,
+  .doc-row-body,
+  .p-dollar-text {
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  .doc-row-title {
+    font-size: 17px;
+  }
+  .p-story {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .p-story li {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-block-start: 12px;
+    border-block-start: 1px solid var(--line-strong);
+  }
+  .p-story .num {
+    font-size: 11px;
+    color: var(--accent);
+  }
+  .p-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 36px;
+    align-items: center;
+  }
+  .p-split :global(.p-device .device-stage) {
+    inline-size: 220px;
+  }
+  .p-split :global(.p-device .device-caption) {
+    font-size: 10px;
+  }
+  .p-fees .doc-fee {
+    font-size: 14px;
+  }
+  .p-fees .doc-fee-value {
+    font-size: 22px;
+  }
+  .p-figures {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+    margin-block: 6px;
+  }
+  .p-figure {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding-block-start: 14px;
+    border-block-start: 1px solid var(--line-strong);
+  }
+  .p-figure-num {
+    font-size: 84px;
+  }
+  .p-figure .doc-figure-label {
+    font-size: 14px;
+  }
+  .p-audiences {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 32px;
+  }
+  .p-audiences li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-block-start: 10px;
+    border-block-start: 1px solid var(--line);
+  }
+  .p-trust {
+    margin-block-start: auto;
+    padding: 20px 24px;
+    border-inline-start: 2px solid var(--accent);
+    background-color: var(--raised);
+  }
+  .p-trust-text {
+    font-size: 19px;
+    line-height: 1.4;
+  }
+  .p-quote {
+    margin: 0;
+    font-size: 27px;
+    line-height: 1.3;
+  }
+  :global(:lang(ar)) .p-quote {
+    font-size: 23px;
+    line-height: 1.6;
+  }
+  .p-founder {
+    color: var(--fg-2);
+  }
+  .p-principles .doc-row {
+    padding-block: 8px;
+  }
+  .p-dollar {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--fg-2);
+  }
+  .p-contact {
+    margin-block-start: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .p-contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--fg);
+  }
+  .p-socials {
+    color: var(--fg-2);
+  }
+</style>

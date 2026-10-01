@@ -7,12 +7,53 @@ Screenshots: `design-review/before/` (the site before the redesign) and
 and 1440. Reproduce with `node scripts/shots.mjs design-review/after --full`
 against `npm run build && npm run preview`.
 
+## Round two: the owner's notes
+
+The owner asked for a calmer first screen, every screen size, the five
+pages plus Media and the two documents, the app's screenshots, and plain
+answers in place of the legal placeholders. What changed:
+
+- **The first screen is calmer, and the same.** Same falcon, same flight,
+  same map and routes. The blue app box with the QR code is gone; the land
+  is a soft tone on the brand navy instead of hatching; the grid lines are
+  gone; only the five corridor cities are named. The words sit on a quiet
+  ground.
+- **Every screen size.** Every page was checked for sideways scrolling at
+  thirteen widths (320–1280 px) and the homepage on phones held sideways
+  and at 3440 px. Fixed: the hero on a phone held sideways (its own layout;
+  in Arabic the falcon moves left, so it never meets the headline), the
+  headline on an ultra-wide screen (one line per sentence), the iPhone and
+  Android pair (it ran off a 320 and a 390px screen on the Media page), the
+  email address on Security at 320px, and the two pinned scenes, which now
+  pin only if they fit the window (on a 1366 × 768 laptop "How it works"
+  hid its foot for as long as it was pinned).
+- **The pages.** Home ends on three steps (download the app, create your
+  account, receive your first transfer) beside the iPhone and Android;
+  About links the company profile; Media holds the logo, the artefacts, the
+  app's screens and both documents in both languages.
+- **The company profile and the pitch deck** are new: five A4 pages and
+  eleven 16:9 slides, made of the site's own components and copy, printed
+  to PDF in English and Arabic (`npm run docs`).
+- **The app's screenshots.** The owner's renders of the home screen on
+  iPhone and Android, cropped to the screen, now stand in the site's
+  handset (home, Get the app, Media, both documents) and are downloadable
+  from Media. The AI-made scene renders and the generated portrait were not
+  used (no generated people, nothing that looks AI-made).
+- **Plain answers instead of placeholders.** The legal-review flow and the
+  draft banners are gone. The company is named as Bankey LLC, Washington,
+  D.C. (from the owner, and the privacy policy's "Bankey LLC, doing
+  business as Shaheen Money"); no licence is claimed. Safeguarding: Shaheen
+  Money does not hold or own your money; it is a self-custodial wallet and
+  only carries out your instructions. The digital dollar paragraph cites
+  the GENIUS Act (Public Law 119-27, sections 4(a) and 4(e)). Fees: none on
+  receiving, sending or paying.
+
 ## The questions
 
 **Does the result still look like the old website with a new skin? — No.**
 The old site was a navy page with a glowing blue globe behind the falcon,
 a bold sans, rounded cards and, in production, yellow "CONTENT NEEDED"
-boxes. The new one is built on a different idea: an engraved atlas on which
+boxes. The new one is built on a different idea: a quiet atlas on which
 the falcon lands on Amman and its feathers become the routes, two
 temperatures (Night for the digital world, Paper for cash and reading), an
 editorial serif with one italic word per headline, hairlines and ledgers
@@ -29,10 +70,10 @@ shop counter where cash changes hands.
 
 **Does the hero create an immediate WOW moment? — Yes.**
 The falcon flies in and lands on Amman; its five feathers draw out as routes
-across the map to Toronto, New York, London, Paris and Berlin; the first
-packet arrives as the app's balance ticks from 940.00 to 1,240.00. It is one
-continuous gesture of about four seconds, then the page is calm. On a phone
-the same story is composed for a tall screen.
+across the map to Toronto, New York, London, Paris and Berlin; a first
+transfer runs down a route into the falcon. It is one continuous gesture of
+about four seconds, then the page is calm. On a phone the same story is
+composed for a tall screen, and for a wide one when the phone is on its side.
 
 **Does the hero visual feel custom-made for Shaheen? — Yes.**
 It is drawn from the mark itself (the routes start at the falcon's real
@@ -75,16 +116,19 @@ canonicals, hreflang and share images; the legal pages. 166 site tests and
   has no italic), mirrored layouts with geography that does not mirror,
   mono labels replaced by the Arabic UI face, deeper line heights.
 - **Mobile is composed, not squeezed:** the hero has its own tall map
-  frame; scenes become stacks that reveal in place; the app peeks in below
-  the fold; every page checked at 360, 390, 430 and 768.
+  frame and a layout for a phone on its side; scenes become stacks that
+  reveal in place; every page checked from 320 to 1280 px.
 - **Known blemishes, not introduced by the redesign:** on a phone the
   globe's labels for Amman, Dubai and Mumbai overlap (they did before too;
   the globe is untouched by rule).
 
 ### For the owner to decide
 
-- The Arabic privacy policy and terms are still the English documents (and
-  carry English titles); they need a legal translation.
+- The Arabic privacy policy and terms show the English text, set left to
+  right under their Arabic titles with a note that the document is in
+  English. An Arabic translation can replace them whenever it exists.
+- The company name, Bankey LLC (Washington, D.C.), is read from the owner's
+  "بنك LLC" and the privacy policy; confirm the exact spelling.
 - The store badges are drawn in the site's own style. Apple's and Google's
   marketing guidelines ask for their official badge artwork; swap it in if
   strict compliance matters at launch.
@@ -105,7 +149,7 @@ canonicals, hreflang and share images; the legal pages. 166 site tests and
 | No purple anywhere | `tests/palette.spec.ts`: every computed colour (elements, `::before`/`::after`/`::marker`, SVG fill/stroke/stops, shadows, gradients) and every stylesheet colour literal on all 26 pages, converted to sRGB, hue 255°–330° rejected; self-test injects `#7A3CFF` and must be caught | Pass, 26/26 + self-test |
 | Retired `#1400FF` | `npm run lint:styles` | Not used by the site |
 | No gradient text, glass, glow | `npm run lint:styles`; the hero's only gradient is a bottom fade for legibility | Pass |
-| No stock or generated imagery | Every image on the site is the falcon, line art drawn in code, the atlas (Natural Earth data), or the app rebuilt from the owner's screenshots | Pass |
+| No stock or generated imagery | Every image on the site is the falcon, line art drawn in code, the atlas (Natural Earth data), the owner's own renders of the app's home screen, or app screens rebuilt from the owner's screenshots | Pass |
 | Honesty labels and sources | Built pages compared with the pre-redesign build: *Illustrative*, *Example*, *Example corridors* and every source line present (more of them now: every app shard is stamped) | Pass |
 | Cash-out temperature shift | Pinned scene: the slip flips from the app's code to the cash while the page turns from Night to Paper; on phones it happens once, in view | Pass |
 | Accessibility | axe (WCAG 2.2 AA) on all 26 pages in both languages with reduced motion, and inside the pinned scene with full motion; Lighthouse accessibility 100 on every measured page; keyboard order follows the reading direction with a visible 2px focus ring; forced colours drop the art and keep text, borders and focus | Pass |

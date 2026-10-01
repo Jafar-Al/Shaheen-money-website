@@ -7,12 +7,10 @@ import Stamp from '../../components/ui/Stamp.astro';
 import TextLink from '../../components/ui/TextLink.astro';
 import BrandIcon from '../../components/ui/BrandIcon.astro';
 import SourceNote from '../../components/ui/SourceNote.astro';
-import Gap from '../../components/ui/Gap.astro';
 import { security } from '../../copy/trust';
 import { common } from '../../copy/common';
 import { contact, socials } from '../../config/site';
 import { facts } from '../../data/facts';
-import { showGaps } from '../../lib/gaps';
 import { href, localeStaticPaths, type Locale } from '../../i18n/config';
 
 /**
@@ -43,26 +41,22 @@ const ui = common[locale].ui;
       }
       <div class="sec-side">
         {
-          (facts.licences.length > 0 || showGaps) && (
+          facts.licences.length > 0 && (
             <article class="sec-item" aria-labelledby="licensing">
               <h2 id="licensing" class="label sec-label">{t.licensing}</h2>
-              {facts.licences.length > 0 ? (
-                facts.licences.map((l) => (
-                  <div class="sec-licence">
-                    <p class="font-display sec-licence-name">{l.regulator[locale]}</p>
-                    <p class="sec-muted">
-                      {l.licenceType[locale]} · <span class="num">{l.number}</span> · {l.jurisdiction[locale]}
-                    </p>
-                    {l.registerUrl && (
-                      <TextLink href={l.registerUrl} external>
-                        {t.register}
-                      </TextLink>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <Gap need="Licence / registration: regulator, type, number, jurisdiction, and a link to the public register." />
-              )}
+              {facts.licences.map((l) => (
+                <div class="sec-licence">
+                  <p class="font-display sec-licence-name">{l.regulator[locale]}</p>
+                  <p class="sec-muted">
+                    {l.licenceType[locale]} · <span class="num">{l.number}</span> · {l.jurisdiction[locale]}
+                  </p>
+                  {l.registerUrl && (
+                    <TextLink href={l.registerUrl} external>
+                      {t.register}
+                    </TextLink>
+                  )}
+                </div>
+              ))}
             </article>
           )
         }
@@ -103,7 +97,8 @@ const ui = common[locale].ui;
           <li>
             <a href={`mailto:${contact.email}`} class="channel">
               <span class="label channel-kind">{ui.email}</span>
-              <span class="channel-name" dir="ltr">{contact.email}</span>
+              {/* On a 320px screen the address breaks after the @, never mid-word. */}
+              <span class="channel-name" dir="ltr">{contact.email.split('@')[0]}@<wbr />{contact.email.split('@')[1]}</span>
             </a>
           </li>
           <li>

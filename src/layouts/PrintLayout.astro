@@ -1,0 +1,95 @@
+---
+import '../styles/global.css';
+import '../styles/print.css';
+import { Font } from 'astro:assets';
+import BrandSprite from '../components/site/BrandSprite.astro';
+import { localeMeta, type Locale } from '../i18n/config';
+
+/**
+ * The layout of the two downloadable documents (company profile, pitch
+ * deck): the site's tokens, fonts and components, no header or footer, sized
+ * for paper. scripts/build-docs.mjs prints each one to a PDF in
+ * public/media/. Never indexed: the PDFs are the published form.
+ *
+ *   a4      portrait A4 sheets (the company profile)
+ *   slides  1280 × 720 slides (the pitch deck)
+ */
+interface Props {
+  locale: Locale;
+  title: string;
+  description: string;
+  format: 'a4' | 'slides';
+}
+const { locale, title, description, format } = Astro.props;
+const meta = localeMeta[locale];
+---
+
+<!doctype html>
+<html lang={locale} dir={meta.dir} data-print={format}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {
+      locale === 'ar' ? (
+        <>
+          <Font cssVariable="--font-naskh" preload />
+          <Font cssVariable="--font-plex-arabic" />
+          <Font cssVariable="--font-geist-mono" />
+        </>
+      ) : (
+        <>
+          <Font cssVariable="--font-instrument-serif" preload />
+          <Font cssVariable="--font-instrument-sans" />
+          <Font cssVariable="--font-geist-mono" />
+        </>
+      )
+    }
+  </head>
+  <body class="t-paper print-body">
+    <BrandSprite />
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @page {
+    margin: 0;
+  }
+  html[data-print='a4'] {
+    --sheet-w: 210mm;
+    --sheet-h: 297mm;
+  }
+  html[data-print='slides'] {
+    --sheet-w: 1280px;
+    --sheet-h: 720px;
+  }
+  .print-body {
+    margin: 0;
+    background-color: var(--color-paper-200);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* One page of paper, or one slide: exactly its size, never split. */
+  .sheet {
+    position: relative;
+    box-sizing: border-box;
+    inline-size: var(--sheet-w);
+    block-size: var(--sheet-h);
+    margin: 0 auto 24px;
+    overflow: hidden;
+    background-color: var(--bg);
+    color: var(--fg);
+    break-after: page;
+  }
+  @media print {
+    .print-body {
+      background: none;
+    }
+    .sheet {
+      margin: 0;
+    }
+  }
+</style>

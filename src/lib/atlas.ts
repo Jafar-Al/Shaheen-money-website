@@ -22,7 +22,7 @@
  * of the frame, and the hero's CSS uses the same numbers. The component
  * asserts they agree, so the feather tips and the routes cannot drift apart.
  */
-import { geoEqualEarth, geoGraticule, geoInterpolate, geoPath } from 'd3-geo';
+import { geoEqualEarth, geoInterpolate, geoPath } from 'd3-geo';
 import { feature } from 'topojson-client';
 import type { Topology, GeometryCollection } from 'topojson-specification';
 import land110 from 'world-atlas/land-110m.json';
@@ -55,7 +55,7 @@ export const FRAMES: Record<FrameId, FrameSpec> = {
     centreLon: 24,
     scale: 720,
     corridors: heroCorridors,
-    named: ['london', 'paris', 'berlin', 'cairo', 'riyadh', 'dubai', 'nairobi', 'mumbai'],
+    named: ['london', 'paris', 'berlin'],
   },
   tall: {
     w: 400,
@@ -64,7 +64,7 @@ export const FRAMES: Record<FrameId, FrameSpec> = {
     centreLon: 30,
     scale: 330,
     corridors: ['london', 'berlin', 'toronto'],
-    named: ['london', 'berlin', 'cairo', 'riyadh', 'dubai'],
+    named: ['london', 'berlin'],
   },
 };
 
@@ -133,7 +133,6 @@ export interface HeroFrame {
   w: number;
   h: number;
   land: string;
-  graticule: string;
   routes: HeroRoute[];
   cities: HeroCity[];
   amman: { x: number; y: number; name: string; coords: string };
@@ -244,12 +243,13 @@ export function heroFrame(id: FrameId, locale: Locale): HeroFrame {
       };
     });
 
-  // Network cities inside the frame and clear of the falcon.
+  // The corridor cities inside the frame and clear of the falcon: the map
+  // names only the places its routes reach (calmer than every network city).
   const pad = fb.w * 0.04;
   const underFalcon = ([x, y]: Pt) => x > fb.x - pad && x < fb.x + fb.w + pad && y > fb.y - pad && y < fb.y + fb.w + pad;
   const margin = W * 0.03;
   const shown: HeroCity[] = (Object.keys(cities) as CityKey[])
-    .filter((key) => key !== 'amman')
+    .filter((key) => key !== 'amman' && spec.corridors.includes(key))
     .map((key) => ({ key, p: project(cities[key].lon, cities[key].lat) }))
     .filter(({ p }) => p[0] > margin && p[0] < W - margin && p[1] > margin && p[1] < H - margin && !underFalcon(p))
     .map(({ key, p }) => {
@@ -271,7 +271,6 @@ export function heroFrame(id: FrameId, locale: Locale): HeroFrame {
     w: W,
     h: H,
     land: path(feature(landTopo, landTopo.objects.land)) ?? '',
-    graticule: path(geoGraticule().step([15, 15]).extent([[-180, -75], [180.01, 80.01]])()) ?? '',
     routes,
     cities: shown,
     amman: { x: r1(A[0]), y: r1(A[1]), name: cities.amman.name[locale], coords: coords(cities.amman.lon, cities.amman.lat) },

@@ -270,8 +270,11 @@ const dollar = facts.digitalDollar;
     align-items: center;
     min-block-size: calc(100vh - var(--header-h));
   }
+  /* Pinned, the scene is centred under the header; the trimmed padding is
+     what src/lib/motion/level.ts fitsPinned() allows for. */
   .how-track[data-scene] .how-scene {
     inline-size: 100%;
+    padding-block: 1.5rem;
   }
   /* The steps that are not playing step back a tone, not into the dark:
      each tone is a text token that passes AA on Night (an opacity dim

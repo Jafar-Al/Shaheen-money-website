@@ -2,7 +2,6 @@
 import { getEntry, render } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import PageHero from '../../../components/ui/PageHero.astro';
-import Stamp from '../../../components/ui/Stamp.astro';
 import Slip from '../../../components/ui/Slip.astro';
 import Gap from '../../../components/ui/Gap.astro';
 import { common } from '../../../copy/common';
@@ -20,19 +19,22 @@ export function getStaticPaths() {
 
 /**
  * Legal documents, set for reading: the version and effective date in mono,
- * a draft stamp while legal review is pending, a table of contents that
- * stays in view on a wide screen, and a calm long-form measure.
+ * a table of contents that stays in view on a wide screen, and a calm
+ * long-form measure. Published as they are (no legal-review status is
+ * shown); an Arabic page whose document is still English says so.
  */
 const locale = Astro.params.locale as Locale;
 const doc = Astro.params.doc as Doc;
 const f = common[locale].footer;
-const ui = common[locale].ui;
 const t = legalPage[locale];
 const titles: Record<Doc, string> = { privacy: f.privacy, terms: f.terms, cookies: f.cookies };
 
 const entry = await getEntry('legal', `${locale}/${doc}`);
 const rendered = entry ? await render(entry) : null;
-const title = entry?.data.title ?? titles[doc];
+// An Arabic page whose document has not been translated yet: the text is
+// set as English (left to right), under the Arabic title and a short note.
+const english = locale === 'ar' && Boolean(entry) && !/[؀-ۿ]/.test(entry?.body ?? '');
+const title = english ? titles[doc] : (entry?.data.title ?? titles[doc]);
 // The contents list is ours: the documents' own lists point at anchors
 // that were never generated, so they are hidden below. Numbers are set in
 // mono here, so a heading's own "1. " is dropped.
@@ -46,7 +48,7 @@ const toc = (rendered?.headings ?? [])
   path={`/legal/${doc}`}
   title={`${title} — Shaheen Money`}
   description={t.descriptions[doc]}
-  noindex={!entry || entry.data.status === 'draft'}
+  noindex={!entry}
 >
   <PageHero locale={locale} title={title} crumbs={[{ label: f.legal }, { label: title }]} seed={`legal-${doc}`} size="m">
     {
@@ -57,10 +59,15 @@ const toc = (rendered?.headings ?? [])
         </p>
       )
     }
+    {
+      english && (
+        <p class="legal-lang">{t.englishOnly}</p>
+      )
+    }
   </PageHero>
 
   <section class="t-paper grain legal" data-temp="paper">
-    <div class="page rhythm legal-grid">
+    <div class="page rhythm legal-grid" lang={english ? 'en' : undefined} dir={english ? 'ltr' : undefined}>
       {
         toc.length > 0 && (
           <nav class="legal-toc" aria-label={title}>
@@ -79,14 +86,6 @@ const toc = (rendered?.headings ?? [])
       }
       <div class="legal-main">
         {
-          entry && entry.data.status === 'draft' && (
-            <p class="legal-draft">
-              <Stamp locale={locale} kind="note" tilt={-2} />
-              <span>{ui.draftBanner}</span>
-            </p>
-          )
-        }
-        {
           rendered ? (
             <div class="prose reading">
               <rendered.Content />
@@ -102,7 +101,7 @@ const toc = (rendered?.headings ?? [])
                 </p>
               </Slip>
               <Gap
-                need={`${titles[doc]} (${locale}). Migrate the current document with \`npm run import:legacy\`, then have legal review it and set status: approved.`}
+                need={`${titles[doc]} (${locale}). Migrate the current document with \`npm run import:legacy\`.`}
                 where={`src/content/legal/${locale}/${doc}.md`}
               />
             </div>
@@ -168,13 +167,7 @@ const toc = (rendered?.headings ?? [])
   .legal-grid > .legal-main:first-child {
     grid-column: 1 / -1;
   }
-  .legal-draft {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem;
-    padding-block-end: 1.5rem;
-    border-block-end: 1px solid var(--line);
+  .legal-lang {
     color: var(--fg-2);
   }
   /* The document's own contents list, replaced by .legal-toc. */

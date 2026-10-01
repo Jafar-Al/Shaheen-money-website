@@ -14,6 +14,8 @@ interface Props {
   external?: boolean;
   /** When the link leads to a page in the other language. */
   hreflang?: string;
+  /** A file to save rather than a page to open. */
+  download?: boolean;
   class?: string;
   [key: `data-${string}`]: string | undefined;
 }

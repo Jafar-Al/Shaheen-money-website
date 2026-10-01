@@ -31,9 +31,9 @@ const blog = defineCollection({
 });
 
 /**
- * Legal documents: src/content/legal/<locale>/<doc>.md. `status: draft`
- * documents render with a visible "draft" banner and block
- * `npm run check:launch` until legal review sets them to `approved`.
+ * Legal documents: src/content/legal/<locale>/<doc>.md. `status` is kept
+ * for the company's own records only: every document is published as it is
+ * (the owner's decision, 1 October 2026).
  */
 const legal = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/legal' }),

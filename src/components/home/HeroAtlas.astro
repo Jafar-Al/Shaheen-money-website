@@ -3,9 +3,10 @@ import { heroFrame, type FrameId } from '../../lib/atlas';
 import type { Locale } from '../../i18n/config';
 
 /**
- * One frame of the hero's engraved atlas (see src/lib/atlas.ts): the map
- * layer (graticule, hatched land, coastline) and the route layer (the five
- * feather routes, their packets, the cities, Amman). The two layers are
+ * One frame of the hero's atlas (see src/lib/atlas.ts): the map layer (the
+ * land as a soft tone with a faint coastline) and the route layer (the five
+ * feather routes, their packets, the cities they reach, Amman). Quiet on
+ * purpose: the falcon and its routes are the picture, the map the ground. The two layers are
  * separate so the pointer can move them a few pixels apart.
  *
  * Geography is never mirrored: this SVG is direction: ltr in both locales.
@@ -17,9 +18,7 @@ interface Props {
 const { frame, locale } = Astro.props;
 const f = heroFrame(frame, locale);
 const vb = `0 0 ${f.w} ${f.h}`;
-const hatch = `hatch-${frame}`;
 const land = `land-${frame}`;
-const pitch = frame === 'wide' ? 5 : 3.2;
 
 // Label offsets around a dot, in frame units (screen space, never mirrored).
 const s = frame === 'wide' ? 1 : 0.7;
@@ -42,14 +41,10 @@ const intro = f.routes
 <div class:list={['atlas-layer atlas-map', `atlas-${frame}`]} data-parallax="-6">
   <svg viewBox={vb} class="atlas-svg" focusable="false">
     <defs>
-      <pattern id={hatch} width={pitch * 4} height={pitch} patternUnits="userSpaceOnUse">
-        <path d={`M0 ${pitch / 2}H${pitch * 4}`} class="atlas-hatch-line" shape-rendering="crispEdges" />
-      </pattern>
-      {/* The coastline once: filled with hatching, then stroked. */}
+      {/* The coastline once: filled with a soft tone, then stroked. */}
       <path id={land} class="atlas-land-shape" d={f.land} />
     </defs>
-    <path class="atlas-graticule" d={f.graticule} />
-    <use href={`#${land}`} class="atlas-land" fill={`url(#${hatch})`} />
+    <use href={`#${land}`} class="atlas-land" />
     <use href={`#${land}`} class="atlas-coast" />
   </svg>
 </div>
@@ -137,18 +132,10 @@ const intro = f.routes
     overflow: visible;
   }
 
-  /* ── Map: engraved, borderless ─────────────────────────────────────── */
-  .atlas-graticule {
-    fill: none;
-    stroke: var(--color-white);
-    stroke-opacity: 0.075;
-    stroke-width: 0.5;
-    vector-effect: non-scaling-stroke;
-  }
-  .atlas-hatch-line {
-    stroke: var(--color-white);
-    stroke-opacity: 0.26;
-    stroke-width: 1;
+  /* ── Map: a soft tone, a faint coast ───────────────────────────────── */
+  .atlas-land {
+    fill: var(--color-white);
+    fill-opacity: 0.055;
   }
   /* Fill and stroke come from the two <use>s that draw it; vector-effect is
      not inherited, so the shared shape carries it. */
@@ -158,7 +145,7 @@ const intro = f.routes
   .atlas-coast {
     fill: none;
     stroke: var(--color-white);
-    stroke-opacity: 0.34;
+    stroke-opacity: 0.16;
     stroke-width: 0.75;
   }
 
@@ -169,7 +156,7 @@ const intro = f.routes
   .route {
     fill: none;
     stroke: var(--color-signal);
-    stroke-opacity: 0.72;
+    stroke-opacity: 0.55;
     stroke-width: 1;
     stroke-dasharray: 1;
     stroke-dashoffset: 1;

@@ -14,7 +14,7 @@ import Rails from '../../components/art/Rails.astro';
 import { business } from '../../copy/business';
 import { common } from '../../copy/common';
 import { facts } from '../../data/facts';
-import { resolvedDocuments } from '../../data/media';
+import { documentsFor } from '../../data/media';
 import { formatPercent } from '../../lib/format';
 import { showGaps } from '../../lib/gaps';
 import { href, localeStaticPaths, type Locale } from '../../i18n/config';
@@ -31,7 +31,7 @@ const locale = Astro.params.locale as Locale;
 const t = business[locale];
 const commission = facts.connectorProgram.commissionPercent;
 const eligibility = facts.connectorProgram.eligibility;
-const documents = resolvedDocuments.filter((d) => d.download !== null);
+const documents = documentsFor(locale).filter((d) => d.download !== null);
 ---
 
 <BaseLayout locale={locale} path="/business" title={t.meta.title} description={t.meta.description}>

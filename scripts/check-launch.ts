@@ -20,24 +20,21 @@ type Level = 'BLOCKER' | 'SHOULD' | 'NOTE';
 const items: Array<{ level: Level; what: string; where: string }> = [];
 const add = (level: Level, what: string, where = 'src/data/facts.ts') => items.push({ level, what, where });
 
-// ── Trust layer (audit A.9 §5, P-02, F.3 rule 6) ─────────────────────────
+// ── Trust layer ─────────────────────────────────────────────────────────
+// The owner decided (1 October 2026) that the site is a front end only: no
+// licence, registration documents or legal review are asked for. The
+// company name, the no-custody statement and the digital-dollar paragraph
+// are what the pages need, and they are in src/data/facts.ts.
 const c = facts.company;
-if (!c.legalName || !c.registrationNumber || !c.registeredAddress || !c.jurisdiction)
-  add('BLOCKER', 'Registered entity: legal name, company number, registered address, jurisdiction (footer on every page)');
-if (facts.licences.length === 0) add('BLOCKER', 'Licence / registration with regulator, number and public register link');
+if (!c.legalName) add('BLOCKER', 'The company name behind Shaheen Money (footer on every page)');
 if (!facts.safeguarding) add('BLOCKER', 'How customer funds are held (trust strip + security page)');
 if (!facts.digitalDollar) add('BLOCKER', 'What a digital dollar is and what backs it (homepage "How it works" + /security)');
-else
-  add(
-    'SHOULD',
-    'Name the stablecoin the wallet actually holds and its issuer. The published definition is generic and sourced to the Federal Reserve; which token it is, and who publishes its reserves, is a company fact',
-  );
 
 // ── Homepage sections that are empty without data ──────────────────────
 if (!facts.pricing.schedule) add('BLOCKER', 'Fee schedule for the homepage "What it costs" section ("Low fees" must be substantiated, audit A.5 #5)');
 if (!facts.coverage) add('SHOULD', 'Verified country list. The globe shows example corridors and the FAQ tells people to ask us; a published list is better');
-add('SHOULD', 'Cash-out fee. Receiving, sending and paying are published as free; the table is silent on cash-out, which is the one that may cost the customer money');
-if (!facts.pricing.comparison) add('SHOULD', 'Pricing comparison table (homepage "What it costs"), real figures with a date');
+// Fees: receiving, sending and paying at zero commission, and nothing else
+// (owner, 1 October 2026). No comparison table, no further rows.
 if (!facts.pricing.minCashOutUsd) add('SHOULD', 'Minimum cash-out amount (homepage "Cash out", hero evidence row)');
 
 // ── Business funnel (audit A.5 #1) ──────────────────────────────────────
@@ -68,7 +65,6 @@ if (tracedFalcon)
     'Vector master of the full logo lockup (falcon + "Shaheen Money" wordmark). The site holds the falcon traced from a 239px PNG, and a wordmark it outlined itself from Instrument Sans Bold (src/assets/brand/wordmark.ts); the brand\'s own master files would replace both',
     'src/assets/brand/ + brand-source/',
   );
-add('SHOULD', 'App screenshots for /media and the app store listings (real screens, no invented balances)', 'public/media/');
 
 // ── Content ──────────────────────────────────────────────────────────────
 const list = async (dir: string) => {
@@ -85,14 +81,10 @@ if (blogAr.length === 0) add('SHOULD', 'Arabic blog posts (same slug as the Engl
 for (const locale of ['en', 'ar']) {
   for (const doc of ['privacy', 'terms', 'cookies']) {
     const file = new URL(`../src/content/legal/${locale}/${doc}.md`, import.meta.url);
+    // Published as they are: the owner decided (1 October 2026) that no
+    // legal review is tracked here.
     const text = await readFile(file, 'utf8').catch(() => null);
-    // Owned outside this project: the site is the front end, and the legal
-    // documents are a separate workstream on the company's side. The pages
-    // handle a draft gracefully (banner, noindex, excluded from the
-    // sitemap), so this is tracked, not blocking.
     if (text === null) add('SHOULD', `Legal document missing: ${doc} (${locale})`, `src/content/legal/${locale}/${doc}.md`);
-    else if (/^status:\s*draft/m.test(text))
-      add('SHOULD', `Legal review pending: ${doc} (${locale}) is still status: draft`, `src/content/legal/${locale}/${doc}.md`);
   }
 }
 

@@ -17,84 +17,9 @@ in and whoever edits the code are talking about the same thing.
 
 ---
 
-## 1. Blockers — the site cannot launch without these
+## 1. Blockers and the trust layer
 
-### 1.1 The registered company
-
-Appears in the **footer of every page, in both languages**, on `/about` and in
-the newsroom fact box on `/media`. Without it the footer's company block is
-omitted, and a journalist or a partner who cannot find the legal entity writes
-"could not be verified".
-
-| What | field | Your answer |
-|---|---|---|
-| Legal name exactly as registered | `company.legalName` | |
-| Company / commercial registration number | `company.registrationNumber` | |
-| Registered address (EN + AR) | `company.registeredAddress` | |
-| Jurisdiction — country/state of registration (EN + AR) | `company.jurisdiction` | |
-
-### 1.2 Licence and regulator
-
-Appears in the **trust strip above the header on the homepage**, in the footer,
-and on `/security`. This is the single biggest objection a visitor has before
-sending money. Without it the trust strip does not render at all.
-
-| What | field | Your answer |
-|---|---|---|
-| Regulator name (EN + AR) | `licences[].regulator` | |
-| Licence / registration type (EN + AR) | `licences[].licenceType` | |
-| Licence number | `licences[].number` | |
-| Jurisdiction it covers (EN + AR) | `licences[].jurisdiction` | |
-| **Public register URL** a visitor can check themselves | `licences[].registerUrl` | |
-
-Add one block per licence if there is more than one.
-
-### 1.3 How customer money is held
-
-Appears in the **trust strip** and on `/security`. One or two sentences, in both
-languages, plus where the statement comes from and the date it is true as of.
-
-| What | field | Your answer |
-|---|---|---|
-| e.g. "Held 1:1 in segregated accounts at …" (EN + AR) | `safeguarding.value` | |
-| Source — the document or policy this comes from | `safeguarding.source` | |
-| As-of date | `safeguarding.source.asOf` | |
-
-### 1.4 What a digital dollar is, and what backs it
-
-Appears in **"Good to know"** inside the homepage's *How it works* section, and
-on `/security`. This is the most-asked question about the product. Without it
-the paragraph is omitted and the app's core promise goes unexplained.
-
-| What | field | Your answer |
-|---|---|---|
-| One paragraph (EN + AR): what the balance is, what backs it, who holds the reserve | `digitalDollar.value` | |
-| Source + as-of date | `digitalDollar.source` | |
-
-### 1.5 The fee schedule
-
-Appears in **"What it costs"** on the homepage. Without it the fee table is
-omitted, and "low fees" cannot be claimed anywhere on the site.
-
-Every fee a customer can be charged, one row each — **receive, send, pay, cash
-out, inactivity, currency conversion** — in both languages, plus the date the
-schedule applies from.
-
-| What | field | Your answer |
-|---|---|---|
-| Fee rows (item + amount, EN + AR) | `pricing.schedule.value` | |
-| Effective-from date | `pricing.schedule.source.asOf` | |
-
-### 1.6 Legal documents
-
-`/legal/privacy`, `/legal/terms`, `/legal/cookies` in both languages. They exist
-as drafts today and are marked as such on the page. A lawyer has to review them
-and the file's `status:` set to `approved`. The audit found the current privacy
-policy names no data controller.
-
-→ `src/content/legal/<locale>/<doc>.md`
-
-### 1.7 Form delivery (a setting, not content)
+### 1.1 Form delivery — the one blocker left (a setting, not content)
 
 Without one of these the contact and business forms answer "temporarily
 unavailable" and nothing reaches you.
@@ -105,6 +30,20 @@ In **Vercel → Settings → Environment Variables**, either:
 - `RESEND_API_KEY` + `FORMS_EMAIL_TO` + `FORMS_EMAIL_FROM` — sends them by email.
 
 Both is fine, and safer.
+
+### 1.2 Filled in on 1 October 2026 — please check
+
+From the owner's answers. Each is in `src/data/facts.ts` with its source and
+date; change the wording there and every page and both PDFs follow.
+
+| What | What the site says now | field |
+|---|---|---|
+| The company | **Bankey LLC**, Washington, D.C., United States. Read from "شاهين موني مرخصة من بنك LLC بواشنطن" and the privacy policy's "Bankey LLC, doing business as Shaheen Money": **confirm the spelling.** No registration number or address is shown; none was wanted. | `company.legalName`, `company.jurisdiction` |
+| Licence | None is claimed, so the licence lines stay hidden. If one is ever published, add it (regulator, type, number, public register URL) and the trust strip and `/security` show it. | `licences` |
+| How money is held | Shaheen Money does not hold your money and does not own it: a self-custodial, decentralised wallet, the balance under your own control, Shaheen only carrying out your instructions. | `safeguarding` |
+| What a digital dollar is | One paragraph: a stablecoin designed to keep a value of one US dollar; under the GENIUS Act (July 2025) a permitted issuer backs it at least 1:1 with reserves, publishes their make-up monthly and has that report examined monthly; not a bank deposit, not FDIC-insured, not issued by Shaheen Money. Source: GENIUS Act, US Public Law 119-27, sections 4(a) and 4(e). | `digitalDollar` |
+| Fees | Receiving, sending, paying: no fee. Nothing else is listed. | `pricing.schedule` |
+| Legal documents | No legal-review step and no draft banners: `/legal/privacy`, `/legal/terms` and `/legal/cookies` show the documents as they are. In Arabic, the privacy policy and terms show the English text, marked as English, until an Arabic translation exists (`src/content/legal/ar/`). | `src/content/legal/` |
 
 ---
 
@@ -189,11 +128,11 @@ quietly rot.
 
 | File | Put it in | Then set | What it is for |
 |---|---|---|---|
-| **Pitch deck (PDF)** | `public/media/` | `file` in `src/data/media.ts` | `/business` "documents you'll want before a first call", and `/media`. For partners and investors. |
-| **Company profile (PDF)** | `public/media/` | same | Same two places. |
+| ~~Pitch deck (PDF)~~ **done** | `public/media/` | `file` in `src/data/media.ts` | Built by the site from its own pages, English and Arabic: `npm run build && npm run docs && npm run build`. On `/business`, `/media` and (the profile) `/about`. To use a deck of your own instead, drop the PDF in and point `file` at it. |
+| ~~Company profile (PDF)~~ **done** | `public/media/` | same | Same. |
 | **Brand guidelines (PDF)** | `public/media/` | same | `/media`, under the logo rules. |
 | **Vector master of the full logo** (falcon **+** the "Shaheen Money" wordmark) | `src/assets/brand/` | — | Today the site only holds the falcon, and it was **traced from a 239-pixel PNG**, not drawn. The wordmark is set in live type, so there is no file to hand a journalist or a printer. This is the one brand asset genuinely missing. |
-| **App screenshots** | `public/media/` | — | `/media` and the store listings. Real screens only — no invented names or balances. |
+| ~~App screenshots~~ **done** | `src/assets/app/`, `public/media/` | `appScreens` in `src/data/media.ts` | The home screen on iPhone and Android, on the site and downloadable from `/media`. More real screens (sending, a cash-out code) are welcome; real screens only, no invented names or balances. |
 | **Founder photo** | `src/assets/` | `team[].photo` | `/about` |
 | **Connector photo** | `src/assets/` | `connectorStory` | Homepage proof section |
 

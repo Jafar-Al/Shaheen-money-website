@@ -8,7 +8,8 @@ decisions that are not obvious from the code. Values live in
 ## The idea
 
 **The falcon lands on Amman, and its feathers become the routes.** The hero
-is an engraved atlas; the Shaheen falcon flies in and lands on the city, and
+is a quiet atlas (the land a soft tone on the brand navy, only the corridor
+cities named); the Shaheen falcon flies in and lands on the city, and
 each of its feathers runs out as a route to a city people send from. The
 same feather, drawn as a hairline engraving, recurs across the site: a strip
 across the top of every inner page, a cover for every blog post, a plume in
@@ -23,8 +24,8 @@ takes the temperature of whatever is under it.
 **Honesty as an object.** What the site cannot yet prove is marked, and the
 marks are designed, not apologetic: a rubber stamp for *Illustrative*,
 *Example corridors* and *Note*; numbered mono footnotes with a dated source
-under every figure; the app shown as it is, rebuilt from the owner's own
-screenshots, never invented. A figure without a source cannot render
+under every figure; the app shown as it is (the owner's own screenshots, or
+screens rebuilt from them), never invented. A figure without a source cannot render
 (`src/data/facts.ts`, `Sourced<T>`).
 
 **What it refuses.** Stock photography, generated people, mock screens with
@@ -150,10 +151,12 @@ in Arabic, and only the legibility mask moves to the other side.
 
 | Component | What it is |
 | --- | --- |
-| `home/Hero`, `home/HeroAtlas` | Equal Earth atlas (d3-geo, world-atlas 110m) engraved with hatching; routes from the falcon's feather tips to five example cities; the app shard; the counting balance |
+| `home/Hero`, `home/HeroAtlas` | Equal Earth atlas (d3-geo, world-atlas 110m): the land a soft tone on navy, no grid lines, only the five corridor cities named; routes from the falcon's feather tips to them; nothing else on the map. Three compositions: wide (Amman at 66%, words below the falcon), tall (phones), and a phone on its side (Amman moved to the far side, the left in Arabic, so the headline never meets the falcon) |
 | `art/FeatherField` | seeded hairline feathers (`src/lib/feather.ts`): `strip`, `cover`, `corner`, `single` (+ `trail` on the 404) |
 | `art/ShopCounter`, `art/Rails` | line drawings for the cash-out shop and the partner rails |
-| `app/UiShard`, `app/Device`, `app/AppIcon` | the real app, rebuilt in HTML from the owner's screenshots, always stamped *Illustrative* |
+| `app/UiShard`, `app/AppIcon` | app screens rebuilt in HTML from the owner's screenshots, always stamped *Illustrative* |
+| `app/Device` | the owner's own renders of the home screen (iPhone and Android, `src/assets/app/`) in the site's handset: one phone, or the pair, sized so both phones fit any column down to a 320px screen; stamped *Illustrative* |
+| `layouts/PrintLayout`, `pages/[locale]/media/company-profile`, `…/pitch-deck` | the company profile (A4, five pages) and the pitch deck (16:9, eleven slides), made of the site's own components and copy and printed to PDF by `npm run docs` |
 | `ui/Chapter`, `ui/PageHero` | the homepage chapter frame; the inner-page hero with its feather strip |
 | `ui/Slip`, `ui/Stamp` | the paper slip; the rubber stamp (Illustrative, Example, Example corridors, Sourced, Note) |
 | `ui/Figure`, `ui/SourceNote`, `ui/FootnoteRef` | a sourced statistic, counted up once, with its numbered, dated source |
@@ -190,6 +193,10 @@ Scrolling is native.
 - Content can never be left invisible: only an element the reveal script is
   watching is hidden, and a four-second rescue reveals anything still
   pending.
+- A scene pins only if it fits the screen under the header
+  (`fitsPinned()` in `src/lib/motion/level.ts`). "How it works" is taller
+  than a 1366 × 768 laptop's browser window; pinned there, its foot stayed
+  out of sight for the whole scene, so on such a screen it rests in place.
 - Draw-in strokes scale with their drawing. Under `non-scaling-stroke`,
   Chromium measures dashes in screen pixels, so a `pathLength` draw stops
   short on any drawing shown above 1:1 (the hero's routes stopped short of
@@ -208,10 +215,25 @@ Scrolling is native.
   chapter, with city chips that highlight its corridors. If the owner wants
   the brief's version (a redrawn falcon, no globe), that is a separate,
   deliberate change to those rules.
-- **The app is shown, never mocked.** App screens are rebuilt in HTML from
-  the owner's screenshots (so they are sharp, translatable and light), and
-  their amounts tell one consistent story (940.00 + 300.00 received =
-  1,240.00; − 63.50 paid and sent; − 200.00 cashed out with code 482 719).
+- **The app is shown, never mocked.** The phones (`app/Device`) show the
+  owner's own renders of the home screen, cropped to the screen. The app
+  screens inside the scenes are rebuilt in HTML from the owner's screenshots
+  (so they are sharp, translatable and light), and their amounts tell one
+  consistent story (940.00 + 300.00 received = 1,240.00; − 63.50 paid and
+  sent; − 200.00 cashed out with code 482 719). The owner's AI-made scene
+  renders and the generated portrait were not used: the rule against
+  generated people and AI-looking images covers them.
+- **Every screen size.** Every page is checked for sideways scrolling at
+  thirteen widths from 320 to 1280 px (desktop emulation, which does not
+  hide overflow the way phone emulation can), and the homepage on phones
+  held sideways and at 3440 px. The hero has a layout for a phone on its
+  side, and its headline is capped so an ultra-wide screen still sets each
+  sentence on one line.
+- **The documents are the website.** The company profile and the pitch deck
+  are pages of the site (noindex) built from its components and copy
+  (`src/copy/docs.ts` plus the shared copy), so they cannot drift from it.
+  `npm run build && npm run docs && npm run build` prints them, in both
+  languages, to `public/media/` and ships them on the Media page.
 - **The hero headline is the largest paint.** It is not faded in, and the
   map's bytes come after it in the HTML; the atlas is clipped to what any
   screen can see and draws its coastline once.

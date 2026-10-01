@@ -257,6 +257,8 @@ const minimum = facts.pricing.minCashOutUsd;
     position: sticky;
     inset-block-start: var(--header-h);
     min-block-size: calc(100vh - var(--header-h));
+    /* What src/lib/motion/level.ts fitsPinned() allows for. */
+    padding-block: 1.5rem;
   }
   /* Phones and small tablets: no pin; the turn plays once, in view. */
   .co-shift[data-fade] {

@@ -55,7 +55,7 @@ The header is four plain links and one action. There are no dropdown panels left
 
 It serves two visitors (the product owner's brief), and the first never has to scroll past anything belonging to the second:
 
-1. **The one who came to download.** The Shaheen falcon flies in and lands on Amman on an engraved atlas, and its feathers run out as routes to the cities people send from (`src/components/home/Hero.astro`, `HeroAtlas.astro`; the atlas is drawn at build time from `src/lib/atlas.ts`). The falcon animation itself is untouched (`FalconFlight.astro`). Over it, the slogan, one line saying what this is, and **one download button** that knows the device: iPhone/iPad → App Store, Android → Google Play, computer → a QR code to scan with the phone. Beside it, a quieter control for the second visitor. The real app, rebuilt from the owner's screenshots and stamped *Illustrative*, sits in the corner with its balance counting up.
+1. **The one who came to download.** The Shaheen falcon flies in and lands on Amman on a quiet atlas, and its feathers run out as routes to the cities people send from (`src/components/home/Hero.astro`, `HeroAtlas.astro`; the atlas is drawn at build time from `src/lib/atlas.ts`). The falcon animation itself is untouched (`FalconFlight.astro`). Over it, the slogan, one line saying what this is, and **one download button** that knows the device: iPhone/iPad → App Store, Android → Google Play, computer → a QR code to scan with the phone. Beside it, a quieter control for the second visitor. Nothing else sits on the map. On a phone held sideways the map moves Amman to the far side (the left in Arabic), so the words never meet the falcon.
 2. **The one who wants to understand first.** Numbered chapters, in the order people ask: why Shaheen (sourced figures), how it works (a pinned scene that walks the app through a transfer), cash out (the card flips from the app's code to the cash, and the page turns from Night to Paper), the network, what it costs, the questions we are asked most, the latest posts, and the download. Chapters whose content does not exist yet (customer voices) do not render, and the numbering follows.
 
 The design system behind it (The Feather Line) is written up in **`docs/DESIGN.md`**: two temperatures (Night for the digital world, Paper for cash and reading), Instrument Serif with one italic word per headline, Noto Naskh Arabic chosen by specimen, hairlines instead of cards, and motion in six verbs built on CSS and a few small modules in `src/lib/motion/` (no animation library). Sections land as they are reached, built so content can never be stranded invisible: only an element the script has *started observing* is hidden, and a timeout clears anything still pending after four seconds. Reduced motion shows every final state.
@@ -105,7 +105,7 @@ pixel. See `motion/README.md`.
 
 ### The press kit
 
-`npm run media` regenerates `public/media/` from the one vector master (`src/assets/brand/falcon.svg`), so the files a journalist downloads and the mark the site renders cannot drift apart. `src/data/media.ts` reads each file's real size off disk and **fails the build if a listed file is missing**. To publish the pitch deck or the company profile, drop the PDF into `public/media/` and set its `file` there; until then the slot shows a "content needed" marker in dev and nothing in production.
+`npm run media` regenerates `public/media/` from the one vector master (`src/assets/brand/falcon.svg`), so the files a journalist downloads and the mark the site renders cannot drift apart. `src/data/media.ts` reads each file's real size off disk and **fails the build if a listed file is missing**. The pitch deck and the company profile are pages of the site (`src/pages/[locale]/media/`, copy in `src/copy/docs.ts`), printed to PDF in English and Arabic by `npm run build && npm run docs && npm run build`; run it again after changing their copy. The brand guidelines slot is still empty: drop a PDF into `public/media/` and set its `file`; until then it shows a "content needed" marker in dev and nothing in production.
 
 ## Quality gates
 
@@ -123,13 +123,9 @@ pixel. See `motion/README.md`.
 
 ## Before launch
 
-Run `npm run check:launch`. Today it lists, among others:
+Run `npm run check:launch`. Today its one blocker is form delivery on Vercel: `FORMS_WEBHOOK_URL` (+ `FORMS_WEBHOOK_SECRET`) and/or `RESEND_API_KEY` + `FORMS_EMAIL_TO` + `FORMS_EMAIL_FROM`. The rest of its list is recommended (verified countries, minimum cash-out, the Connector commission, ratings, testimonials, the founder's photo).
 
-- registered entity, licence/regulator, how customer funds are held, what backs a digital dollar;
-- the fee schedule (the homepage's "What it costs" section claims nothing without it);
-- the pitch deck and the company profile as PDFs, for `/media` and `/business`;
-- the privacy policy and terms: run `npm run import:legacy` to migrate them and the 11 blog posts from the current site, then have legal review them (the audit found the privacy policy names no data controller) and set `status: approved`;
-- form delivery on Vercel: `FORMS_WEBHOOK_URL` (+ `FORMS_WEBHOOK_SECRET`) and/or `RESEND_API_KEY` + `FORMS_EMAIL_TO` + `FORMS_EMAIL_FROM`.
+Not on that list: an Arabic translation of the privacy policy and terms. Until there is one, the Arabic pages show the English text, marked as English.
 
 Recommended: Upstash Redis for shared rate limits, Cloudflare Turnstile on the forms, real photography and ratings, and a vector master of the falcon (the current SVG is traced from the 239 px PNG).
 
@@ -144,7 +140,7 @@ Import the repository; the Astro preset runs `npm run build`, which also writes 
 - **`line-strong` border is 50% navy, not the audit's 32%**, which composites to ~2.2:1 and fails WCAG 1.4.11. The token build proves 3.52:1.
 - **Smallest button is 44 px, not 40 px** — the audit also sets 44 px as the minimum target.
 - **Hero** follows the product owner's direction (falcon, one slogan, one smart button) rather than the audit's eyebrow/subhead layout; the audit's evidence row is kept and appears when its facts exist.
-- **No persona photos, no invented app screens.** The legacy persona images look generated, and the brief was "no AI look". The app appears only as rebuilt from the owner's own screenshots, in HTML, stamped *Illustrative*, with one consistent set of example amounts. Real photography can be added through `src/components/media/Photo.astro` (AVIF/WebP, sizes, dimensions enforced).
+- **No persona photos, no invented app screens.** The legacy persona images look generated, and the brief was "no AI look". The app appears as the owner's own renders of its home screen (iPhone and Android, `src/assets/app/`) or rebuilt in HTML from the owner's screenshots, always stamped *Illustrative*, with one consistent set of example amounts. Real photography can be added through `src/components/media/Photo.astro` (AVIF/WebP, sizes, dimensions enforced).
 - **Analytics is off by default** and cookieless when enabled (`PUBLIC_ANALYTICS_*`), so no consent banner is needed.
 
 ## Scripts that touch brand files

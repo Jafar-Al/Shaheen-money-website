@@ -9,6 +9,7 @@ import Gap from '../../components/ui/Gap.astro';
 import { about } from '../../copy/trust';
 import { common } from '../../copy/common';
 import { facts } from '../../data/facts';
+import { documentsFor } from '../../data/media';
 import { showGaps } from '../../lib/gaps';
 import { href, localeStaticPaths, type Locale } from '../../i18n/config';
 
@@ -28,6 +29,7 @@ const companyLines = [c.legalName, c.registrationNumber, c.registeredAddress?.[l
   (x): x is string => Boolean(x),
 );
 const office = c.office?.value;
+const profile = documentsFor(locale).find((d) => d.id === 'company-profile');
 const last = t.chapters.length - 1;
 ---
 
@@ -134,7 +136,12 @@ const last = t.chapters.length - 1;
                 </a>
               </p>
             )}
-            {companyLines.length === 0 && <Gap need="Registered entity name, company number, registered address and jurisdiction." />}
+            {profile?.download && (
+              <TextLink href={profile.download.file} download>
+                {t.profileCta}
+              </TextLink>
+            )}
+            {companyLines.length === 0 && <Gap need="The company name (src/data/facts.ts)." />}
           </div>
         </div>
       </section>

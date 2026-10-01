@@ -82,6 +82,8 @@ export const common = defineCopy({
     ui: {
       illustrative: 'Illustrative',
       illustrativeHint: 'Sample screen. Names and amounts are examples.',
+      screenIos: 'The Shaheen Money app on iPhone: the home screen, with the cash balance in USDC and Add Funds, Withdraw, Send and Request.',
+      screenAndroid: 'The same home screen of the Shaheen Money app on Android.',
       /* Rubber-stamp labels: the honesty layer as a designed object. */
       stamp: {
         example: 'Example',
@@ -100,7 +102,6 @@ export const common = defineCopy({
       breadcrumbs: 'Breadcrumb',
       home: 'Home',
       contentNeeded: 'Content needed',
-      draftBanner: 'Draft: this document has not been approved by legal review yet.',
       updated: 'Updated',
       published: 'Published',
       back: 'Back',
@@ -175,6 +176,8 @@ export const common = defineCopy({
     ui: {
       illustrative: 'مثال توضيحي',
       illustrativeHint: 'شاشة نموذجية. الأسماء والمبالغ أمثلة فقط.',
+      screenIos: 'تطبيق شاهين موني على آيفون: الشاشة الرئيسية، فيها الرصيد النقدي بعملة USDC وأزرار الإيداع والسحب والإرسال والطلب.',
+      screenAndroid: 'الشاشة الرئيسية نفسها لتطبيق شاهين موني على أندرويد.',
       stamp: {
         example: 'مثال',
         corridors: 'أمثلة على مسارات',
@@ -192,7 +195,6 @@ export const common = defineCopy({
       breadcrumbs: 'مسار التنقل',
       home: 'الرئيسية',
       contentNeeded: 'محتوى مطلوب',
-      draftBanner: 'مسودة: لم تتم الموافقة على هذه الوثيقة من المراجعة القانونية بعد.',
       updated: 'آخر تحديث',
       published: 'تاريخ النشر',
       back: 'رجوع',

@@ -90,6 +90,7 @@ export const legalPage = defineCopy({
     pending: 'This document is being updated. For the current version, email',
     version: 'Version',
     effective: 'Effective from',
+    englishOnly: 'This document is available in English.',
   },
   ar: {
     descriptions: {
@@ -100,6 +101,7 @@ export const legalPage = defineCopy({
     pending: 'يجري تحديث هذه الوثيقة. للحصول على النسخة السارية، راسلنا على',
     version: 'الإصدار',
     effective: 'نافذة اعتباراً من',
+    englishOnly: 'هذه الوثيقة متوفرة باللغة الإنجليزية حالياً.',
   },
 });
 

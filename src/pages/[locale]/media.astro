@@ -7,11 +7,12 @@ import Button from '../../components/ui/Button.astro';
 import IndexRow from '../../components/ui/IndexRow.astro';
 import Icon from '../../components/ui/Icon.astro';
 import Gap from '../../components/ui/Gap.astro';
+import Device from '../../components/app/Device.astro';
 import { media } from '../../copy/business';
 import { common } from '../../copy/common';
 import { brand, contact } from '../../config/site';
 import { facts } from '../../data/facts';
-import { brandAssets, brandColours, brandFonts, resolvedDocuments } from '../../data/media';
+import { appScreens, brandAssets, brandColours, brandFonts, documentsFor } from '../../data/media';
 import { href, localeStaticPaths, type Locale } from '../../i18n/config';
 
 /**
@@ -25,7 +26,7 @@ export const getStaticPaths = localeStaticPaths;
 const locale = Astro.params.locale as Locale;
 const t = media[locale];
 const ui = common[locale].ui;
-const documents = resolvedDocuments.filter((d) => d.download !== null);
+const documents = documentsFor(locale).filter((d) => d.download !== null);
 const founder = facts.team[0];
 ---
 
@@ -129,7 +130,31 @@ const founder = facts.team[0];
     </div>
   </section>
 
-  <!-- 4. Company documents and the facts a newsroom needs. -->
+  <!-- 4. The app, as it is: both screens, to show and to download. -->
+  <section class="t-night grain m-sec" data-temp="night" aria-labelledby="app-title">
+    <div class="page rhythm m-split m-app">
+      <header class="m-app-copy">
+        <h2 id="app-title" class="m-h2 font-display">{t.appTitle}</h2>
+        <p class="lead">{t.appLead}</p>
+        <ul class="mark-files m-app-files">
+          {
+            appScreens.map((file) => (
+              <li>
+                <a href={file.file} download class="mark-file">
+                  <Icon name="download" size={16} />
+                  <span>{file.label[locale]}</span>
+                  <span class="num mark-size">{file.sizeKb} KB</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </header>
+      <Device locale={locale} pair class="m-split-main m-app-device" />
+    </div>
+  </section>
+
+  <!-- 5. Company documents and the facts a newsroom needs. -->
   <section class="t-paper grain m-sec" data-temp="paper">
     <div class="page rhythm m-split">
       <div class="m-docs">
@@ -427,6 +452,23 @@ const founder = facts.team[0];
     .m-docs,
     .m-split :global(.m-split-main),
     .m-split-main {
+      grid-column: 1 / -1;
+    }
+  }
+  .m-app {
+    align-items: center;
+  }
+  .m-app-copy {
+    grid-column: 1 / span 5;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .m-app-files {
+    max-inline-size: 26rem;
+  }
+  @media (width < 64rem) {
+    .m-app-copy {
       grid-column: 1 / -1;
     }
   }

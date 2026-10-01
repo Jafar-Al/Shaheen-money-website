@@ -24,7 +24,7 @@ export const home = defineCopy({
     hero: {
       title: ['Money without borders.', 'Access without limits.'],
       subtitle: 'Receive money from abroad, hold it in digital dollars, and collect it as cash from a shop near you.',
-      availability: 'Available on iPhone and Android',
+      availability: 'Sign up in the app · iPhone and Android',
       explore: 'How it works',
       more: 'Why Shaheen?',
       evidence: {
@@ -269,6 +269,8 @@ export const home = defineCopy({
     final: {
       title: 'Your money. *Anywhere.*',
       lead: 'Receive from abroad, send anywhere, and cash out close to home.',
+      steps: ['Download the app', 'Create your account', 'Receive your first transfer'],
+      stepsLabel: 'Getting started',
       coverage: 'Talk to us',
       connector: 'Run a shop? Become a Connector',
     },
@@ -282,7 +284,7 @@ export const home = defineCopy({
     hero: {
       title: ['أموالك بلا حدود.', 'وصولك بلا قيود.'],
       subtitle: 'استقبل مصاريك من برّا، واحتفظ فيها بالدولار الرقمي، واسحبها كاش من محل قريب منك.',
-      availability: 'متوفر على آيفون وأندرويد',
+      availability: 'سجّل من التطبيق · آيفون وأندرويد',
       explore: 'كيف بيشتغل',
       more: 'ليش شاهين؟',
       evidence: {
@@ -509,6 +511,8 @@ export const home = defineCopy({
     final: {
       title: 'فلوسك. *وين ما كنت.*',
       lead: 'استقبل من برّا، ابعت لأي مكان، واسحب كاش قريب منك.',
+      steps: ['حمّل التطبيق', 'افتح حسابك', 'استقبل أول حوالة'],
+      stepsLabel: 'كيف تبدأ',
       coverage: 'احكي معنا',
       connector: 'عندك محل؟ صير موصّل',
     },

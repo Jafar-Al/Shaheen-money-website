@@ -20,6 +20,7 @@
     "fonts": "node scripts/build-fonts.mjs",
     "icons": "node scripts/brand/build-icons.mjs",
     "media": "node scripts/brand/build-media.mjs",
+    "docs": "node scripts/build-docs.mjs",
     "motion": "npm run motion:picture && npm run motion:sound",
     "motion:picture": "node motion/lib/render.mjs 01-the-journey && node motion/lib/render.mjs 02-pour && node motion/lib/render.mjs 03-swarm && node motion/lib/render.mjs 04-out-of-the-screen",
     "motion:preview": "node motion/lib/render.mjs 01-the-journey --preview && node motion/lib/render.mjs 02-pour --preview && node motion/lib/render.mjs 03-swarm --preview && node motion/lib/render.mjs 04-out-of-the-screen --preview",

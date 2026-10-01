@@ -3,12 +3,13 @@
  * behaviour (src/scripts/home/index.ts) so the page makes one request for it.
  */
 import { scene } from '../../lib/motion/scenes';
-import { afterFirstPaint, scrubbing } from '../../lib/motion/level';
+import { afterFirstPaint, fitsPinned, scrubbing } from '../../lib/motion/level';
 import { countUp } from '../../lib/motion/count';
 
 const track = document.querySelector<HTMLElement>('[data-how]');
-if (track) afterFirstPaint(() => {
-  if (!scrubbing()) return;
+const stage = track?.querySelector<HTMLElement>('.how-scene');
+if (track && stage) afterFirstPaint(() => {
+  if (!scrubbing() || !fitsPinned(stage)) return;
   track.dataset.scene = '';
   track.dataset.step = '0';
   const amount = track.querySelector<HTMLElement>('[data-how-balance] [data-shard-amount]');

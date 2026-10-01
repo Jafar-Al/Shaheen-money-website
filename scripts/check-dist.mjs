@@ -26,6 +26,7 @@ const SITE = 'https://shaheen.money';
 const KB = 1024;
 const BUDGET = {
   imageBytes: 150 * KB, // largest single image (audit I.3), excluding share images
+  downloadBytes: 1024 * KB, // any one press-kit file in /media/ (PNGs, PDFs)
   cssBytes: 40 * KB, // per page, compressed estimate uses raw/3
   jsBytes: 120 * KB,
   fontBytesPerLocale: 120 * KB,
@@ -134,7 +135,12 @@ for (const [page, alts] of hreflangGraph) {
 const size = async (p) => (await stat(join(staticDir, p))).size;
 for (const f of files) {
   const rel = '/' + relative(staticDir, f).replaceAll('\\', '/');
-  if (/\.(avif|webp|jpe?g|png)$/.test(rel) && !rel.startsWith('/og/') && !/icon|favicon/.test(rel)) {
+  // Press-kit downloads (/media/: full-size PNGs, the PDFs) are files people
+  // save, not images a page loads: they have their own, larger budget.
+  if (rel.startsWith('/media/')) {
+    const s = (await stat(f)).size;
+    if (s > BUDGET.downloadBytes) warn(rel, `download ${(s / KB).toFixed(0)} KB > ${BUDGET.downloadBytes / KB} KB budget`);
+  } else if (/\.(avif|webp|jpe?g|png)$/.test(rel) && !rel.startsWith('/og/') && !/icon|favicon/.test(rel)) {
     const s = (await stat(f)).size;
     if (s > BUDGET.imageBytes) warn(rel, `image ${(s / KB).toFixed(0)} KB > ${BUDGET.imageBytes / KB} KB budget`);
   }

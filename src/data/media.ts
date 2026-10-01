@@ -1,6 +1,7 @@
 import { existsSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import type { Localized } from './types';
+import type { Locale } from '../i18n/config';
 
 /**
  * MEDIA AND COMPANY DOCUMENTS — what a journalist, a partner or an investor
@@ -14,9 +15,10 @@ import type { Localized } from './types';
  *  2. Nothing is described from memory: size and last-modified date are read
  *     off the file itself, so they cannot go stale.
  *
- * To publish the pitch deck or the company profile, drop the PDF into
- * public/media/ and set `file` below. Until then the slot renders a
- * "content needed" marker in dev and nothing at all in production.
+ * The company profile and the pitch deck are printed from the site's own
+ * pages (src/pages/[locale]/media/) by `npm run docs`, one PDF per
+ * language. A slot without a file renders a "content needed" marker in dev
+ * and nothing at all in production.
  */
 export interface DownloadFile {
   /** Absolute site path, e.g. '/media/shaheen-falcon-navy.svg'. */
@@ -31,7 +33,8 @@ export interface DownloadSlot {
   id: string;
   title: Localized;
   description: Localized;
-  file: string | null;
+  /** One file per language, as site paths under public/. */
+  file: Localized | null;
 }
 
 // Resolved from the working directory, not from import.meta.url: this module
@@ -120,27 +123,28 @@ export const brandAssets: BrandAsset[] = [
 ];
 
 /**
- * Documents the company still has to supply. Set `file` to a path under
- * public/ once the PDF exists; the build then reads its size and date.
+ * The company's documents, one PDF per language. The profile and the deck
+ * are generated (`npm run build && npm run docs && npm run build`); the
+ * brand guidelines are still to come.
  */
 export const documentSlots: DownloadSlot[] = [
   {
     id: 'pitch-deck',
     title: { en: 'Pitch deck', ar: 'العرض التقديمي' },
     description: {
-      en: 'What we are building, the market, the network and where we are going.',
-      ar: 'ما الذي نبنيه، والسوق، والشبكة، وإلى أين نتجه.',
+      en: 'Eleven slides: the problem, the app, the Connector network, pricing, trust and the team.',
+      ar: 'إحدى عشرة شريحة: المشكلة، والتطبيق، وشبكة الموصّلين، والأسعار، والثقة، والفريق.',
     },
-    file: null,
+    file: { en: '/media/shaheen-money-pitch-deck-en.pdf', ar: '/media/shaheen-money-pitch-deck-ar.pdf' },
   },
   {
     id: 'company-profile',
     title: { en: 'Company profile', ar: 'الملف التعريفي للشركة' },
     description: {
-      en: 'The company, its history, its people and how to reach us.',
-      ar: 'الشركة وتاريخها وفريقها وطريقة التواصل معنا.',
+      en: 'Five pages: who we are, what the app does, what it costs, and how to reach us.',
+      ar: 'خمس صفحات: من نحن، وماذا يفعل التطبيق، وكم يكلّف، وكيف تتواصل معنا.',
     },
-    file: null,
+    file: { en: '/media/shaheen-money-company-profile-en.pdf', ar: '/media/shaheen-money-company-profile-ar.pdf' },
   },
   {
     id: 'brand-guidelines',
@@ -153,10 +157,24 @@ export const documentSlots: DownloadSlot[] = [
   },
 ];
 
-export const resolvedDocuments = documentSlots.map((slot) => ({
+/** Both languages' files are checked at build time, whichever page asks. */
+const resolved = documentSlots.map((slot) => ({
   ...slot,
-  download: slot.file ? describe(slot.file, slot.title) : null,
+  downloads: slot.file ? { en: describe(slot.file.en, slot.title), ar: describe(slot.file.ar, slot.title) } : null,
 }));
+
+/** The documents a page in this language links to. */
+export const documentsFor = (locale: Locale) =>
+  resolved.map(({ downloads, ...slot }) => ({ ...slot, download: downloads ? downloads[locale] : null }));
+
+/**
+ * The app as it is: the owner's renders of the home screen, cropped to the
+ * screen (the same images the site shows, src/assets/app/).
+ */
+export const appScreens: DownloadFile[] = [
+  describe('/media/shaheen-money-app-iphone.png', { en: 'Home screen, iPhone (PNG)', ar: 'الشاشة الرئيسية، آيفون (PNG)' }),
+  describe('/media/shaheen-money-app-android.png', { en: 'Home screen, Android (PNG)', ar: 'الشاشة الرئيسية، أندرويد (PNG)' }),
+];
 
 /**
  * The palette a designer may use. Kept in step with design/tokens.json.

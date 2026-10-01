@@ -37,6 +37,16 @@ const t = home[locale].final;
       <Chapter n={n} label={common[locale].nav.getApp} />
       <h2 id="final-title" class="text-display-xl font-display close-title"><Emph text={t.title} /></h2>
       <p class="lead">{t.lead}</p>
+      <ol class="close-steps" aria-label={t.stepsLabel}>
+        {
+          t.steps.map((step, i) => (
+            <li class="close-step">
+              <span class="num close-step-n">{String(i + 1).padStart(2, '0')}</span>
+              <span>{step}</span>
+            </li>
+          ))
+        }
+      </ol>
       <div class="close-actions">
         <DownloadButton locale={locale} />
         <StoreBadges locale={locale} />
@@ -46,7 +56,7 @@ const t = home[locale].final;
         <TextLink href={href(locale, 'business')}>{t.connector}</TextLink>
       </div>
     </div>
-    <Device locale={locale} class="close-device" />
+    <Device locale={locale} pair class="close-device" />
   </div>
 </section>
 
@@ -86,6 +96,24 @@ const t = home[locale].final;
   }
   :global(:lang(ar)) .close-title {
     font-size: min(7vw, 7rem);
+  }
+  /* Download, create the account, receive: three steps on one hairline. */
+  .close-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 2rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid var(--line);
+    color: var(--fg-2);
+  }
+  .close-step {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  .close-step-n {
+    font-size: var(--text-label);
+    color: var(--accent);
   }
   .close-actions {
     display: flex;

@@ -2,27 +2,24 @@
 // In the browser: src/scripts/home/hero.ts (loaded once by the homepage).
 import FalconFlight from './FalconFlight.astro';
 import HeroAtlas from './HeroAtlas.astro';
-import UiShard from '../app/UiShard.astro';
 import DownloadButton from '../site/DownloadButton.astro';
 import Button from '../ui/Button.astro';
-import Stamp from '../ui/Stamp.astro';
 import Gap from '../ui/Gap.astro';
 import { home } from '../../copy/home';
 import { facts } from '../../data/facts';
 import { FRAMES } from '../../lib/atlas';
 import { formatNumber, formatUsd } from '../../lib/format';
 import { href, type Locale } from '../../i18n/config';
-import { cities } from '../../data/network-map';
-import { coords } from '../../lib/atlas';
+import { common } from '../../copy/common';
 
 /**
  * The first screen: "The Unfurl".
  *
  * The falcon (FalconFlight.astro, untouched) stoops in from the upper left
- * and lands on Amman on an engraved, borderless map. As it settles, each
- * of its five feathers draws out into the great circle it flew in on —
- * Toronto, New York, London, Paris, Berlin — and the first transfer runs
- * down a route into the falcon: the balance beside it takes +300.00.
+ * and lands on Amman on a quiet map: the land a soft tone on navy, only the
+ * five corridor cities named. As it settles, each of its five feathers
+ * draws out into the great circle it flew in on (Toronto, New York, London,
+ * Paris, Berlin) and a first transfer runs down a route into the falcon.
  *
  * The headline, the line under it and both controls are in the HTML and
  * visible from the first frame (no script, no wait on the art): LCP is the
@@ -30,8 +27,8 @@ import { coords } from '../../lib/atlas';
  * in forced colours. Reduced motion renders the final state.
  *
  * Composition: art across the top band, words across the bottom. In
- * Arabic the words move to the right and the app to the left; the map does
- * not mirror, because geography does not.
+ * Arabic the words move to the right; the map does not mirror, because
+ * geography does not.
  */
 interface Props {
   locale: Locale;
@@ -66,18 +63,11 @@ const split = (line: string) => {
   const i = line.lastIndexOf(' ');
   return [line.slice(0, i + 1), line.slice(i + 1)] as const;
 };
-const amman = cities.amman;
 ---
 
 <section class="hero t-night under-header" data-temp="night" aria-labelledby="hero-title" data-hero>
   <div class="page hero-content">
-    <div class="hero-marks">
-      <Stamp locale={locale} kind="corridors" tilt={-2} class="hero-stamp" />
-      <p class="hero-ticker label">
-        <span class="num" lang="en">{coords(amman.lon, amman.lat)}</span>
-        <span class="hero-ticker-city">{amman.name[locale]}</span>
-      </p>
-    </div>
+    <p class="hero-marks label">{common[locale].ui.stamp.corridors}</p>
 
     <div class="hero-copy">
       <h1 id="hero-title" class="hero-title">
@@ -139,10 +129,6 @@ const amman = cities.amman;
     </div>
     <div class="hero-vignette"></div>
   </div>
-
-  <div class="hero-shard" data-hero-shard>
-    <UiShard locale={locale} variant="balance" incoming stampTilt={-4} />
-  </div>
 </section>
 
 <style>
@@ -153,7 +139,9 @@ const amman = cities.amman;
     flex-direction: column;
     min-block-size: max(calc(100svh - var(--strip-h)), 40rem);
     overflow: clip;
-    background-color: var(--bg);
+    /* The brand navy, a step softer than the Night below it; the vignette
+       at the foot fades into --bg, so the two meet without an edge. */
+    background-color: var(--color-navy-800);
     color: var(--fg);
   }
   .hero-art {
@@ -270,18 +258,12 @@ const amman = cities.amman;
     flex: 1;
     padding-block: calc(var(--header-h) + 1.25rem) 1.5rem;
   }
-  /* The map's own marks stay on the map's side in both languages. */
+  /* The map's note stays on the map's side in both languages. */
   .hero-marks {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.75rem;
     justify-self: right;
+    color: var(--fg-3);
     opacity: 0;
     animation: marks-in 0.8s var(--ease-out) 3.3s forwards;
-  }
-  :global([dir='rtl']) .hero-marks {
-    align-items: flex-start;
   }
   @keyframes marks-in {
     from {
@@ -293,14 +275,6 @@ const amman = cities.amman;
       translate: 0 0;
     }
   }
-  .hero-ticker {
-    display: flex;
-    gap: 0.75rem;
-    color: var(--fg-2);
-  }
-  .hero-ticker-city {
-    color: var(--accent);
-  }
 
   .hero-copy {
     align-self: end;
@@ -310,13 +284,15 @@ const amman = cities.amman;
     gap: 1.5rem;
   }
   .hero-title {
-    font-size: min(7.2vw, 13.5svh);
+    /* Capped, so an ultra-wide screen still sets each sentence on one line
+       inside the page's measure. */
+    font-size: min(7.2vw, 13.5svh, 8.5rem);
     line-height: var(--lh-display-xl);
     letter-spacing: var(--ls-display-xl);
     color: var(--fg);
   }
   :global(:lang(ar)) .hero-title {
-    font-size: min(6.4vw, 12svh);
+    font-size: min(6.4vw, 12svh, 7.5rem);
     font-weight: 500;
   }
   @media (width >= 48rem) and (orientation: portrait) {
@@ -366,13 +342,6 @@ const amman = cities.amman;
     margin-inline-start: 0.75rem;
     color: var(--fg-3);
   }
-  /* Where the app shard comes close to the actions, the note moves under them. */
-  @media (width < 80rem) {
-    .hero-avail {
-      flex-basis: 100%;
-      margin-inline-start: 0;
-    }
-  }
   .hero-evidence {
     display: flex;
     flex-wrap: wrap;
@@ -404,52 +373,8 @@ const amman = cities.amman;
     background-color: var(--line-strong);
   }
 
-  /* ── The app, beside the falcon ────────────────────────────────────── */
-  .hero-shard {
-    position: absolute;
-    z-index: 1;
-    inset-block-end: -2.25rem;
-    inset-inline-end: var(--margin);
-    inline-size: clamp(17rem, 21vw, 21rem);
-    rotate: -3deg;
-    animation: shard-in 0.9s var(--ease-out) 2.55s both;
-  }
-  :global([dir='rtl']) .hero-shard {
-    rotate: 3deg;
-  }
-  @keyframes shard-in {
-    from {
-      opacity: 0;
-      translate: 0 2.5rem;
-    }
-    to {
-      opacity: 1;
-      translate: 0 0;
-    }
-  }
-  /* The +300.00 row lands when the first packet reaches the falcon. Its
-     space is reserved from the start, and it is uncovered (clip-path), not
-     faded: its text is never shown at a contrast below its final one. */
-  .hero-shard :global([data-shard-incoming]) {
-    animation: row-land 0.7s var(--ease-out) 3.35s both;
-  }
-  @keyframes row-land {
-    from {
-      clip-path: inset(0 0 100% 0 round 3cqw);
-      translate: 0 -0.75rem;
-    }
-    to {
-      clip-path: inset(0 0 0 0 round 3cqw);
-      translate: 0 0;
-    }
-  }
-
   /* ── Tablet and phone ──────────────────────────────────────────────── */
   @media (width < 64rem) {
-    .hero-shard {
-      inline-size: 16rem;
-      inset-block-end: -8rem;
-    }
     .hero-marks {
       display: none;
     }
@@ -499,18 +424,6 @@ const amman = cities.amman;
     .hero-scroll {
       display: none;
     }
-    /* The app waits below the fold and peeks in as the page moves. */
-    .hero-shard {
-      inset-block-end: auto;
-      inset-block-start: calc(100% + 1.5rem);
-      inline-size: 70vw;
-      translate: 0 calc(var(--p, 0) * -14rem);
-      animation: none;
-    }
-    /* Below the fold here: the row is simply there when the card arrives. */
-    .hero-shard :global([data-shard-incoming]) {
-      animation: none;
-    }
     .hero-avail {
       margin-inline-start: 0;
       align-self: center;
@@ -519,6 +432,93 @@ const amman = cities.amman;
   @media (height <= 44rem) and (width >= 48rem) {
     .hero-copy {
       gap: 1rem;
+    }
+  }
+  /* A phone on its side: the hero fits the screen instead of a 40rem
+     minimum. The wide map, with Amman pushed to the far side (the right, or
+     the left in Arabic), so the headline, kept to the other 58%, never meets
+     the falcon. The line under it and the buttons sit below the falcon and
+     may run wider. */
+  @media (orientation: landscape) and (height < 32rem) {
+    .hero {
+      min-block-size: max(calc(100svh - var(--strip-h)), 18rem);
+    }
+    .stage-wide {
+      display: block;
+    }
+    .stage-tall {
+      display: none;
+    }
+    .hero-zoom {
+      /* Amman's place across the hero. */
+      --ax: 78cqw;
+      --ox: var(--ax);
+      --oy: calc(100cqh * (0.396 * 1.05 - 0.025));
+    }
+    :global([dir='rtl']) .hero-zoom {
+      --ax: 30cqw;
+    }
+    .hero-stage {
+      --H: calc(100cqh * 1.05);
+      --W: calc(var(--H) * 1.6);
+      left: calc(var(--ax) - var(--W) * 0.628125);
+      top: calc(100cqh * -0.025);
+    }
+    .hero-falcon {
+      left: 50%;
+      top: 17%;
+      inline-size: 15%;
+    }
+    .hero-content {
+      grid-template-rows: 1fr auto;
+      padding-block-end: 1rem;
+    }
+    .hero-copy {
+      gap: 0.75rem;
+    }
+    .hero-title {
+      max-inline-size: 58%;
+      font-size: min(5.6vw, 12svh);
+    }
+    :global(:lang(ar)) .hero-title {
+      font-size: min(5vw, 10.5svh);
+    }
+    .hero-line {
+      display: block;
+    }
+    .hero-sub {
+      max-inline-size: 34em;
+      font-size: var(--text-body-s);
+    }
+    .hero-actions {
+      flex-direction: row;
+      align-self: auto;
+    }
+    .hero-actions :global(.btn),
+    .hero-actions :global(.dl-button) {
+      inline-size: auto;
+    }
+    .hero-scroll,
+    .hero-marks {
+      display: none;
+    }
+  }
+  /* The smallest phones on their side: room for the buttons, not the note. */
+  @media (orientation: landscape) and (height < 22rem) {
+    .hero-content {
+      padding-block-start: calc(var(--header-h) + 0.25rem);
+    }
+    .hero-copy {
+      gap: 0.5rem;
+    }
+    .hero-title {
+      font-size: min(5.2vw, 10svh);
+    }
+    :global(:lang(ar)) .hero-title {
+      font-size: min(4.6vw, 9svh);
+    }
+    .hero-avail {
+      display: none;
     }
   }
 </style>
