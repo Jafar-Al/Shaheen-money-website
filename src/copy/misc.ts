@@ -8,7 +8,6 @@ export const getApp = defineCopy({
     },
     title: 'Get *Shaheen Money*',
     lead: 'Available on iPhone and Android.',
-    scan: 'On a computer? Scan this code with your phone. It opens the right store.',
     official: 'Only install Shaheen Money from these links. Anywhere else could be a copy.',
   },
   ar: {
@@ -18,7 +17,6 @@ export const getApp = defineCopy({
     },
     title: 'حمّل *شاهين موني*',
     lead: 'متوفر على آيفون وأندرويد.',
-    scan: 'على الكمبيوتر؟ امسح الرمز بموبايلك، وبيفتحلك المتجر المناسب.',
     official: 'ثبّت شاهين موني من هالروابط بس. أي مكان تاني ممكن يكون نسخة مزيّفة.',
   },
 });

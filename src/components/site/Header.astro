@@ -63,7 +63,7 @@ const links: Array<{ key: PageKey; label: string; desc: string }> = [
 
     <div class="header-actions">
       <LocaleSwitch locale={locale} hrefs={localeHrefs} class="header-lang" />
-      <a href={downloadPath(locale)} class="header-cta" data-smart-download data-btn="solid">
+      <a href={downloadPath(locale)} class="header-cta" data-smart-download data-fallback={href(locale, 'getApp')} data-btn="solid">
         {t.getApp}
       </a>
       <button
@@ -102,7 +102,7 @@ const links: Array<{ key: PageKey; label: string; desc: string }> = [
     </nav>
     <div class="page mobile-thumb">
       <LocaleSwitch locale={locale} hrefs={localeHrefs} />
-      <a href={downloadPath(locale)} class="mobile-cta" data-smart-download data-btn="solid">{t.getApp}</a>
+      <a href={downloadPath(locale)} class="mobile-cta" data-smart-download data-fallback={href(locale, 'getApp')} data-btn="solid">{t.getApp}</a>
     </div>
   </div>
 </header>

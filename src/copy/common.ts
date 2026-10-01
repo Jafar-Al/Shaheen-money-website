@@ -67,10 +67,6 @@ export const common = defineCopy({
     },
     download: {
       label: 'Download the app',
-      dialogTitle: 'Scan to download',
-      dialogBody: 'Point your phone’s camera at the code. It opens the right store for your phone.',
-      or: 'Or open a store directly',
-      close: 'Close',
     },
     stores: {
       group: 'Download Shaheen Money',
@@ -159,10 +155,6 @@ export const common = defineCopy({
     },
     download: {
       label: 'حمّل التطبيق',
-      dialogTitle: 'امسح الرمز للتحميل',
-      dialogBody: 'وجّه كاميرا موبايلك على الرمز، وبيفتحلك المتجر المناسب لجهازك.',
-      or: 'أو افتح المتجر مباشرة',
-      close: 'إغلاق',
     },
     stores: {
       group: 'حمّل تطبيق شاهين موني',

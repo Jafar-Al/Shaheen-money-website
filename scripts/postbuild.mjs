@@ -47,8 +47,8 @@ const headerRoutes = [
   })),
 ];
 
-// One download link for every button, poster and QR code: phones go straight
-// to their store, everything else to the get-the-app page (QR + both stores).
+// One download link for every button and poster: phones go straight to their
+// store, everything else to the get-the-app page (both stores).
 const noStore = { 'Cache-Control': 'private, no-store', Vary: 'User-Agent' };
 const download = '^/(?:(?:en|ar)/)?download/?$';
 const downloadRoutes = [

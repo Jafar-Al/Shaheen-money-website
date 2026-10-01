@@ -8,7 +8,6 @@ import TrustStrip from '../components/site/TrustStrip.astro';
 import DevGaps from '../components/site/DevGaps.astro';
 import JsonLd from '../components/seo/JsonLd.astro';
 import BrandSprite from '../components/site/BrandSprite.astro';
-import DownloadDialog from '../components/site/DownloadDialog.astro';
 import { brand, contact, socials, SITE_URL } from '../config/site';
 import { common } from '../copy/common';
 import { facts } from '../data/facts';
@@ -85,8 +84,11 @@ const og = absoluteUrl(ogImage ?? `/og/${locale}${path === '/' ? '/index' : path
  * iPadOS reports itself as a Mac, and touch points are what give it away.
  * The test is `> 0`, not `> 1`: a Mac reports 0, every iPad reports 5, and
  * getting it wrong in that direction is the expensive one — an iPad shown
- * the desktop treatment is told to scan a QR code with its phone while it
- * is holding the device the app is for.
+ * the desktop treatment is sent to a page of store links while it is holding
+ * the device the app is for. The same goes for an Android phone whose
+ * browser is set to "Desktop site": it then reports a Linux desktop, but
+ * still has a touchscreen. (A Linux laptop with a touchscreen is sent to
+ * Google Play's web page, which does no harm.)
  *
  * The same script decides how much motion the visitor gets
  * (src/lib/motion/level.ts): reduced for prefers-reduced-motion, lite for
@@ -97,7 +99,7 @@ const og = absoluteUrl(ogImage ?? `/og/${locale}${path === '/' ? '/index' : path
  * hashed here and added to this page's CSP.
  */
 const platformScript =
-  "(function(){var d=document.documentElement,n=navigator,u=n.userAgent,i=/iPhone|iPad|iPod/.test(u)||(/Macintosh/.test(u)&&n.maxTouchPoints>0);d.dataset.platform=i?'ios':/Android/.test(u)?'android':'desktop';var c=n.connection,m=n.deviceMemory,h=n.hardwareConcurrency;d.dataset.motion=matchMedia('(prefers-reduced-motion: reduce)').matches?'reduced':(c&&c.saveData)||(m&&m<=2)||(h&&h<=4)?'lite':'full'})();";
+  "(function(){var d=document.documentElement,n=navigator,u=n.userAgent,i=/iPhone|iPad|iPod/.test(u)||(/Macintosh/.test(u)&&n.maxTouchPoints>0);d.dataset.platform=i?'ios':(/Android/.test(u)||(/X11; Linux/.test(u)&&n.maxTouchPoints>0))?'android':'desktop';var c=n.connection,m=n.deviceMemory,h=n.hardwareConcurrency;d.dataset.motion=matchMedia('(prefers-reduced-motion: reduce)').matches?'reduced':(c&&c.saveData)||(m&&m<=2)||(h&&h<=4)?'lite':'full'})();";
 Astro.csp?.insertScriptHash(`sha256-${createHash('sha256').update(platformScript).digest('base64')}`);
 
 const organization = {
@@ -216,7 +218,6 @@ const organization = {
       <slot />
     </main>
     <Footer locale={locale} localeHrefs={localeHrefs} />
-    <DownloadDialog locale={locale} />
     <DevGaps />
 
     <script>

@@ -124,7 +124,8 @@ test('the current section is marked on a sub-page', async ({ page }) => {
 // the page (hero, header, the closing call to action):
 //   · an iPhone or iPad goes straight to the App Store;
 //   · an Android phone or tablet goes straight to Google Play;
-//   · anything else opens the QR dialog rather than guessing.
+//   · a computer, which cannot know which store its owner's phone uses, goes
+//     to the "Get the app" page that shows both: no pop-up, no QR code.
 // And with JavaScript off, every one of them still points at /download,
 // which the edge resolves by user agent (scripts/postbuild.mjs).
 
@@ -190,17 +191,62 @@ test.describe('on an Android tablet', () => {
   });
 });
 
+test.describe('on an Android phone asking for the desktop site', () => {
+  // Chrome then reports a Linux desktop, but the screen is still a touchscreen.
+  const DESKTOP_MODE_UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+  test.use({ userAgent: DESKTOP_MODE_UA, viewport: { width: 980, height: 1800 }, hasTouch: true });
+  test('the download button still goes straight to Google Play', async ({ page }) => {
+    await page.goto('/en');
+    await expect(page.locator('html')).toHaveAttribute('data-platform', 'android');
+    await expect(page.locator(HERO_DOWNLOAD)).toHaveAttribute('href', /^https:\/\/play\.google\.com\//);
+  });
+});
+
 test.describe('on a computer', () => {
   test.use({ userAgent: WINDOWS_UA, viewport: { width: 1440, height: 900 } });
-  test('the download button opens the QR dialog and returns focus on close', async ({ page }) => {
-    await page.goto('/en');
-    await expect(page.locator('html')).toHaveAttribute('data-platform', 'desktop');
-    const button = page.locator(HERO_DOWNLOAD);
-    await button.click();
-    await expect(page.locator('#download-dialog')).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(page.locator('#download-dialog')).toBeHidden();
-    await expect(button).toBeFocused();
+  test('the download button goes to the page with both stores: no pop-up, no QR code', async ({ page }) => {
+    for (const [path, target] of [
+      ['/en', '/en/get-the-app'],
+      ['/ar', '/ar/get-the-app'],
+    ] as const) {
+      await page.goto(path);
+      await expect(page.locator('html')).toHaveAttribute('data-platform', 'desktop');
+      const button = page.locator(HERO_DOWNLOAD);
+      await expect(button).toHaveAttribute('href', target);
+      await button.click();
+      await expect(page).toHaveURL(new RegExp(target + '$'));
+      // Both stores, and nothing to scan.
+      await expect(page.locator('a[data-store="ios"]').first()).toBeVisible();
+      await expect(page.locator('a[data-store="android"]').first()).toBeVisible();
+      await expect(page.locator('.app-qr, dialog, [id*="qr"]')).toHaveCount(0);
+    }
+  });
+  test('no page carries a QR code or a download dialog', async ({ page }) => {
+    for (const path of ['/en', '/ar', '/en/get-the-app', '/ar/get-the-app']) {
+      await page.goto(path);
+      expect(await page.locator('dialog').count(), path).toBe(0);
+      expect(await page.locator('svg[shape-rendering="crispEdges"]').count(), path).toBe(0);
+    }
+  });
+});
+
+test.describe('the store badges show only your store on a phone', () => {
+  test.describe('iPhone', () => {
+    test.use({ userAgent: IOS_UA, viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    test('App Store only', async ({ page }) => {
+      await page.goto('/en/get-the-app');
+      // The page's badges and the footer's: all of them the App Store's, none Google Play's.
+      expect(await page.locator('a[data-store="ios"]:visible').count()).toBeGreaterThan(0);
+      await expect(page.locator('a[data-store="android"]:visible')).toHaveCount(0);
+    });
+  });
+  test.describe('Android', () => {
+    test.use({ userAgent: ANDROID_PHONE_UA, viewport: { width: 412, height: 915 }, hasTouch: true, isMobile: true });
+    test('Google Play only', async ({ page }) => {
+      await page.goto('/ar/get-the-app');
+      expect(await page.locator('a[data-store="android"]:visible').count()).toBeGreaterThan(0);
+      await expect(page.locator('a[data-store="ios"]:visible')).toHaveCount(0);
+    });
   });
 });
 

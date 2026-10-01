@@ -67,8 +67,10 @@ anyone can use on a phone, an iPad or a laptop. What changed:
   Media.
 - **One download button, no platform named.** "Download the app" on every
   device; it goes straight to the App Store on an iPhone or iPad and to
-  Google Play on Android, and on a computer opens a QR code that sends
-  whichever phone scans it to its own store. Tests cover an iPhone, an
+  Google Play on Android; on a computer it opens the "Get the app" page
+  with both stores. No pop-up and no QR code anywhere (the QR dialog and
+  the QR on that page are gone, at the owner's request), and on a phone the
+  Get the app page and the footer show only its own store. Tests cover an iPhone, an
   iPad, an Android phone, an Android tablet, a computer and JavaScript off.
 - **Zero commission, said once.** "Zero commission on Shaheen": receiving,
   sending and paying print as "No fee" on a receipt, dated; one sourced

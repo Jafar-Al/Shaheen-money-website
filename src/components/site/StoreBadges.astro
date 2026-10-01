@@ -6,7 +6,9 @@ import type { Locale } from '../../i18n/config';
 
 /**
  * Both store links as one grouped unit (audit P-10), drawn as hairline
- * tickets in the temperature's ink. Hrefs come only from src/config/site.ts;
+ * tickets in the temperature's ink. On an iPhone or iPad only the App Store
+ * shows, on Android only Google Play (html[data-platform], set before first
+ * paint); on a computer, both. Hrefs come only from src/config/site.ts;
  * scripts/check-dist.mjs verifies every rendered store link against that
  * allow-list (threat model A6).
  */
@@ -58,6 +60,10 @@ const t = common[locale].stores;
   .badge:hover {
     border-color: var(--fg);
     background-color: color-mix(in srgb, var(--fg) 6%, transparent);
+  }
+  :global(html[data-platform='ios']) .badge[data-store='android'],
+  :global(html[data-platform='android']) .badge[data-store='ios'] {
+    display: none;
   }
   .badge-text {
     display: flex;

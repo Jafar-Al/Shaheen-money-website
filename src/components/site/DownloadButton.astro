@@ -2,15 +2,17 @@
 import Icon from '../ui/Icon.astro';
 import { common } from '../../copy/common';
 import { downloadPath } from '../../config/download';
-import type { Locale } from '../../i18n/config';
+import { href, type Locale } from '../../i18n/config';
 
 /**
  * The one download button. One label, one glyph, on every device: it never
  * says iPhone or Android, because it does not have to. It works out the
- * visitor's device by itself and goes straight to the right store:
+ * visitor's device by itself and goes straight to the right store, with no
+ * choice and no pop-up:
  *   iPhone/iPad → App Store, Android → Google Play,
- *   computer    → a QR code to scan with the phone (the code opens the right
- *                 store for whichever phone scans it).
+ *   computer    → the "Get the app" page, which shows both stores (a
+ *                 computer is not the phone the app is for, so it cannot
+ *                 know which store to open).
  * The device is read from html[data-platform], decided before first paint by
  * the inline script in BaseLayout.astro; src/scripts/smart-download.ts then
  * points the link at the store. Without JavaScript the link still works:
@@ -34,6 +36,7 @@ const t = common[locale].download;
 <a
   href={downloadPath(locale)}
   data-smart-download
+  data-fallback={href(locale, 'getApp')}
   data-btn={variant}
   data-magnetic
   class:list={['btn', `btn-${variant}`, 'dl-button', block && 'btn-block', className]}
