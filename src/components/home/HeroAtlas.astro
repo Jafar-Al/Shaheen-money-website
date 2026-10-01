@@ -18,6 +18,7 @@ const { frame, locale } = Astro.props;
 const f = heroFrame(frame, locale);
 const vb = `0 0 ${f.w} ${f.h}`;
 const hatch = `hatch-${frame}`;
+const land = `land-${frame}`;
 const pitch = frame === 'wide' ? 5 : 3.2;
 
 // Label offsets around a dot, in frame units (screen space, never mirrored).
@@ -44,10 +45,12 @@ const intro = f.routes
       <pattern id={hatch} width={pitch * 4} height={pitch} patternUnits="userSpaceOnUse">
         <path d={`M0 ${pitch / 2}H${pitch * 4}`} class="atlas-hatch-line" shape-rendering="crispEdges" />
       </pattern>
+      {/* The coastline once: filled with hatching, then stroked. */}
+      <path id={land} class="atlas-land-shape" d={f.land} />
     </defs>
     <path class="atlas-graticule" d={f.graticule} />
-    <path class="atlas-land" d={f.land} fill={`url(#${hatch})`} />
-    <path class="atlas-coast" d={f.land} />
+    <use href={`#${land}`} class="atlas-land" fill={`url(#${hatch})`} />
+    <use href={`#${land}`} class="atlas-coast" />
   </svg>
 </div>
 
@@ -147,12 +150,16 @@ const intro = f.routes
     stroke-opacity: 0.26;
     stroke-width: 1;
   }
+  /* Fill and stroke come from the two <use>s that draw it; vector-effect is
+     not inherited, so the shared shape carries it. */
+  .atlas-land-shape {
+    vector-effect: non-scaling-stroke;
+  }
   .atlas-coast {
     fill: none;
     stroke: var(--color-white);
     stroke-opacity: 0.34;
     stroke-width: 0.75;
-    vector-effect: non-scaling-stroke;
   }
 
   /* ── Routes: the feathers drawn out ───────────────────────────────── */

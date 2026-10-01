@@ -128,7 +128,10 @@ export function feather(spec: FeatherSpec): Feather {
       if (side === accentSide && i === accentIndex) {
         accent = d;
         const l = Math.hypot(end[0] - c[0], end[1] - c[1]) || 1;
-        accentTip = { at: end, dir: [(end[0] - c[0]) / l, (end[1] - c[1]) / l] };
+        accentTip = {
+          at: end,
+          dir: [(end[0] - c[0]) / l, (end[1] - c[1]) / l],
+        };
       } else barbs.push(d);
     }
   }
@@ -139,4 +142,81 @@ export function feather(spec: FeatherSpec): Feather {
     accent,
     accentTip,
   };
+}
+
+export type FieldVariant = 'strip' | 'cover' | 'corner' | 'single';
+
+/**
+ * The layouts of a feather field (src/components/art/FeatherField.astro),
+ * seeded, so a page's feather is the same wherever it is drawn: in the page
+ * and in its share image (src/lib/og.ts).
+ */
+export function fieldSpecs(variant: FieldVariant, seed: string): { viewBox: string; specs: FeatherSpec[] } {
+  const r = rng(`${variant}:${seed}`);
+  const vary = (base: number, spread: number) => base + (r() - 0.5) * 2 * spread;
+
+  let viewBox: string;
+  const specs: FeatherSpec[] = [];
+
+  if (variant === 'strip') {
+    viewBox = '0 0 1600 420';
+    specs.push({
+      from: [vary(-120, 60), vary(360, 40)],
+      to: [vary(1690, 40), vary(110, 50)],
+      bow: vary(0.05, 0.03),
+      width: [vary(150, 25), vary(80, 20)],
+      barbs: 160,
+      angle: vary(28, 4),
+      curl: 0.14,
+      seed: `${seed}-a`,
+    });
+    specs.push({
+      from: [vary(700, 200), vary(470, 20)],
+      to: [vary(1640, 40), vary(300, 50)],
+      bow: vary(-0.04, 0.02),
+      width: [vary(40, 10), vary(28, 8)],
+      barbs: 70,
+      angle: vary(32, 4),
+      curl: 0.12,
+      seed: `${seed}-b`,
+    });
+  } else if (variant === 'cover') {
+    viewBox = '0 0 400 300';
+    const fromY = vary(300, 30);
+    specs.push({
+      from: [vary(20, 20), fromY],
+      to: [vary(385, 20), vary(40, 30)],
+      bow: vary(0.07, 0.05),
+      width: [vary(78, 18), vary(48, 12)],
+      barbs: 72,
+      angle: vary(34, 6),
+      curl: vary(0.18, 0.06),
+      seed,
+    });
+  } else if (variant === 'corner') {
+    viewBox = '0 0 900 900';
+    specs.push({
+      from: [vary(980, 30), vary(1010, 30)],
+      to: [vary(110, 40), vary(120, 60)],
+      bow: vary(0.07, 0.03),
+      width: [vary(250, 30), vary(150, 25)],
+      barbs: 150,
+      angle: vary(30, 3),
+      curl: 0.16,
+      seed,
+    });
+  } else {
+    viewBox = '0 0 600 600';
+    specs.push({
+      from: [80, 560],
+      to: [540, 60],
+      bow: 0.06,
+      width: [110, 64],
+      barbs: 110,
+      angle: 32,
+      curl: 0.16,
+      seed,
+    });
+  }
+  return { viewBox, specs };
 }

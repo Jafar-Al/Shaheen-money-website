@@ -4,7 +4,18 @@
     {
       "name": "shaheen-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 4321
+    },
+    {
+      "name": "shaheen-prod",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/serve.mjs"
+      ],
       "port": 4321
     }
   ]

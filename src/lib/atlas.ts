@@ -156,11 +156,16 @@ export function heroFrame(id: FrameId, locale: Locale): HeroFrame {
   const projection = geoEqualEarth().rotate([-spec.centreLon, 0]).scale(spec.scale).translate([0, 0]).precision(0.6);
   const [ax, ay] = projection([cities.amman.lon, cities.amman.lat])!;
   projection.translate([A[0] - ax, A[1] - ay]);
-  // Keep land well past the frame: the art is laid out to cover any aspect
-  // ratio, and the scroll-out zoom pushes past the edges.
+  // Keep land past the frame only where a screen can see it. The wide stage
+  // slides sideways and wider screens see more of the world beside it, but
+  // it always spans the hero's height; the tall stage always covers its
+  // hero. The scroll-out zoom only closes in. A 6% margin covers the pointer
+  // parallax. (Clipping the rest keeps the inline map, which comes before
+  // nothing but is still bytes, about half the size.)
+  const side = id === 'wide' ? 0.6 : 0.06;
   projection.clipExtent([
-    [-W * 0.6, -H * 0.5],
-    [W * 1.6, H * 1.6],
+    [-W * side, -H * 0.06],
+    [W * (1 + side), H * 1.06],
   ]);
   const path = geoPath(projection).digits(1);
   const project = (lon: number, lat: number) => projection([lon, lat]) as Pt;

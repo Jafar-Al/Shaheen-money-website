@@ -33,3 +33,13 @@ export function scrubbing(): boolean {
 export function onMotionChange(callback: () => void): void {
   reducedQuery.addEventListener('change', callback);
 }
+
+/**
+ * Runs `fn` once the first frame is on screen. Motion set-up reads layout
+ * (what is in view, how tall a track is); done earlier it holds up the first
+ * paint, and with it the headline, the largest paint on most pages. A frame
+ * callback runs just before a frame is drawn; the task it queues, after.
+ */
+export function afterFirstPaint(fn: () => void): void {
+  requestAnimationFrame(() => setTimeout(fn, 0));
+}

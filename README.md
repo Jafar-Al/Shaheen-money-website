@@ -25,9 +25,9 @@ Node 22.12+ (see `.nvmrc`). Copy `.env.example` to `.env` if you need any of the
 | `src/copy/*.ts` | All visitor-facing text, English and Arabic side by side. `defineCopy` makes the Arabic a type error if it drifts from the English. Register: warm Levantine for marketing, Modern Standard Arabic for security, pricing, forms and legal. |
 | `src/data/facts.ts` | **The only place claims about the company live** (licence, fees, ratings, Connector numbers…). Every number must carry a source and an as-of date. Empty facts render nothing in production. |
 | `src/data/stats.ts` | Third-party figures (World Bank, UN), each checked against its source. |
-| `src/data/network-map.ts` | Cities and corridors on the homepage globe. |
+| `src/data/network-map.ts` | Cities and corridors on the hero atlas and the network globe. |
 | `src/content/blog/`, `src/content/legal/` | Markdown. Same slug in `en/` and `ar/` = translations of each other. |
-| `design/tokens.json` | The design system. `npm run tokens` regenerates `src/styles/tokens.css` and fails if any colour pair misses WCAG contrast. |
+| `design/tokens.json` | The design system's values. `npm run tokens` regenerates `src/styles/tokens.css` and fails if any colour pair misses WCAG contrast or any colour is purple. **`docs/DESIGN.md`** explains the system (The Feather Line): the idea, colour, type, motion and the decisions behind them. |
 | `src/config/` | Site constants (store links, socials), security headers, legacy redirects, the download link. |
 | `src/lib/forms/` | The form endpoints' server side: strict schemas, rate limiting, delivery. |
 
@@ -55,19 +55,10 @@ The header is four plain links and one action. There are no dropdown panels left
 
 It serves two visitors (the product owner's brief), and the first never has to scroll past anything belonging to the second:
 
-1. **The one who came to download.** The Shaheen falcon — the real mark, vectorised from the brand file — stoops in from the upper left, pulls out of the dive and folds its feathers into the logo in the centre (`src/components/home/FalconFlight.astro`, CSS only, once, ~1.6 s, transform/opacity only, respects reduced motion). Under it one slogan, one line saying what this is, and **one download button** that knows the device: iPhone/iPad → App Store, Android → Google Play, computer → a QR code to scan with the phone. Beside it, a quieter control for the second visitor. The button is in the first screen on every size from a 320×568 phone to a 4K television.
-2. **The one who wants to understand first.** Why Shaheen (sourced figures), how it works, how cash comes out, the network, what it costs, and the questions we are asked most — in the order people ask them, each answerable without leaving the page.
+1. **The one who came to download.** The Shaheen falcon flies in and lands on Amman on an engraved atlas, and its feathers run out as routes to the cities people send from (`src/components/home/Hero.astro`, `HeroAtlas.astro`; the atlas is drawn at build time from `src/lib/atlas.ts`). The falcon animation itself is untouched (`FalconFlight.astro`). Over it, the slogan, one line saying what this is, and **one download button** that knows the device: iPhone/iPad → App Store, Android → Google Play, computer → a QR code to scan with the phone. Beside it, a quieter control for the second visitor. The real app, rebuilt from the owner's screenshots and stamped *Illustrative*, sits in the corner with its balance counting up.
+2. **The one who wants to understand first.** Numbered chapters, in the order people ask: why Shaheen (sourced figures), how it works (a pinned scene that walks the app through a transfer), cash out (the card flips from the app's code to the cash, and the page turns from Night to Paper), the network, what it costs, the questions we are asked most, the latest posts, and the download. Chapters whose content does not exist yet (customer voices) do not render, and the numbering follows.
 
-Two of those sections carry a drawn graphic rather than a list, because in both cases the picture *is* the argument:
-
-- **`CostGap.astro`** — the two cost figures in `src/data/stats.ts` measure the same thing, so they are one bar rather than two tiles the reader has to compare in their head: the recessive part is the UN's 2030 target, the solid part is everything charged above it. More than half the bar should not be there. One hue at two steps, so it survives colour-blindness; drawn as SVG geometry because the CSP has no `unsafe-inline` for styles and a `style="width:47%"` would not paint.
-- **`Journey.astro`** — the four steps as one connected run, the line warming from navy to cyan as it travels, and a cyan ring on *Cash out* because that is the step no card and no other wallet offers. It flips from a vertical timeline on a phone to a horizontal run on a tablet and up from the same markup.
-
-Sections rise in as they are reached (`src/scripts/reveal.ts`). That is built so content can never be stranded invisible: only an element the script has *started observing* is hidden, the attribute that hides it is one only the script sets, and a timeout clears anything still pending after four seconds. No script, a thrown error, a print, or forced colours — everything renders.
-
-Behind the falcon, `src/components/home/HeroBackdrop.astro` draws the world at night: the earth's limb curving across the lower third, the atmosphere as a glow ring concentric with the planet, and the corridors from `src/data/network-map.ts` arcing between lit cities — the same great circles the network globe draws further down, so the hero is a close-up of the product rather than decoration. The projection is aimed deliberately: with the sphere's centre that far below the frame only a narrow angular band is in shot, and it is pointed so that eleven of the fourteen corridor cities fall inside it.
-
-It costs one inline SVG of build-time path data and a 400-byte CSS data URI — no image request, no script, no animation and no blur filter, so every layer is a gradient or a stroke the compositor handles without repaint. It is `aria-hidden`, nothing exceeds 22% alpha over navy (white body text stays above 6.5:1 at the brightest point of the glow), and it is dropped entirely in forced-colours mode. **The falcon animation itself is untouched**; the only change to `FalconFlight.astro` is the stage's size on short viewports.
+The design system behind it (The Feather Line) is written up in **`docs/DESIGN.md`**: two temperatures (Night for the digital world, Paper for cash and reading), Instrument Serif with one italic word per headline, Noto Naskh Arabic chosen by specimen, hairlines instead of cards, and motion in six verbs built on CSS and a few small modules in `src/lib/motion/` (no animation library). Sections land as they are reached, built so content can never be stranded invisible: only an element the script has *started observing* is hidden, and a timeout clears anything still pending after four seconds. Reduced motion shows every final state.
 
 The universal download link is **`https://shaheen.money/download`** — use it on posters, in Connector shops and in QR codes. The edge sends phones to their store and everyone else to `/en/get-the-app` (or `/ar/download` → `/ar/get-the-app`), and answers `Vary: User-Agent` so no shared cache serves one device's answer to another.
 
@@ -123,11 +114,11 @@ pixel. See `motion/README.md`.
 | Command | Checks |
 |---|---|
 | `npm run tokens -- --check` | Tokens are current; every colour pair meets its WCAG threshold; banned pairs (cyan on white, blue on navy) still fail. |
-| `npm run lint:styles` | No arbitrary Tailwind values, no physical left/right utilities (RTL), only token radii and shadows, no gradient text, no cyan on light, no em dashes in Arabic copy. |
+| `npm run lint:styles` | No arbitrary Tailwind values, no physical left/right utilities (RTL), only the 2px and pill radii and the one paper shadow, no glass, no gradient text, no Signal cyan on Paper, never the retired `#1400FF`, no em dashes in Arabic copy. |
 | `npm run check` | TypeScript, strictest. |
 | `npm run check:dist` | On the built HTML: lang/dir, unique titles, descriptions, absolute canonicals, reciprocal hreflang with x-default, an OG image that exists for every page, alt + width + height on every image, no inline handlers/`style=`/`javascript:`, every internal link resolves, store links match the allow-list, the old fake "live" counter can never return, and budgets (images, CSS, JS, fonts per locale). |
-| `npm test` | Playwright: axe WCAG 2.2 AA on every page in both languages, no horizontal overflow at 320/390/768/1024/1440, first-party requests only and no cookies, no CSP violations, security headers, language switch keeps the page, skip link, mobile menu focus handling, dropdowns, the smart download on iPhone/Android/desktop, the falcon ending exactly on the mark, and the forms end to end. Locally: `PW_CHANNEL=msedge npm test` uses an installed browser. |
-| Lighthouse CI | Mobile, simulated 4G: LCP < 1.8 s, CLS < 0.05, TBT < 200 ms, page < 500 KB, images < 150 KB, JS < 120 KB, CSS < 40 KB, fonts < 120 KB, zero third parties. |
+| `npm test` | Playwright: axe WCAG 2.2 AA on every page in both languages, no horizontal overflow at 320/390/768/1024/1440, first-party requests only and no cookies, no CSP violations, security headers, language switch keeps the page, skip link, mobile menu focus handling, the smart download on iPhone/Android/desktop, the falcon ending at rest, the hero headline never hidden behind an entrance, axe inside the pinned scene with full motion, **no purple anywhere** (every computed colour and stylesheet colour on every page, with a self-test), and the forms end to end. Locally: `PW_CHANNEL=msedge npm test` uses an installed browser. |
+| Lighthouse CI | Mobile on a 4G profile (9 Mbps, 170 ms RTT, 4× CPU; the brief's "mid-tier mobile over 4G"): LCP ≤ 2.0 s, CLS < 0.02, TBT < 200 ms, page < 500 KB, images < 150 KB, JS < 120 KB, CSS < 40 KB, fonts < 120 KB, zero third parties. Measured numbers, before and after the redesign, are in `design-review/final.md`. |
 | `npm run check:launch` | What the company must still supply (see below). Runs on `main` in CI. |
 
 ## Before launch
@@ -153,9 +144,9 @@ Import the repository; the Astro preset runs `npm run build`, which also writes 
 - **`line-strong` border is 50% navy, not the audit's 32%**, which composites to ~2.2:1 and fails WCAG 1.4.11. The token build proves 3.52:1.
 - **Smallest button is 44 px, not 40 px** — the audit also sets 44 px as the minimum target.
 - **Hero** follows the product owner's direction (falcon, one slogan, one smart button) rather than the audit's eyebrow/subhead layout; the audit's evidence row is kept and appears when its facts exist.
-- **No persona photos or mock app screens.** The legacy persona images look generated, and the brief was "no AI look". Audiences and features are typographic; real photography can be added through `src/components/media/Photo.astro` (AVIF/WebP, sizes, dimensions enforced).
+- **No persona photos, no invented app screens.** The legacy persona images look generated, and the brief was "no AI look". The app appears only as rebuilt from the owner's own screenshots, in HTML, stamped *Illustrative*, with one consistent set of example amounts. Real photography can be added through `src/components/media/Photo.astro` (AVIF/WebP, sizes, dimensions enforced).
 - **Analytics is off by default** and cookieless when enabled (`PUBLIC_ANALYTICS_*`), so no consent banner is needed.
 
 ## Scripts that touch brand files
 
-`scripts/brand/trace-logo.mjs` (falcon PNG → SVG, needs `npx -p potrace@2`), `npm run icons` (favicons and app icons from the SVG), `npm run media` (the press-kit files in `public/media/`), `npm run fonts` (vendors and subsets the web fonts; English pages load 2 files / 76.5 KB, Arabic 3 files / 106.3 KB). Original downloads are kept in `brand-source/`.
+`scripts/brand/trace-logo.mjs` (falcon PNG → SVG, needs `npx -p potrace@2`), `npm run icons` (favicons and app icons from the SVG), `npm run media` (the press-kit files in `public/media/`), `npm run fonts` (vendors and subsets the web fonts; English pages load 4 files / 76.8 KB, Arabic 4 files / 84.5 KB). Original downloads are kept in `brand-source/`.

@@ -1,4 +1,5 @@
 ---
+// In the browser: src/scripts/header.ts (part of BaseLayout's one script).
 import Logo from './Logo.astro';
 import LocaleSwitch from './LocaleSwitch.astro';
 import Icon from '../ui/Icon.astro';
@@ -329,7 +330,3 @@ const links: Array<{ key: PageKey; label: string; desc: string }> = [
     }
   }
 </style>
-
-<script>
-  import '../../scripts/header';
-</script>

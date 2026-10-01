@@ -80,6 +80,12 @@ for (const [width, height] of viewports) {
     count++;
     if (full && (width === 390 || width === 1440)) {
       await settle(page);
+      // Chapters with content-visibility: auto render as a reader scrolls to
+      // them; a full-page capture never scrolls, so draw them all first.
+      await page.evaluate(() =>
+        document.querySelectorAll('.cv-auto').forEach((el) => el.style.setProperty('content-visibility', 'visible')),
+      );
+      await page.waitForTimeout(300);
       await page.screenshot({ path: join(out, `${slug(path)}@${width}-full.jpg`), type: 'jpeg', quality: 60, fullPage: true });
       count++;
     }

@@ -159,6 +159,7 @@ const qr = (
 
 <script>
   import { initParallax } from '../../lib/motion/pointer';
+  import { afterFirstPaint } from '../../lib/motion/level';
   const hero = document.querySelector<HTMLElement>('[data-app-hero]');
-  if (hero) initParallax(hero);
+  if (hero) afterFirstPaint(() => initParallax(hero));
 </script>

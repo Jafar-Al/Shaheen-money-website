@@ -39,6 +39,10 @@ export default defineConfig({
   redirects: legacyRedirects,
   trailingSlash: 'ignore',
   compressHTML: true,
+  // Each page's CSS travels inside its HTML (Astro hashes it into the page's
+  // CSP): no render-blocking stylesheet requests between the document and
+  // the first paint. Pages carry 12–25 KB of it, compressed.
+  build: { inlineStylesheets: 'always' },
   // Scoped styles travel with a `class` passed to a child component, so a
   // parent can place and size the components it uses (Stamp, Slip, Icon…).
   scopedStyleStrategy: 'class',
@@ -119,7 +123,7 @@ export default defineConfig({
       provider: fontProviders.local(),
       name: 'IBM Plex Sans Arabic',
       cssVariable: '--font-plex-arabic',
-      fallbacks: [],
+      fallbacks: ['sans-serif'],
       options: {
         variants: [
           { src: ['./src/assets/fonts/ibm-plex-sans-arabic-400.woff2'], weight: 400, style: 'normal', unicodeRange: ARABIC_LATIN },

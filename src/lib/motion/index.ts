@@ -14,6 +14,7 @@
 import { initReveal } from './reveal';
 import { initCounts } from './count';
 import { initMagnetic } from './pointer';
+import { afterFirstPaint } from './level';
 
 function initAmbient(): void {
   const ambient = [...document.querySelectorAll<HTMLElement>('[data-ambient]')];
@@ -36,7 +37,10 @@ function initAmbient(): void {
   document.addEventListener('visibilitychange', sync);
 }
 
-initReveal();
-initCounts();
-initMagnetic();
-initAmbient();
+// After the first frame: everything above reads layout.
+afterFirstPaint(() => {
+  initReveal();
+  initCounts();
+  initMagnetic();
+  initAmbient();
+});

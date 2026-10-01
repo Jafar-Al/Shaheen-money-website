@@ -1,4 +1,5 @@
 ---
+// In the browser: src/scripts/home/faq.ts (loaded once by the homepage).
 import Chapter from '../ui/Chapter.astro';
 import Emph from '../ui/Emph.astro';
 import Accordion from '../ui/Accordion.astro';
@@ -40,7 +41,7 @@ const items = t.items.map((item) => ({
 }));
 ---
 
-<section id="faq" class="faq t-paper grain" data-temp="paper" aria-labelledby="faq-title">
+<section id="faq" class="faq t-paper grain cv-auto" data-temp="paper" aria-labelledby="faq-title">
   <div class="page rhythm faq-grid">
     <header class="faq-head">
       <Chapter n={n} label={t.label} />
@@ -140,26 +141,3 @@ const items = t.items.map((item) => ({
     }
   }
 </style>
-
-<script>
-  // Filter: an enhancement only. Without it every question is listed.
-  const root = document.querySelector<HTMLElement>('[data-faq]');
-  const label = root?.querySelector<HTMLElement>('[data-faq-filter]');
-  const input = label?.querySelector('input');
-  const empty = root?.querySelector<HTMLElement>('[data-faq-empty]');
-  if (root && label && input && empty) {
-    label.hidden = false;
-    const items = [...root.querySelectorAll<HTMLDetailsElement>('[data-acc-item]')];
-    const text = items.map((d) => d.textContent?.toLocaleLowerCase() ?? '');
-    input.addEventListener('input', () => {
-      const words = input.value.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
-      let shown = 0;
-      items.forEach((item, i) => {
-        const match = words.every((w) => text[i]!.includes(w));
-        item.hidden = !match;
-        if (match) shown++;
-      });
-      empty.hidden = shown > 0;
-    });
-  }
-</script>

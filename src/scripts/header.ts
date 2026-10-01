@@ -8,6 +8,8 @@
  *  · Mobile sheet: aria-expanded + aria-controls, focus trapped while open,
  *    Esc closes, focus returns to the toggle, following a link closes it.
  */
+import { afterFirstPaint } from '../lib/motion/level';
+
 const header = document.querySelector<HTMLElement>('[data-site-header]');
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -35,7 +37,9 @@ if (header) {
   };
   window.addEventListener('scroll', schedule, { passive: true });
   window.addEventListener('resize', schedule, { passive: true });
-  update();
+  // The first state is rendered on the server (BaseLayout's temp); measure
+  // only once the first frame is up, for a page that opens scrolled.
+  afterFirstPaint(update);
 
   // ── Mobile sheet ────────────────────────────────────────────────────
   const toggle = header.querySelector<HTMLButtonElement>('[data-menu-toggle]');

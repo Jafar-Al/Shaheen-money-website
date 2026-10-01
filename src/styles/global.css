@@ -760,6 +760,20 @@
   --dir: -1;
 }
 
+/* ── Below the fold: skip rendering until a chapter comes near ─────────── */
+/* The homepage's chapters after the hero are laid out and painted only as
+   they approach the viewport. `auto` remembers each one's real height once
+   it has been drawn, so the estimate below is only ever a first guess. */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1000px;
+}
+@media print {
+  .cv-auto {
+    content-visibility: visible;
+  }
+}
+
 /* ── Reduced motion ───────────────────────────────────────────────────── */
 /* Movement goes; 150ms opacity fades stay so the interface still answers. */
 @media (prefers-reduced-motion: reduce) {

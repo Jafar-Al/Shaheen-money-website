@@ -123,7 +123,7 @@ const organization = {
 ---
 
 <!doctype html>
-<html lang={locale} dir={meta.dir}>
+<html lang={locale} dir={meta.dir} data-fonts={bothScripts ? 'both' : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -166,13 +166,17 @@ const organization = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={og} />
 
-    {/* Four files per locale; only the display face is preloaded (it sets
-         the headline, the largest paint on every page). */}
+    {/* Four files per locale. The display face is preloaded (it sets the
+         headline, the largest paint on every page); in Arabic, so is the
+         body face's regular weight. */}
     {
       locale === 'ar' ? (
         <>
           <Font cssVariable="--font-naskh" preload />
-          <Font cssVariable="--font-plex-arabic" />
+          {/* The body face too (400 only), against the brief's "display face
+               only": Arabic system fonts wrap differently from Plex even with
+               adjusted metrics, and a late swap measured CLS 0.10 on /ar/about. */}
+          <Font cssVariable="--font-plex-arabic" preload={[{ weight: 400 }]} />
           <Font cssVariable="--font-geist-mono" />
         </>
       ) : (
@@ -216,6 +220,10 @@ const organization = {
     <DevGaps />
 
     <script>
+      // Everything every page needs, as one module: the header, the language
+      // switch, the download button, motion, analytics.
+      import '../scripts/header';
+      import '../scripts/locale-switch';
       import '../scripts/smart-download';
       import '../lib/motion/index';
       import '../scripts/analytics';

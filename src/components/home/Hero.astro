@@ -1,4 +1,5 @@
 ---
+// In the browser: src/scripts/home/hero.ts (loaded once by the homepage).
 import FalconFlight from './FalconFlight.astro';
 import HeroAtlas from './HeroAtlas.astro';
 import UiShard from '../app/UiShard.astro';
@@ -69,19 +70,6 @@ const amman = cities.amman;
 ---
 
 <section class="hero t-night under-header" data-temp="night" aria-labelledby="hero-title" data-hero>
-  <div class="hero-art" aria-hidden="true" data-art data-ambient>
-    <div class="hero-zoom">
-      <div class="hero-stage stage-wide"><HeroAtlas frame="wide" locale={locale} /></div>
-      <div class="hero-stage stage-tall"><HeroAtlas frame="tall" locale={locale} /></div>
-      <div class="hero-stage stage-falcon">
-        <div class="hero-falcon" data-parallax="6">
-          <FalconFlight />
-        </div>
-      </div>
-    </div>
-    <div class="hero-vignette"></div>
-  </div>
-
   <div class="page hero-content">
     <div class="hero-marks">
       <Stamp locale={locale} kind="corridors" tilt={-2} class="hero-stamp" />
@@ -135,6 +123,21 @@ const amman = cities.amman;
       <span class="hero-scroll-rule" aria-hidden="true"></span>
       <span class="num" aria-hidden="true">01/{String(chapters).padStart(2, '0')}</span>
     </a>
+  </div>
+
+  {/* The art follows the words in the source: the headline (the page's
+       largest paint) arrives before the map's bytes. Stacking is by z-index. */}
+  <div class="hero-art" aria-hidden="true" data-art data-ambient>
+    <div class="hero-zoom">
+      <div class="hero-stage stage-wide"><HeroAtlas frame="wide" locale={locale} /></div>
+      <div class="hero-stage stage-tall"><HeroAtlas frame="tall" locale={locale} /></div>
+      <div class="hero-stage stage-falcon">
+        <div class="hero-falcon" data-parallax="6">
+          <FalconFlight />
+        </div>
+      </div>
+    </div>
+    <div class="hero-vignette"></div>
   </div>
 
   <div class="hero-shard" data-hero-shard>
@@ -425,17 +428,18 @@ const amman = cities.amman;
     }
   }
   /* The +300.00 row lands when the first packet reaches the falcon. Its
-     space is reserved from the start: transform and opacity only. */
+     space is reserved from the start, and it is uncovered (clip-path), not
+     faded: its text is never shown at a contrast below its final one. */
   .hero-shard :global([data-shard-incoming]) {
     animation: row-land 0.7s var(--ease-out) 3.35s both;
   }
   @keyframes row-land {
     from {
-      opacity: 0;
+      clip-path: inset(0 0 100% 0 round 3cqw);
       translate: 0 -0.75rem;
     }
     to {
-      opacity: 1;
+      clip-path: inset(0 0 0 0 round 3cqw);
       translate: 0 0;
     }
   }
@@ -498,6 +502,10 @@ const amman = cities.amman;
       translate: 0 calc(var(--p, 0) * -14rem);
       animation: none;
     }
+    /* Below the fold here: the row is simply there when the card arrives. */
+    .hero-shard :global([data-shard-incoming]) {
+      animation: none;
+    }
     .hero-avail {
       margin-inline-start: 0;
       align-self: center;
@@ -509,29 +517,3 @@ const amman = cities.amman;
     }
   }
 </style>
-
-<script>
-  import { scene } from '../../lib/motion/scenes';
-  import { initParallax } from '../../lib/motion/pointer';
-  import { countUp } from '../../lib/motion/count';
-  import { motionLevel } from '../../lib/motion/level';
-
-  const hero = document.querySelector<HTMLElement>('[data-hero]');
-  if (hero) {
-    initParallax(hero);
-    if (motionLevel() !== 'reduced') scene(hero, 'exit', (p) => hero.toggleAttribute('data-zoom', p > 0.002));
-
-    // The balance receives the +300.00 as the first packet lands.
-    const amount = hero.querySelector<HTMLElement>('[data-shard-amount]');
-    if (amount && motionLevel() !== 'reduced') {
-      const final = amount.textContent?.trim() ?? '';
-      amount.textContent = '940.00';
-      window.setTimeout(async () => {
-        amount.classList.add('is-flash');
-        amount.dataset.count = final;
-        await countUp(amount, 940, 650);
-        window.setTimeout(() => amount.classList.remove('is-flash'), 240);
-      }, 3400);
-    }
-  }
-</script>

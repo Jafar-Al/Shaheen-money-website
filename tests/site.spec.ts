@@ -241,13 +241,27 @@ test('the edge sends /download to the right store by user agent', async ({ playw
   }
 });
 
-// ── The falcon lands exactly on the mark ────────────────────────────────
-test('the hero backdrop is inert (no animation behind the falcon)', async ({ page }) => {
+// ── The hero: an atlas behind the falcon, decorative and calm ───────────
+test('the hero atlas is hidden from assistive technology and still under reduced motion', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/en');
-  const animated = await page.$$eval('.hero-backdrop, .hero-backdrop *', (els) =>
-    els.map((el) => getComputedStyle(el).animationName).filter((n) => n !== 'none'),
+  await expect(page.locator('[data-hero] .hero-art')).toHaveAttribute('aria-hidden', 'true');
+  await page.waitForTimeout(300);
+  // Routes, packets and the falcon all go straight to their final frame.
+  const running = await page.evaluate(
+    () =>
+      document
+        .getAnimations()
+        .filter((a) => a.playState === 'running' && ((a.effect as KeyframeEffect | null)?.target as Element | null)?.closest('.hero-art'))
+        .length,
   );
-  expect(animated).toEqual([]);
+  expect(running).toBe(0);
+});
+
+test('the hero headline is not hidden behind an entrance (it is the LCP)', async ({ page }) => {
+  await page.goto('/en');
+  const opacity = await page.locator('#hero-title').evaluate((el) => getComputedStyle(el).opacity);
+  expect(Number(opacity)).toBe(1);
 });
 
 test('hero falcon ends at rest (no leftover transform)', async ({ page }) => {

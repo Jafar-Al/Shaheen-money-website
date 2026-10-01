@@ -1,4 +1,5 @@
 ---
+// In the browser: src/scripts/locale-switch.ts (part of BaseLayout's one script).
 import { common } from '../../copy/common';
 import { localeMeta, type Locale } from '../../i18n/config';
 
@@ -107,13 +108,3 @@ const short: Record<Locale, string> = { en: 'EN', ar: 'ع' };
     color: var(--fg-2);
   }
 </style>
-
-<script>
-  for (const group of document.querySelectorAll<HTMLElement>('[data-locale-switch]')) {
-    group.querySelector('[data-lang-link]')?.addEventListener('click', () => group.classList.add('is-switching'));
-  }
-  // Coming back through the back/forward cache: undo the half-finished switch.
-  window.addEventListener('pageshow', () => {
-    for (const group of document.querySelectorAll('[data-locale-switch]')) group.classList.remove('is-switching');
-  });
-</script>

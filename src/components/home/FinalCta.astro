@@ -1,4 +1,5 @@
 ---
+// In the browser: src/scripts/home/close.ts (loaded once by the homepage).
 import Chapter from '../ui/Chapter.astro';
 import Emph from '../ui/Emph.astro';
 import TextLink from '../ui/TextLink.astro';
@@ -26,7 +27,7 @@ const { locale, n } = Astro.props;
 const t = home[locale].final;
 ---
 
-<section id="download" class="close t-night grain" data-temp="night" aria-labelledby="final-title" data-close>
+<section id="download" class="close t-night grain cv-auto" data-temp="night" aria-labelledby="final-title" data-close>
   <div class="close-field" aria-hidden="true">
     <FeatherField seed="download" variant="strip" follow />
   </div>
@@ -113,9 +114,3 @@ const t = home[locale].final;
     }
   }
 </style>
-
-<script>
-  import { initParallax } from '../../lib/motion/pointer';
-  const close = document.querySelector<HTMLElement>('[data-close]');
-  if (close) initParallax(close);
-</script>

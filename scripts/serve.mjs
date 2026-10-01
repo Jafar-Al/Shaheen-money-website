@@ -7,11 +7,15 @@
  * `astro preview` is not supported by the Vercel adapter; this reads
  * .vercel/output directly. Serverless routes (the form endpoints) are not
  * run here — use `npm run dev` to exercise forms.
+ *
+ * Text responses are Brotli-compressed when the browser asks, as Vercel's
+ * edge does, so Lighthouse measures transfer sizes close to production.
  */
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { brotliCompressSync, constants } from 'node:zlib';
 
 const root = fileURLToPath(new URL('../.vercel/output/', import.meta.url));
 const staticDir = join(root, 'static');
@@ -54,6 +58,16 @@ const types = {
   '.woff2': 'font/woff2',
 };
 
+const brotliCache = new Map();
+/** Brotli at a typical edge quality, cached per file until it changes. */
+function compressed(file, body) {
+  const key = `${file}:${body.length}`;
+  if (!brotliCache.has(key)) {
+    brotliCache.set(key, brotliCompressSync(body, { params: { [constants.BROTLI_PARAM_QUALITY]: 5 } }));
+  }
+  return brotliCache.get(key);
+}
+
 async function findFile(pathname) {
   const safe = normalize(decodeURIComponent(pathname)).replace(/^(\.\.[/\\])+/, '');
   for (const candidate of [safe, join(safe, 'index.html'), `${safe}.html`]) {
@@ -92,8 +106,14 @@ createServer(async (req, res) => {
 
   const file = await findFile(url.pathname);
   if (file) {
-    res.writeHead(200, { ...headers, 'Content-Type': types[extname(file)] ?? 'application/octet-stream' });
-    return res.end(await readFile(file));
+    const type = types[extname(file)] ?? 'application/octet-stream';
+    let body = await readFile(file);
+    if (/text|json|xml|svg|javascript|manifest/.test(type) && /\bbr\b/.test(String(req.headers['accept-encoding'] ?? ''))) {
+      body = compressed(file, body);
+      Object.assign(headers, { 'Content-Encoding': 'br', Vary: [headers.Vary, 'Accept-Encoding'].filter(Boolean).join(', ') });
+    }
+    res.writeHead(200, { ...headers, 'Content-Type': type });
+    return res.end(body);
   }
 
   if (url.pathname.startsWith('/api/')) {

@@ -30,6 +30,10 @@ const BUDGET = {
   jsBytes: 120 * KB,
   fontBytesPerLocale: 120 * KB,
   fontFilesPerLocale: 4,
+  // Pages that set both scripts (<html data-fonts="both">: the press kit's
+  // type specimens, the bilingual 404) carry both sets. unicode-range keeps
+  // a face from loading until a glyph needs it.
+  fontFilesBothScripts: 7,
 };
 const BANNED = [/live network activity/i, /moved today/i, /\$1\.2M/];
 
@@ -110,7 +114,10 @@ for (const file of htmlFiles) {
   const css = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((m) => m[1]);
   const js = [...html.matchAll(/<script[^>]+src="(\/[^"]+)"/g)].map((m) => m[1]);
   const fonts = [...html.matchAll(/url\("?(\/_astro\/fonts\/[^")]+)"?\)/g)].map((m) => m[1]);
-  pageAssets.set(rel, { css, js, fonts, lang: html.match(/<html lang="(\w+)"/)?.[1] });
+  const both = /<html[^>]*\sdata-fonts="both"/.test(html);
+  // Stylesheets inlined into the page (build.inlineStylesheets) count too.
+  const inlineCss = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].reduce((n, m) => n + Buffer.byteLength(m[1]), 0);
+  pageAssets.set(rel, { css, inlineCss, js, fonts, both, lang: html.match(/<html lang="(\w+)"/)?.[1] });
 }
 
 // Reciprocal hreflang: if A lists B, B must list A.
@@ -134,12 +141,15 @@ for (const f of files) {
 }
 const fontSeen = { en: new Set(), ar: new Set() };
 for (const [page, a] of pageAssets) {
-  const cssBytes = (await Promise.all(a.css.map(size))).reduce((x, y) => x + y, 0);
+  const cssBytes = (await Promise.all(a.css.map(size))).reduce((x, y) => x + y, a.inlineCss);
   const jsBytes = (await Promise.all(a.js.map(size))).reduce((x, y) => x + y, 0);
   // Brotli typically compresses CSS/JS 3–4×; budgets are for transfer size.
   if (cssBytes / 3 > BUDGET.cssBytes) warn(page, `CSS ~${(cssBytes / 3 / KB).toFixed(0)} KB compressed > budget`);
   if (jsBytes / 3 > BUDGET.jsBytes) warn(page, `JS ~${(jsBytes / 3 / KB).toFixed(0)} KB compressed > budget`);
-  if (a.lang && fontSeen[a.lang]) for (const f of a.fonts) fontSeen[a.lang].add(f);
+  if (a.both) {
+    const n = new Set(a.fonts).size;
+    if (n > BUDGET.fontFilesBothScripts) warn(page, `${n} font files > ${BUDGET.fontFilesBothScripts} (both scripts)`);
+  } else if (a.lang && fontSeen[a.lang]) for (const f of a.fonts) fontSeen[a.lang].add(f);
 }
 const fontReport = [];
 for (const [lang, set] of Object.entries(fontSeen)) {
