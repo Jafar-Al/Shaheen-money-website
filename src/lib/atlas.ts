@@ -15,6 +15,12 @@
  * land (public domain, via world-atlas); no country borders. Coordinates are
  * city centres from src/data/network-map.ts; nothing is hard-coded here.
  *
+ * Around Amman, the Arab capitals: each is a place on the map with its name
+ * in the page's language, and a line runs from Amman (where the beak lands)
+ * to every one that is far enough away to need it. Names that would collide
+ * are set apart by hand (see `capitals` in each frame), because a cluster
+ * of capitals within a few millimetres cannot be placed by a rule.
+ *
  * Two frames, because a phone is not a small desktop: `wide` (1600×1000)
  * for tablets and up, `tall` (400×860) for phones, each with its own
  * framing and its own falcon box. The falcon is HTML (FalconFlight.astro,
@@ -27,11 +33,26 @@ import { feature } from 'topojson-client';
 import type { Topology, GeometryCollection } from 'topojson-specification';
 import land110 from 'world-atlas/land-110m.json';
 import falconSvg from '../assets/brand/falcon.svg?raw';
-import { cities, heroCorridors, type CityKey } from '../data/network-map';
+import { capitals, cities, heroCorridors, type CapitalKey, type CityKey } from '../data/network-map';
 import type { Locale } from '../i18n/config';
 
 type Pt = [number, number];
 export type FrameId = 'wide' | 'tall';
+
+/** Where a capital's name goes, in frame units from its dot. */
+interface CapitalPlace {
+  dx: number;
+  dy: number;
+  anchor: 'start' | 'middle' | 'end';
+  /** A hairline from the dot to the name, for names set apart from it. */
+  leader?: boolean;
+  /** A line from Amman to this capital. */
+  spoke?: boolean;
+  /** The dot is already drawn (Amman's). */
+  noDot?: boolean;
+  /** The dot only: where a name would collide with its neighbours. */
+  noName?: boolean;
+}
 
 interface FrameSpec {
   w: number;
@@ -45,6 +66,8 @@ interface FrameSpec {
   corridors: readonly CityKey[];
   /** Cities that get a name (the rest are dots). */
   named: readonly CityKey[];
+  /** The Arab capitals this frame draws, and where each name sits. */
+  capitals: Partial<Record<CapitalKey, CapitalPlace>>;
 }
 
 export const FRAMES: Record<FrameId, FrameSpec> = {
@@ -56,6 +79,20 @@ export const FRAMES: Record<FrameId, FrameSpec> = {
     scale: 720,
     corridors: heroCorridors,
     named: ['london', 'paris', 'berlin'],
+    // Offsets are from each dot. The Levant three sit under the falcon's head
+    // and within 30 units of Amman, so their names stand to its right.
+    capitals: {
+      amman: { dx: 16, dy: 5, anchor: 'start', noDot: true },
+      damascus: { dx: 14, dy: -4, anchor: 'start' },
+      beirut: { dx: 22, dy: -22, anchor: 'start', leader: true },
+      jerusalem: { dx: -12, dy: -3, anchor: 'end' },
+      // Below and to the right: on a short laptop the headline's first line ends beside Cairo.
+      cairo: { dx: 8, dy: 17, anchor: 'start', spoke: true },
+      riyadh: { dx: 0, dy: 20, anchor: 'middle', spoke: true },
+      doha: { dx: 0, dy: 20, anchor: 'middle', spoke: true },
+      abuDhabi: { dx: 10, dy: 16, anchor: 'start', spoke: true },
+      dubai: { dx: 10, dy: -6, anchor: 'start', spoke: true },
+    },
   },
   tall: {
     w: 400,
@@ -65,6 +102,16 @@ export const FRAMES: Record<FrameId, FrameSpec> = {
     scale: 330,
     corridors: ['london', 'berlin', 'toronto'],
     named: ['london', 'berlin'],
+    // A phone is 390px wide: the Levant three sit under the falcon (so they
+    // are not drawn) and Abu Dhabi's name would land on Riyadh's (a dot
+    // without a name). Every name is on the wider frame, from a tablet up.
+    capitals: {
+      cairo: { dx: -6, dy: 3, anchor: 'end', spoke: true },
+      riyadh: { dx: -6, dy: 12, anchor: 'end', spoke: true },
+      doha: { dx: -4, dy: -7, anchor: 'end', spoke: true },
+      abuDhabi: { dx: 0, dy: 0, anchor: 'start', spoke: true, noName: true },
+      dubai: { dx: 5, dy: -7, anchor: 'middle', spoke: true },
+    },
   },
 };
 
@@ -128,6 +175,22 @@ export interface HeroCity {
   route: boolean;
 }
 
+export interface HeroSpoke {
+  key: CapitalKey;
+  d: string;
+}
+
+export interface HeroPlace {
+  key: CapitalKey;
+  /** The dot (absent for Amman, whose dot and ring are drawn separately). */
+  dot?: { x: number; y: number } | undefined;
+  name?: string | undefined;
+  tx: number;
+  ty: number;
+  anchor: 'start' | 'middle' | 'end';
+  leader?: string | undefined;
+}
+
 export interface HeroFrame {
   id: FrameId;
   w: number;
@@ -135,6 +198,8 @@ export interface HeroFrame {
   land: string;
   routes: HeroRoute[];
   cities: HeroCity[];
+  /** The Arab capitals: lines out of Amman and the places they reach. */
+  hub: { spokes: HeroSpoke[]; places: HeroPlace[] };
   amman: { x: number; y: number; name: string; coords: string };
   falcon: FrameSpec['falcon'];
 }
@@ -265,6 +330,36 @@ export function heroFrame(id: FrameId, locale: Locale): HeroFrame {
       };
     });
 
+  // The Arab capitals. Each line is the real great circle from Amman, so the
+  // Gulf's three run almost together, as the cities do.
+  const hubSpokes: HeroSpoke[] = [];
+  const hubPlaces: HeroPlace[] = [];
+  for (const key of Object.keys(spec.capitals) as CapitalKey[]) {
+    const place = spec.capitals[key]!;
+    const c = capitals[key];
+    const [px, py] = project(c.lon, c.lat);
+    const tx = r1(px + place.dx);
+    const ty = r1(py + place.dy);
+    hubPlaces.push({
+      key,
+      dot: place.noDot ? undefined : { x: r1(px), y: r1(py) },
+      name: place.noName ? undefined : c.name[locale],
+      tx,
+      ty,
+      anchor: place.anchor,
+      leader: place.leader ? `M${r1(px)} ${r1(py)}L${r1(tx - (place.anchor === 'start' ? 4 : place.anchor === 'end' ? -4 : 0))} ${r1(ty - 4)}` : undefined,
+    });
+    if (place.spoke) {
+      const interpolate = geoInterpolate([cities.amman.lon, cities.amman.lat], [c.lon, c.lat]);
+      const samples = Array.from({ length: 25 }, (_, k) => {
+        const [lon, lat] = interpolate(k / 24);
+        return project(lon, lat);
+      });
+      // From the beak, not from the projected city centre: the falcon lands there.
+      hubSpokes.push({ key, d: `M${r1(A[0])} ${r1(A[1])}` + samples.slice(1).map((p) => `L${r1(p[0])} ${r1(p[1])}`).join('') });
+    }
+  }
+
   const landTopo = land110 as unknown as Topology<{ land: GeometryCollection }>;
   const frame: HeroFrame = {
     id,
@@ -273,6 +368,7 @@ export function heroFrame(id: FrameId, locale: Locale): HeroFrame {
     land: path(feature(landTopo, landTopo.objects.land)) ?? '',
     routes,
     cities: shown,
+    hub: { spokes: hubSpokes, places: hubPlaces },
     amman: { x: r1(A[0]), y: r1(A[1]), name: cities.amman.name[locale], coords: coords(cities.amman.lon, cities.amman.lat) },
     falcon: spec.falcon,
   };

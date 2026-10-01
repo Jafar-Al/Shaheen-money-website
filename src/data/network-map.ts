@@ -5,8 +5,9 @@
  * earn and where their families live. The caption under the globe says so,
  * and points to /coverage for where the service is actually available.
  * Keep this list to corridors you serve or intend to serve; adding a city
- * (for example Damascus or Baghdad) is a business and compliance decision,
- * so it is left out by default.
+ * (for example Baghdad) is a business and compliance decision, so it is left
+ * out by default. (The hero's Arab capitals are in `capitals` below, apart
+ * from this list, at the owner's request of 1 October 2026.)
  *
  * Coordinates are city centres (WGS84, 2 decimals). `label` places the name
  * relative to the dot in screen space: n, s, e, w, ne, nw, se, sw.
@@ -72,6 +73,30 @@ export const corridors: Array<[CityKey, CityKey]> = [
  * coverage claim); captioned "Example corridors" wherever they are drawn.
  */
 export const heroCorridors = ['toronto', 'newYork', 'london', 'paris', 'berlin'] as const satisfies readonly CityKey[];
+
+/**
+ * The Arab capitals the hero draws around Amman: the owner's list of
+ * 1 October 2026 (Damascus, Beirut, Riyadh, Cairo, Amman, Jerusalem, Dubai,
+ * Abu Dhabi, Doha), named in both languages. Kept apart from `cities` on
+ * purpose: the globe draws every entry of `cities`, and it stays as it is.
+ * Coordinates are city centres (WGS84, 2 decimals). The hero draws them as
+ * places on the map, with a line from Amman to the five that are not within
+ * a few kilometres of it; it claims nothing about where the service works,
+ * and the map says "Example corridors".
+ */
+export const capitals = {
+  damascus: { name: { en: 'Damascus', ar: 'دمشق' }, lon: 36.29, lat: 33.51 },
+  beirut: { name: { en: 'Beirut', ar: 'بيروت' }, lon: 35.5, lat: 33.89 },
+  amman: { name: { en: 'Amman', ar: 'عمّان' }, lon: 35.93, lat: 31.95 },
+  jerusalem: { name: { en: 'Jerusalem', ar: 'القدس' }, lon: 35.22, lat: 31.77 },
+  cairo: { name: { en: 'Cairo', ar: 'القاهرة' }, lon: 31.24, lat: 30.04 },
+  riyadh: { name: { en: 'Riyadh', ar: 'الرياض' }, lon: 46.68, lat: 24.71 },
+  doha: { name: { en: 'Doha', ar: 'الدوحة' }, lon: 51.53, lat: 25.29 },
+  abuDhabi: { name: { en: 'Abu Dhabi', ar: 'أبوظبي' }, lon: 54.37, lat: 24.45 },
+  dubai: { name: { en: 'Dubai', ar: 'دبي' }, lon: 55.27, lat: 25.2 },
+} satisfies Record<string, { name: Localized; lon: number; lat: number }>;
+
+export type CapitalKey = keyof typeof capitals;
 
 /** Where the globe faces: between the Atlantic and the Gulf. */
 export const globeCenter = { lon: 5, lat: 28 };

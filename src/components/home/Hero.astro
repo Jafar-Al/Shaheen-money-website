@@ -154,7 +154,10 @@ const split = (line: string) => {
     mask-image: radial-gradient(ellipse 58% 42% at 22% 82%, rgb(0 0 0 / 0.1) 55%, #000 100%);
   }
   :global([dir='rtl']) .hero-art :global(.atlas-lines) {
-    mask-image: radial-gradient(ellipse 58% 42% at 78% 82%, rgb(0 0 0 / 0.1) 55%, #000 100%);
+    /* The words are on the right, below the map's right half; the Gulf's
+       capitals are to their left. The mask is in the map's own box, so the
+       dimming sits in its lower-right corner only. */
+    mask-image: radial-gradient(ellipse 45% 50% at 100% 100%, rgb(0 0 0 / 0.1) 55%, #000 100%);
   }
   .hero-zoom {
     position: absolute;
@@ -185,17 +188,25 @@ const split = (line: string) => {
     --H: calc(100cqh * 1.05);
     --W: calc(var(--H) * 1.6);
     position: absolute;
-    /* 0.628125 is Amman's x in the wide frame (src/lib/atlas.ts). */
-    left: calc(66cqw - var(--W) * 0.628125);
+    /* 0.628125 is Amman's x in the wide frame (src/lib/atlas.ts); --ax is
+       where in the hero Amman is put. */
+    left: calc(var(--ax) - var(--W) * 0.628125);
     top: calc(100cqh * -0.025);
     inline-size: var(--W);
     block-size: var(--H);
   }
   .hero-zoom {
-    /* Amman, in the hero: 66% across, and 39.6% down a stage that starts
-       2.5% above the top and is 105% tall. */
-    --ox: 66cqw;
+    /* Amman, in the hero: 66% across (the words are on the left), and 39.6%
+       down a stage that starts 2.5% above the top and is 105% tall. In
+       Arabic the words are on the right, so the map slides to put Amman a
+       third of the way across: the Gulf's capitals, which lie east of it,
+       then sit clear of the headline. The map itself never mirrors. */
+    --ax: 66cqw;
+    --ox: var(--ax);
     --oy: calc(100cqh * (0.396 * 1.05 - 0.025));
+  }
+  :global([dir='rtl']) .hero-zoom {
+    --ax: 34cqw;
   }
   .stage-tall {
     display: none;
@@ -292,6 +303,15 @@ const split = (line: string) => {
     font-weight: 500;
   }
   @media (width >= 48rem) and (orientation: portrait) {
+    /* The stage is sized by the hero's height, which here is the long side:
+       the map is magnified, so Amman moves toward the middle to keep the
+       Gulf's capitals on screen. */
+    .hero-zoom {
+      --ax: 54cqw;
+    }
+    :global([dir='rtl']) .hero-zoom {
+      --ax: 40cqw;
+    }
     .hero-title {
       font-size: 9vw;
     }

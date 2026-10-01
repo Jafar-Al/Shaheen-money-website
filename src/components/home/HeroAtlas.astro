@@ -111,6 +111,24 @@ const intro = f.routes
           ))
       }
     </g>
+    {/* The Arab capitals: a line from Amman to each far one, then the places
+         and their names (in the page's language). */}
+    <g class="atlas-hub">
+      {f.hub.spokes.map((sp, i) => <path class={`spoke spoke-${i}`} d={sp.d} pathLength="1" />)}
+      {
+        f.hub.places.map((p) => (
+          <g class={`capital capital-${p.key}`}>
+            {p.leader && <path class="leader" d={p.leader} />}
+            {p.dot && <circle cx={p.dot.x} cy={p.dot.y} r={2.6 * s} />}
+            {p.name && (
+              <text x={p.tx} y={p.ty} text-anchor={p.anchor} class="capital-name">
+                {p.name}
+              </text>
+            )}
+          </g>
+        ))
+      }
+    </g>
     <g class="atlas-amman">
       <circle class="amman-ring" cx={f.amman.x} cy={f.amman.y} r={9 * s} />
       <circle class="amman-dot" cx={f.amman.x} cy={f.amman.y} r={3.4 * s} />
@@ -287,6 +305,72 @@ const intro = f.routes
   :global(:lang(ar)) .atlas-tall .city-name,
   :global(:lang(ar)) .atlas-tall .exit-name {
     font-size: 11px;
+  }
+
+  /* ── The Arab capitals: lines out of Amman, then their names ───────── */
+  /* After the feathers have drawn and the falcon has landed (Amman's ring,
+     3.35s): the lines fan out from the beak, then the names arrive. */
+  .spoke {
+    fill: none;
+    stroke: var(--color-signal);
+    stroke-opacity: 0.4;
+    stroke-width: 1;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: route-draw 0.9s var(--ease-in-out) 3.4s forwards;
+  }
+  .spoke-1 { animation-delay: 3.47s; }
+  .spoke-2 { animation-delay: 3.54s; }
+  .spoke-3 { animation-delay: 3.61s; }
+  .spoke-4 { animation-delay: 3.68s; }
+  .capital {
+    opacity: 0;
+    animation: label-in 0.6s var(--ease-out) 3.9s forwards;
+  }
+  .capital circle {
+    fill: var(--color-white);
+    fill-opacity: 0.85;
+  }
+  .capital-name {
+    fill: var(--color-chalk);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .leader {
+    fill: none;
+    stroke: var(--color-chalk-2);
+    stroke-opacity: 0.45;
+    stroke-width: 0.75;
+    vector-effect: non-scaling-stroke;
+  }
+  .atlas-tall .capital-name {
+    font-size: 9.5px;
+  }
+  :global(:lang(ar)) .capital-name {
+    font-family: var(--font-plex-arabic), var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  :global(:lang(ar)) .atlas-tall .capital-name {
+    font-size: 10.5px;
+  }
+
+  /* A short phone has no room under the falcon for names: Cairo's stays. */
+  @media (width < 48rem) and (height < 44rem) {
+    .atlas-tall .capital:not(.capital-cairo) .capital-name {
+      display: none;
+    }
+  }
+  /* A phone on its side shows the map a few hundred pixels tall: names would
+     be 4px high. The five routes alone are the picture there. */
+  @media (orientation: landscape) and (height < 32rem) {
+    .atlas-hub {
+      display: none;
+    }
   }
 
   .amman-dot {

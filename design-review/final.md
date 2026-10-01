@@ -77,6 +77,7 @@ anyone can use on a phone, an iPad or a laptop. What changed:
 - **One of the owner's phone renders** (the face-free one) closes the
   homepage, stamped Illustrative; the renders with a generated portrait
   and invented names are not used.
+- **The Arab capitals are on the hero map.** Damascus, Beirut, Amman, Jerusalem, Cairo, Riyadh, Doha, Abu Dhabi and Dubai, named in English or Arabic by the page's language, around the falcon's landing point; a line from Amman to Cairo, Riyadh, Doha, Abu Dhabi and Dubai (the real great circles, so the Gulf's three run almost together); the three Levant names stand in a short column to the right of the falcon's head. In Arabic the map slides so Amman is a third of the way across (the words are on the right), and the map itself does not mirror. On a phone only some names fit; a test checks that on a laptop, an iPad and a desktop every name is on screen and clear of the headline.
 - **Media** now opens with the pitch deck, the company profile and the
   film; the rules for using the mark sit with the mark.
 - **No founder photo** is needed; that ask is gone from the checklists.

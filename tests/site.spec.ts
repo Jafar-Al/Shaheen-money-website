@@ -349,6 +349,51 @@ test('the hero atlas is hidden from assistive technology and still under reduced
   expect(running).toBe(0);
 });
 
+// ── The Arab capitals around Amman: named in the page's language ─────────
+const CAPITALS = {
+  en: ['Damascus', 'Beirut', 'Amman', 'Jerusalem', 'Cairo', 'Riyadh', 'Doha', 'Abu Dhabi', 'Dubai'],
+  ar: ['دمشق', 'بيروت', 'عمّان', 'القدس', 'القاهرة', 'الرياض', 'الدوحة', 'أبوظبي', 'دبي'],
+} as const;
+
+test('the hero map names all nine Arab capitals, in English and in Arabic', async ({ page }) => {
+  for (const locale of ['en', 'ar'] as const) {
+    await page.goto(`/${locale}`);
+    const names = (await page.locator('.atlas-lines.atlas-wide .capital-name').allTextContents()).map((t) => t.trim());
+    expect(names.sort(), locale).toEqual([...CAPITALS[locale]].sort());
+  }
+});
+
+for (const [width, height] of [
+  [1920, 1080],
+  [1440, 900],
+  [1280, 720],
+  [1024, 768],
+  [768, 1024],
+] as const) {
+  for (const locale of ['en', 'ar'] as const) {
+    test(`the capitals' names are on screen and clear of the headline: ${locale} ${width}x${height}`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.setViewportSize({ width, height });
+      await page.goto(`/${locale}`);
+      await page.waitForTimeout(400);
+      const title = await page.locator('#hero-title').boundingBox();
+      expect(title).not.toBeNull();
+      const names = page.locator('.atlas-lines.atlas-wide .capital-name');
+      const count = await names.count();
+      expect(count).toBe(9);
+      for (let i = 0; i < count; i++) {
+        const box = await names.nth(i).boundingBox();
+        const label = await names.nth(i).textContent();
+        expect(box, label ?? '').not.toBeNull();
+        expect(box!.x, `${label} runs off the left edge`).toBeGreaterThanOrEqual(0);
+        expect(box!.x + box!.width, `${label} runs off the right edge`).toBeLessThanOrEqual(width);
+        const apart = box!.y + box!.height <= title!.y || box!.y >= title!.y + title!.height || box!.x + box!.width <= title!.x || box!.x >= title!.x + title!.width;
+        expect(apart, `${label} overlaps the headline`).toBe(true);
+      }
+    });
+  }
+}
+
 test('the hero headline is not hidden behind an entrance (it is the LCP)', async ({ page }) => {
   await page.goto('/en');
   const opacity = await page.locator('#hero-title').evaluate((el) => getComputedStyle(el).opacity);
