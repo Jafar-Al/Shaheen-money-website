@@ -16,6 +16,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { brotliCompressSync, constants } from 'node:zlib';
+import { createHash } from 'node:crypto';
 
 const root = fileURLToPath(new URL('../.vercel/output/', import.meta.url));
 const staticDir = join(root, 'static');
@@ -59,9 +60,13 @@ const types = {
 };
 
 const brotliCache = new Map();
-/** Brotli at a typical edge quality, cached per file until it changes. */
+/**
+ * Brotli at a typical edge quality, cached per file until its content
+ * changes (keyed by a content hash: a rebuild can change a file and keep
+ * its length, and a stale page would carry the wrong CSP hashes).
+ */
 function compressed(file, body) {
-  const key = `${file}:${body.length}`;
+  const key = `${file}:${createHash('sha1').update(body).digest('base64')}`;
   if (!brotliCache.has(key)) {
     brotliCache.set(key, brotliCompressSync(body, { params: { [constants.BROTLI_PARAM_QUALITY]: 5 } }));
   }

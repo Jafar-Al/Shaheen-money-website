@@ -65,7 +65,7 @@ const tracedFalcon = existsSync(new URL('../brand-source/logo-VONDYK1c.png', imp
 if (tracedFalcon)
   add(
     'SHOULD',
-    'Vector master of the full logo lockup (falcon + "Shaheen Money" wordmark). The site only holds the falcon, traced from a 239px PNG; the wordmark is set in live type and cannot be handed to anyone as a file',
+    'Vector master of the full logo lockup (falcon + "Shaheen Money" wordmark). The site holds the falcon traced from a 239px PNG, and a wordmark it outlined itself from Instrument Sans Bold (src/assets/brand/wordmark.ts); the brand\'s own master files would replace both',
     'src/assets/brand/ + brand-source/',
   );
 add('SHOULD', 'App screenshots for /media and the app store listings (real screens, no invented balances)', 'public/media/');

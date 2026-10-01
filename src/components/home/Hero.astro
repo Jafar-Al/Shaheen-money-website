@@ -453,6 +453,11 @@ const amman = cities.amman;
     .hero-marks {
       display: none;
     }
+    /* Without the marks the words would rise into the first row, under the
+       falcon: two rows keep them at the foot of the hero. */
+    .hero-content {
+      grid-template-rows: 1fr auto;
+    }
   }
   @media (width < 48rem) {
     .hero {

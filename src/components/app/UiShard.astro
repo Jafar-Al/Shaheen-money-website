@@ -344,7 +344,8 @@ const received = t.rows[0]!;
     border-radius: 1.8cqw;
     font-size: 3.8cqw;
     text-align: center;
-    color: rgb(255 255 255 / 0.62);
+    /* 0.78 white on the tile blue is about 5:1 (AA); the app's own 0.62 is 3.7:1. */
+    color: rgb(255 255 255 / 0.78);
   }
   .app-tab-on {
     background-color: var(--app-cyan);

@@ -15,6 +15,7 @@
  * once so scroll-revealed content is in its final state.
  */
 import { chromium } from '@playwright/test';
+import sharp from 'sharp';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -54,10 +55,17 @@ const slug = (path) => path.replace(/^\//, '').replaceAll('/', '_') || 'root';
 mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ channel });
 
-/** Scroll top to bottom so every reveal fires, then come back up. */
+/**
+ * Scroll top to bottom so every reveal fires, then come back up. Chapters
+ * with content-visibility: auto are drawn first (a full-page capture never
+ * scrolls them into view), so the page's height is final before it is
+ * measured.
+ */
 async function settle(page) {
   await page.evaluate(async () => {
     await document.fonts.ready;
+    document.querySelectorAll('.cv-auto').forEach((el) => el.style.setProperty('content-visibility', 'visible'));
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     const step = Math.max(200, Math.round(window.innerHeight * 0.8));
     for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
       window.scrollTo(0, y);
@@ -66,6 +74,25 @@ async function settle(page) {
     window.scrollTo(0, 0);
   });
   await page.waitForTimeout(400);
+}
+
+/**
+ * A full-page capture, in segments stitched together: Chrome cannot capture
+ * more than 16,384px in one go, and a long page wraps round to its top.
+ */
+async function fullPage(page, file) {
+  const { width } = page.viewportSize();
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  const SEG = 8000;
+  const parts = [];
+  for (let y = 0; y < height; y += SEG) {
+    const clip = { x: 0, y, width, height: Math.min(SEG, height - y) };
+    parts.push({ input: await page.screenshot({ type: 'png', fullPage: true, clip }), left: 0, top: y });
+  }
+  await sharp({ create: { width, height, channels: 3, background: '#ffffff' } })
+    .composite(parts)
+    .jpeg({ quality: 60 })
+    .toFile(file);
 }
 
 let count = 0;
@@ -80,13 +107,7 @@ for (const [width, height] of viewports) {
     count++;
     if (full && (width === 390 || width === 1440)) {
       await settle(page);
-      // Chapters with content-visibility: auto render as a reader scrolls to
-      // them; a full-page capture never scrolls, so draw them all first.
-      await page.evaluate(() =>
-        document.querySelectorAll('.cv-auto').forEach((el) => el.style.setProperty('content-visibility', 'visible')),
-      );
-      await page.waitForTimeout(300);
-      await page.screenshot({ path: join(out, `${slug(path)}@${width}-full.jpg`), type: 'jpeg', quality: 60, fullPage: true });
+      await fullPage(page, join(out, `${slug(path)}@${width}-full.jpg`));
       count++;
     }
   }

@@ -98,16 +98,24 @@ const parts = (item: string) => {
     border-radius: var(--radius-full);
     background-color: var(--accent);
   }
+  /* A phone shows the first phrase only; the rest is still read out. */
   .strip-more,
   .strip-tail {
-    display: none;
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   @media (width >= 48rem) {
-    .strip-more {
-      display: flex;
-    }
+    .strip-more,
     .strip-tail {
-      display: inline;
+      position: static;
+      inline-size: auto;
+      block-size: auto;
+      overflow: visible;
+      clip-path: none;
     }
   }
   @media (width < 30rem) {

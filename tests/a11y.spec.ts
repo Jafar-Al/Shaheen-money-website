@@ -13,7 +13,9 @@ for (const path of allPaths) {
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
       .analyze();
-    const summary = results.violations.map((v) => `${v.id} (${v.impact}): ${v.nodes.length}× ${v.help}`);
+    const summary = results.violations.flatMap((v) =>
+      v.nodes.map((n) => `${v.id} (${v.impact}): ${n.target.join(' ')} — ${n.failureSummary?.split('\n')[1]?.trim() ?? v.help}`),
+    );
     expect(summary, summary.join('\n')).toEqual([]);
   });
 }
@@ -51,7 +53,9 @@ for (const path of ['/en', '/ar']) {
       .include('.how-track')
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
       .analyze();
-    const summary = results.violations.map((v) => `${v.id} (${v.impact}): ${v.nodes.length}× ${v.help}`);
+    const summary = results.violations.flatMap((v) =>
+      v.nodes.map((n) => `${v.id} (${v.impact}): ${n.target.join(' ')} — ${n.failureSummary?.split('\n')[1]?.trim() ?? v.help}`),
+    );
     expect(summary, summary.join('\n')).toEqual([]);
   });
 }

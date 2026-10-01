@@ -6,9 +6,10 @@
 
 Every claim on this site carries a source and a date, or it is not published.
 An empty slot below does not show a placeholder — **the section that depends on
-it is left out of the page entirely.** Two sections are missing from the live
-homepage today for exactly this reason (the trust strip at the top of every
-page, and "People who use Shaheen Money").
+it is left out of the page entirely.** For exactly this reason the homepage has
+no "People who use Shaheen Money" chapter today, and the strip at the top of
+every page carries only the self-custody line until the licence and the store
+ratings exist.
 
 Each row says where the fact appears and what happens without it. The `field`
 column is the exact place it goes in `src/data/facts.ts`, so whoever fills this

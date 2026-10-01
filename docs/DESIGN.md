@@ -176,7 +176,7 @@ Six verbs, each with one job:
   (`@property --t`, so the change is a real transition).
 
 It is built on CSS and five small modules in `src/lib/motion/` (level,
-reveal, scenes, count, pointer): about 6 KB of JavaScript on the homepage,
+reveal, scenes, count, pointer): about 5 KB of JavaScript on the homepage,
 gzipped. There is no GSAP. The site needed scroll progress, two pinned
 scenes, one count-up and a pointer parallax; those are a few dozen lines on
 `requestAnimationFrame` and `IntersectionObserver`, where GSAP and
@@ -218,6 +218,18 @@ Scrolling is native.
 - **Share images** (`src/lib/og.ts`) are built at build time in the same
   language: the page's own feather (same seed), its title with the italic
   word, the lockup on a hairline, mirrored for Arabic.
+- **Speed is part of the design.** The homepage's chapters skip rendering
+  until they come near (`content-visibility`), CSS travels inside each page
+  (hashed into its CSP, so nothing blocks the first paint), each page makes
+  one script request for its behaviour, and motion is set up after the first
+  frame. Measured with Lighthouse 12 (median of three): the homepage's LCP is
+  1.88 s on the brief's 4G profile (9 Mbps, 170 ms, 4× CPU) and 2.40 s on
+  Lighthouse's slow-4G default; inner pages 1.95 s on slow 4G; CLS 0 and TBT
+  0 throughout. Full numbers, before and after: `design-review/final.md`.
+- **Arabic preloads its body face as well as its display face**, against
+  the brief's "preload the display face only": Arabic system fonts wrap
+  differently from IBM Plex even with metric-adjusted fallbacks, and the late
+  swap measured CLS 0.10 on `/ar/about`. With Plex 400 preloaded it is 0.
 - **Missing content never ships as a placeholder.** `Gap` markers are
   visible only in development or with `?todo=1`; every build prints the
   list of what is still needed (`integrations/content-gaps.mjs`,
