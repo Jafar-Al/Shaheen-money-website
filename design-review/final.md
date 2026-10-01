@@ -81,6 +81,23 @@ canonicals, hreflang and share images; the legal pages. 166 site tests and
   globe's labels for Amman, Dubai and Mumbai overlap (they did before too;
   the globe is untouched by rule).
 
+### For the owner to decide
+
+- The Arabic privacy policy and terms are still the English documents (and
+  carry English titles); they need a legal translation.
+- The store badges are drawn in the site's own style. Apple's and Google's
+  marketing guidelines ask for their official badge artwork; swap it in if
+  strict compliance matters at launch.
+- The accessibility statement says motion is "kept to a minimum". The site
+  now has more, purposeful motion (all of it off under reduced motion).
+  Suggested: "Motion is used where it explains something, and all of it
+  stops when your device asks for reduced motion." (Arabic to match.) The
+  copy was not changed without your approval.
+- The falcon and the globe were kept exactly as they are (project rules),
+  although the brief proposed redrawing the falcon and replacing the globe.
+  The hero is built around the existing falcon instead; changing either is
+  a deliberate decision to make separately.
+
 ## Verified
 
 | Check | How | Result |
