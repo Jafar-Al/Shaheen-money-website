@@ -1,0 +1,97 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Logo from '../../components/site/Logo.astro';
+import Chapter from '../../components/ui/Chapter.astro';
+import Emph from '../../components/ui/Emph.astro';
+import Button from '../../components/ui/Button.astro';
+import Stamp from '../../components/ui/Stamp.astro';
+import Slip from '../../components/ui/Slip.astro';
+import TextField from '../../components/forms/TextField.astro';
+import { coords } from '../../lib/atlas';
+import { cities } from '../../data/network-map';
+import { routes } from '../../admin/config';
+
+/**
+ * Sign-in for the Operations Command Center. The site's own pieces: the
+ * lockup, a chapter folio, a display headline with its italic word, ledger
+ * fields with mono labels, the solid pill, and the falcon mark on the deep
+ * Night beside it (the brand sprite, unchanged), over Amman's coordinates.
+ *
+ * The page posts nothing itself: src/admin/pages/sign-in.ts hands the
+ * credentials to the auth layer (src/admin/services/auth.ts), which sends
+ * them to this site's server (src/server/admin/auth.ts).
+ */
+---
+
+<AdminLayout title="Sign in" description="Sign in to Shaheen Money operations. For authorised Shaheen staff.">
+  <div class="ops-signin">
+    <main class="ops-signin-panel" id="main">
+      <Logo size="lg" />
+      <div class="ops-signin-form-wrap">
+        <Chapter n={0} label="Operations Command Center" />
+        <h1 class="ops-title ops-title-xl"><Emph text="Welcome *back*." /></h1>
+        <p class="ops-lead">Sign in with your Shaheen operations account.</p>
+
+        <div class="ops-signin-msg" data-msg data-tone="quiet" role="alert" hidden>
+          <span class="ops-dot" aria-hidden="true"></span>
+          <p data-msg-text></p>
+        </div>
+
+        <div data-session hidden>
+          <Slip no="Session" meta="Active" class="ops-session-slip">
+            <p class="ops-drawer-title" data-session-name></p>
+            <p class="micro" data-session-role></p>
+            <p class="ops-sub" data-session-expiry></p>
+            <div class="ops-head-tools ops-session-actions">
+              <a class="ops-btn ops-btn-solid" href={routes.commandCenter} data-continue>Continue to the Command Center</a>
+              <button type="button" class="ops-btn" data-session-signout>Sign out</button>
+            </div>
+          </Slip>
+        </div>
+
+        <form class="ledger-form" data-signin novalidate aria-describedby="signin-status">
+          <TextField name="email" label="Work email" type="email" autocomplete="username" inputmode="email" spellcheck="false" required />
+          <div class="ops-password">
+            <TextField name="password" label="Password" type="password" autocomplete="current-password" required />
+            <button type="button" class="ops-reveal micro" data-reveal-password aria-controls="f-password" aria-pressed="false">Show</button>
+          </div>
+          {/* Shown when the server asks for the account's second factor. */}
+          <div data-code-field hidden>
+            <TextField
+              name="code"
+              label="Authenticator code"
+              hint="The 6-digit code your authenticator app shows for Shaheen Operations."
+              autocomplete="one-time-code"
+              inputmode="numeric"
+              pattern="[0-9 ]*"
+              maxlength={7}
+              spellcheck="false"
+            />
+          </div>
+          <div class="form-submit">
+            <Button type="submit" variant="solid" data-submit>Sign in</Button>
+            <span class="ops-progress" aria-hidden="true"></span>
+            <p class="form-status" id="signin-status" data-status aria-live="polite"></p>
+          </div>
+        </form>
+
+        <div class="ops-note" data-dev-accounts hidden>
+          <Stamp locale="en" kind="mock" tilt={-2} />
+          <p>Demo accounts: this server shows generated data and accepts the test accounts in <code>src/admin/mock/admins.ts</code> (one per role). Once the Shaheen app’s database is connected, it never does.</p>
+        </div>
+      </div>
+      <p class="ops-signin-foot micro">
+        <span>Authorised Shaheen staff only</span>
+        <span>Shaheen Money · Operations</span>
+      </p>
+    </main>
+    <div class="ops-signin-art t-night" aria-hidden="true">
+      <svg class="ops-signin-mark" viewBox="0 0 240 240" focusable="false"><use href="#falcon-mark"></use></svg>
+      <p class="ops-signin-caption micro"><span>{cities.amman.name.en}</span><span>{coords(cities.amman.lon, cities.amman.lat)}</span></p>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/sign-in';
+</script>

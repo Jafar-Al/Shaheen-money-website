@@ -1,0 +1,26 @@
+---
+/** Required consent checkbox with a link to the Privacy Policy: a 24px box in a 48px row. */
+interface Props {
+  before: string;
+  linkLabel: string;
+  href: string;
+}
+const { before, linkLabel, href } = Astro.props;
+---
+
+<div class="field field-consent" data-field="consent">
+  <div class="consent-row">
+    <input id="f-consent" name="consent" type="checkbox" value="yes" required aria-describedby="f-consent-error" class="consent-box" />
+    <label for="f-consent" class="consent-label">
+      {before}
+      <a href={href} class="ink-link" target="_blank" rel="noopener">{linkLabel}</a>.
+    </label>
+  </div>
+  <p id="f-consent-error" class="field-error" data-error hidden>
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+      <path d="M12 3.5 21 19.5H3z"></path>
+      <path d="M12 9.5v4.5M12 16.5v.5"></path>
+    </svg>
+    <span data-error-text></span>
+  </p>
+</div>

@@ -1,0 +1,95 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Section from '../../components/admin/Section.astro';
+import Segmented from '../../components/admin/Segmented.astro';
+import MetricStrip from '../../components/admin/MetricStrip.astro';
+import FlowRoute from '../../components/admin/FlowRoute.astro';
+import TxnAnalytics from '../../components/admin/TxnAnalytics.astro';
+import NetworkMap from '../../components/admin/NetworkMap.astro';
+import Region from '../../components/admin/Region.astro';
+import Icon from '../../components/ui/Icon.astro';
+import { routes } from '../../admin/config';
+
+/**
+ * 01 · Command Center: the state of the Shaheen network on one screen.
+ * One period control at the top scopes every figure below it.
+ */
+const ranges = [
+  { value: '24h', label: '24H' },
+  { value: '7d', label: '7D' },
+  { value: '30d', label: '30D' },
+  { value: '90d', label: '90D' },
+];
+---
+
+<AdminLayout title="Command Center">
+  <OpsShell active="commandCenter" crumb="Command Center">
+    <PageHead n="01" label="Command Center" title="Good *evening*, Shaheen." lead="Here's what's happening across the Shaheen network." xl>
+      <p slot="meta" class="ops-head-meta" data-requires="system:read">
+        <a class="ops-badge" href={routes.health} data-overall data-tone="muted"><span class="ops-dot" aria-hidden="true"></span><span data-overall-text>Checking systems</span></a>
+        <span class="micro" data-now></span>
+      </p>
+      <Segmented slot="tools" name="range" label="Period for every figure on this page" options={ranges} value="30d" />
+    </PageHead>
+
+    <Section id="metrics" kicker="Core metrics" title="The network, *at a glance*." lead="Each figure against the same period before it.">
+      <MetricStrip
+        name="stats"
+        metrics={[
+          { key: 'totalUsers', label: 'Total users' },
+          { key: 'newUsers', label: 'New users' },
+          { key: 'activeUsers', label: 'Active users' },
+          { key: 'transactionVolume', label: 'Transaction volume' },
+          { key: 'activeCountries', label: 'Active countries' },
+          { key: 'activeConnectors', label: 'Active Connectors', cash: true },
+        ]}
+      />
+    </Section>
+
+    <div data-requires="transactions:read">
+      <Section id="flow" kicker="Money movement" title="Where the money *goes*." lead="Completed volume at each step, from money arriving to cash in a hand.">
+        <FlowRoute name="flow" />
+        <a slot="foot" class="ops-link" href={routes.money}>Open Money Movement <Icon name="arrow-right" size={16} directional /></a>
+      </Section>
+      <TxnAnalytics id="txn" />
+    </div>
+
+    <div data-requires="network:read">
+      <Section id="network" kicker="Global network" title="Cities apart, *connected*." lead="Corridors between countries, weighted by completed volume.">
+        <div class="ops-cols ops-cols-21">
+          <NetworkMap name="map" />
+          <div>
+            <p class="ops-subhead"><span class="label">Top corridors</span></p>
+            <Region name="corridors" skeleton="list" count={6} emptyTitle="No cross-border transfers yet." emptyBody="Corridors appear when money moves between two countries." errorTitle="Corridors could not be loaded.">
+              <div data-corridors></div>
+            </Region>
+          </div>
+        </div>
+        <a slot="foot" class="ops-link" href={routes.network}>Open Global Network <Icon name="arrow-right" size={16} directional /></a>
+      </Section>
+    </div>
+
+    <div class="ops-cols ops-cols-2">
+      <div data-requires="activity:read">
+        <Section id="activity" kicker="Activity" title="What *just* happened." lead="The latest events across users, money, Connectors and the platform.">
+          <Region name="activity" skeleton="list" count={8} emptyTitle="Quiet for now." emptyBody="New events appear here as they happen." errorTitle="Activity could not be loaded." />
+          <a slot="foot" class="ops-link" href={routes.activity}>Open Activity <Icon name="arrow-right" size={16} directional /></a>
+        </Section>
+      </div>
+      <div data-requires="system:read">
+        <Section id="health" kicker="System health" title="Service *health*." lead="The status of each service the app depends on.">
+          <Region name="health" skeleton="list" count={8} emptyTitle="No services reported." errorTitle="System health could not be loaded.">
+            <ul class="ops-ledger" data-services></ul>
+          </Region>
+          <a slot="foot" class="ops-link" href={routes.health}>Open System Health <Icon name="arrow-right" size={16} directional /></a>
+        </Section>
+      </div>
+    </div>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/command-center';
+</script>

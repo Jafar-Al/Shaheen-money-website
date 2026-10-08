@@ -1,0 +1,42 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Section from '../../components/admin/Section.astro';
+import Region from '../../components/admin/Region.astro';
+
+/** 10 · System Health: each service the app depends on, its last 30 days, and incidents. */
+---
+
+<AdminLayout title="System Health">
+  <OpsShell active="health" crumb="System Health">
+    <PageHead n="10" label="System Health" title="Every service, *at a glance*." lead="What the health endpoint reports for each service, refreshed every minute while this page is open.">
+      <p slot="meta" class="ops-head-meta">
+        <span class="ops-badge" data-overall data-tone="muted"><span class="ops-dot" aria-hidden="true"></span><span data-overall-text>Checking</span></span>
+        <span class="micro" data-fresh></span>
+      </p>
+      <button slot="tools" type="button" class="ops-btn" data-refresh>Refresh now</button>
+    </PageHead>
+
+    <Section id="services" kicker="Services" title="Status, uptime and *latency*." lead="Uptime counts a degraded hour as half an hour down. p95 latency is the slowest of the fastest 95% of requests.">
+      <Region name="services" skeleton="list" count={8} emptyTitle="No services reported." errorTitle="Service health could not be loaded.">
+        <ul class="ops-ledger" data-services></ul>
+        <p class="ops-chart-legend micro" aria-hidden="true">
+          <span><i class="ops-dot" data-tone="good"></i>Operational</span>
+          <span><i class="ops-dot" data-tone="warn"></i>Degraded</span>
+          <span><i class="ops-dot" data-tone="alert"></i>Down</span>
+        </p>
+      </Region>
+    </Section>
+
+    <Section id="incidents" kicker="Incidents" title="What went *wrong*, and when." lead="Every incident in the last 30 days, open ones first.">
+      <Region name="incidents" skeleton="list" count={3} emptyTitle="No incidents in the last 30 days." emptyBody="Incidents appear here when a service is degraded or down." errorTitle="Incidents could not be loaded.">
+        <ol class="ops-ledger" data-incidents></ol>
+      </Region>
+    </Section>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/health';
+</script>

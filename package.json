@@ -1,0 +1,63 @@
+{
+  "name": "shaheen-money-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/build-tokens.mjs --check && astro build && node scripts/postbuild.mjs",
+    "preview": "node scripts/serve.mjs",
+    "check": "astro check",
+    "test": "playwright test",
+    "lint:styles": "node scripts/lint-styles.mjs",
+    "check:dist": "node scripts/check-dist.mjs",
+    "check:launch": "node scripts/check-launch.ts",
+    "verify": "npm run lint:styles && npm run check && npm run build && npm run check:dist && npm test",
+    "tokens": "node scripts/build-tokens.mjs",
+    "fonts": "node scripts/build-fonts.mjs",
+    "icons": "node scripts/brand/build-icons.mjs",
+    "media": "node scripts/brand/build-media.mjs",
+    "docs": "node scripts/build-docs.mjs",
+    "motion": "npm run motion:picture && npm run motion:sound",
+    "motion:picture": "node motion/lib/render.mjs 01-the-journey && node motion/lib/render.mjs 02-pour && node motion/lib/render.mjs 03-swarm && node motion/lib/render.mjs 04-out-of-the-screen",
+    "motion:preview": "node motion/lib/render.mjs 01-the-journey --preview && node motion/lib/render.mjs 02-pour --preview && node motion/lib/render.mjs 03-swarm --preview && node motion/lib/render.mjs 04-out-of-the-screen --preview",
+    "motion:sound": "node motion/lib/sound.mjs --all",
+    "motion:assets": "node motion/lib/make-falcon.mjs && node motion/lib/make-geo.mjs",
+    "import:legacy": "node scripts/import-legacy-content.mjs",
+    "admin:add": "node scripts/admin-account.mjs add",
+    "admin:list": "node scripts/admin-account.mjs list",
+    "admin:remove": "node scripts/admin-account.mjs remove",
+    "admin:secret": "node scripts/admin-account.mjs secret"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "^11.0.11",
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@fontsource/geist-mono": "^5.3.0",
+    "@fontsource/instrument-sans": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "@fontsource/noto-naskh-arabic": "^5.3.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.4",
+    "d3-geo": "^3.1.1",
+    "fontverter": "^2.0.0",
+    "sharp": "^0.35.4",
+    "tailwindcss": "^4.3.3",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "@types/d3-geo": "^3.1.1",
+    "@types/geojson": "^7946.0.16",
+    "@types/node": "^22.20.4",
+    "@types/topojson-client": "^3.1.5",
+    "subset-font": "^2.9.0",
+    "typescript": "^6.0.3"
+  }
+}

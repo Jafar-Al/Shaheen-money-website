@@ -1,0 +1,61 @@
+---
+import falcon from '../../assets/brand/falcon.svg?raw';
+
+/**
+ * The falcon's return at the close of the page: the real mark, split into
+ * its six strokes, arrives fanned out and folds into the resting logo when
+ * it comes into view. Its own keyframes: the hero's FalconFlight.astro is
+ * not touched and not re-run. Transform and opacity only; without a script,
+ * or with reduced motion, the mark is simply at rest.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+const d = falcon.match(/ d="([^"]+)"/)?.[1] ?? '';
+const feathers = d.split(/(?=M)/).filter(Boolean);
+---
+
+<span class:list={['fold', className]} aria-hidden="true" data-reveal>
+  <svg viewBox="0 0 240 240" focusable="false">
+    {feathers.map((f, i) => <path class={`fold-feather fold-${i + 1}`} d={f} />)}
+  </svg>
+</span>
+
+<style>
+  .fold {
+    display: grid;
+    place-items: center;
+    inline-size: 5.5rem;
+    aspect-ratio: 1;
+    border-radius: var(--radius-full);
+    background-color: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+  .fold svg {
+    inline-size: 62%;
+    block-size: 62%;
+    overflow: visible;
+    fill: currentColor;
+  }
+  .fold-feather {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    transition: transform 1.1s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  .fold-1 { --fx: -26px; --fy: -26px; --fr: -5deg; }
+  .fold-2 { --fx: 20px; --fy: -26px; --fr: -18deg; transition-delay: 40ms; }
+  .fold-3 { --fx: 5px; --fy: 5px; --fr: 0deg; }
+  .fold-4 { --fx: 26px; --fy: -10px; --fr: -12deg; transition-delay: 70ms; }
+  .fold-5 { --fx: -26px; --fy: 16px; --fr: 15deg; transition-delay: 90ms; }
+  .fold-6 { --fx: -10px; --fy: 24px; --fr: 10deg; transition-delay: 60ms; }
+  /* Fanned while the page has not reached it; folded once it has. */
+  .fold[data-reveal-pending] .fold-feather {
+    transform: translate(var(--fx), var(--fy)) rotate(var(--fr));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fold-feather {
+      transform: none !important;
+    }
+  }
+</style>

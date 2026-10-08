@@ -1,0 +1,35 @@
+---
+import Region from './Region.astro';
+
+/**
+ * Headline figures as one statement line between hairlines (not a grid of
+ * cards): label, figure in Geist Mono, change against the previous period,
+ * and a twelve-point sparkline. The labels are written here; the figures
+ * come from the API (src/admin/ui/render.ts → fillMetric).
+ */
+interface Props {
+  name: string;
+  metrics: ReadonlyArray<{ key: string; label: string; cash?: boolean; spark?: boolean }>;
+  emptyBody?: string;
+}
+const { name, metrics, emptyBody = 'There is no activity in this period yet.' } = Astro.props;
+---
+
+<Region name={name} skeleton="metrics" count={metrics.length} emptyTitle="No figures yet." emptyBody={emptyBody} errorTitle="These figures could not be loaded.">
+  <div class="ops-metrics">
+    {
+      metrics.map((m) => (
+        <div class:list={['ops-metric', m.cash && 'is-cash']} data-metric={m.key}>
+          <p class="label ops-metric-label">{m.label}</p>
+          <p class="ops-metric-value num" data-value>
+            —
+          </p>
+          <div class="ops-metric-foot">
+            <span data-delta />
+            {m.spark !== false && <svg class="ops-spark" data-spark aria-hidden="true" focusable="false" />}
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</Region>

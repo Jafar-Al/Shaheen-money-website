@@ -1,0 +1,157 @@
+---
+import Icon from './Icon.astro';
+
+/**
+ * Native <details> disclosure, set as a ledger: a mono number, the question
+ * in the display face, a hairline cross that turns into a minus. Keyboard
+ * and screen-reader support come from the element; the answer is in the
+ * HTML whether or not anyone opens it. Where the browser can animate to
+ * `auto` (interpolate-size), the answer unfolds; elsewhere it simply opens.
+ */
+interface Props {
+  items: Array<{ q: string; a: string; link?: { href: string; label: string } | undefined }>;
+  class?: string;
+}
+const { items, class: className } = Astro.props;
+---
+
+<div class:list={['accordion', className]} data-accordion>
+  {
+    items.map((item, i) => (
+      <details class="acc-item" data-acc-item>
+        <summary class="acc-summary">
+          <span class="acc-n num" aria-hidden="true">
+            {String(i + 1).padStart(2, '0')}
+          </span>
+          <span class="acc-q">{item.q}</span>
+          <span class="acc-cross" aria-hidden="true">
+            <span />
+            <span />
+          </span>
+        </summary>
+        <div class="acc-body">
+          <p>{item.a}</p>
+          {item.link && (
+            <p>
+              <a href={item.link.href} class="acc-link">
+                {item.link.label}
+                <Icon name="arrow-right" size={16} directional />
+              </a>
+            </p>
+          )}
+        </div>
+      </details>
+    ))
+  }
+</div>
+
+<style>
+  .accordion {
+    border-block-start: 1px solid var(--line);
+    interpolate-size: allow-keywords;
+  }
+  .acc-item {
+    border-block-end: 1px solid var(--line);
+  }
+  .acc-summary {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr) 2.5rem;
+    align-items: baseline;
+    gap: 1rem;
+    min-block-size: 3.5rem;
+    padding-block: 1.5rem;
+    cursor: pointer;
+    list-style: none;
+  }
+  .acc-summary::-webkit-details-marker {
+    display: none;
+  }
+  .acc-n {
+    font-size: var(--text-label);
+    color: var(--accent);
+  }
+  .acc-q {
+    font-family: var(--font-display);
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+    letter-spacing: var(--ls-h3);
+    transition: translate var(--motion-standard) var(--ease-out);
+  }
+  :global(:lang(ar)) .acc-q {
+    font-weight: 500;
+  }
+  .acc-cross {
+    position: relative;
+    align-self: center;
+    justify-self: end;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+  }
+  .acc-cross span {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 0;
+    inline-size: 100%;
+    block-size: 1.5px;
+    margin-block-start: -0.75px;
+    background: currentColor;
+    transition: rotate var(--motion-standard) var(--ease-out);
+  }
+  .acc-cross span:last-child {
+    rotate: 90deg;
+  }
+  .acc-item[open] .acc-cross span:last-child {
+    rotate: 0deg;
+  }
+  .acc-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-inline-size: var(--measure);
+    padding-block-end: 2rem;
+    padding-inline-start: 3.75rem;
+    font-size: var(--text-body-l);
+    line-height: var(--lh-body-l);
+    color: var(--fg-2);
+  }
+  .acc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-block-size: var(--target-min);
+    font-size: var(--text-button);
+    font-weight: 600;
+    color: var(--fg);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+  }
+
+  /* The answer unfolds where the browser can animate to `auto`. */
+  .acc-item::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size var(--motion-standard) var(--ease-out),
+      content-visibility var(--motion-standard) allow-discrete;
+  }
+  .acc-item[open]::details-content {
+    block-size: auto;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .acc-summary:hover .acc-q {
+      translate: calc(6px * var(--dir)) 0;
+    }
+  }
+  @media (width < 48rem) {
+    .acc-summary {
+      grid-template-columns: 2.25rem minmax(0, 1fr) 1.5rem;
+      gap: 0.75rem;
+      padding-block: 1.25rem;
+    }
+    .acc-body {
+      padding-inline-start: 3rem;
+    }
+  }
+</style>

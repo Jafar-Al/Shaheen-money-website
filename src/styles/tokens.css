@@ -1,0 +1,311 @@
+/* GENERATED from design/tokens.json by scripts/build-tokens.mjs — do not edit. */
+
+@theme {
+  --color-*: initial;
+  --color-night-950: #04070f;
+  --color-night-900: #060b1c;
+  --color-navy-800: #071138;
+  --color-night-700: #101a3a;
+  --color-paper-50: #f6f1e7;
+  --color-paper-100: #efe8da;
+  --color-paper-200: #e3dac7;
+  --color-signal: #00e1ff;
+  --color-signal-ink: #006e86;
+  --color-amber: #f5a623;
+  --color-amber-ink: #8a5300;
+  --color-error: #c2410c;
+  --color-alert: #ff7d4d;
+  --color-alert-ink: #a8370b;
+  --color-white: #ffffff;
+  --color-chalk: rgba(255, 255, 255, 0.92);
+  --color-chalk-2: rgba(255, 255, 255, 0.68);
+  --color-chalk-3: rgba(255, 255, 255, 0.56);
+  --color-night-line: rgba(255, 255, 255, 0.14);
+  --color-night-line-strong: rgba(255, 255, 255, 0.45);
+  --color-ink: #071138;
+  --color-ink-2: rgba(7, 17, 56, 0.72);
+  --color-ink-3: rgba(7, 17, 56, 0.64);
+  --color-paper-line: rgba(7, 17, 56, 0.16);
+  --color-paper-line-strong: rgba(7, 17, 56, 0.5);
+  --color-app-blue: #0701fc;
+  --color-app-tile: #1e3aed;
+  --color-app-card: #031535;
+  --color-app-cyan: #04dcfa;
+  --color-app-icon: #193655;
+
+  --radius-*: initial;
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-full: 9999px;
+
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --shadow-paper: 0 1px 0 rgba(7, 17, 56, 0.08), 0 18px 28px -18px rgba(7, 17, 56, 0.35);
+
+  --breakpoint-*: initial;
+  --breakpoint-sm: 30rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+
+  --container-*: initial;
+  --container-measure: 62ch;
+  --container-measure-ar: 55ch;
+  --container-reading: 68ch;
+  --container-reading-ar: 60ch;
+  --container-page: 1440px;
+
+  --spacing: 0.25rem; /* 4px unit: every spacing utility is a multiple */
+  --tracking-*: initial; /* tracking comes from type tokens only */
+  --leading-*: initial; /* line-height comes from type tokens only */
+  --ease-*: initial;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-hover: cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-*: initial;
+  --blur-*: initial; /* no blur anywhere: separation is hairlines, not glass */
+  --default-transition-duration: 240ms;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Semantic colours, type and families resolve per element, so a
+   temperature class or :lang(ar) can retune them. */
+@theme inline {
+  --color-surface: var(--bg);
+  --color-raised: var(--raised);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-cash: var(--cash);
+  --color-warn: var(--warn);
+  --color-alert: var(--alert);
+  --color-focus: var(--focus);
+  --color-inverse-bg: var(--inverse-bg);
+  --color-inverse-fg: var(--inverse-fg);
+
+  --text-*: initial;
+  --text-display-xl: calc(clamp(3.5rem, 9.5vw, 9.5rem) * var(--scale-display-xl));
+  --text-display-xl--line-height: var(--lh-display-xl);
+  --text-display-xl--letter-spacing: var(--ls-display-xl);
+  --text-display-xl--font-weight: 400;
+  --text-display-l: calc(clamp(2.75rem, 6vw, 6rem) * var(--scale-display-l));
+  --text-display-l--line-height: var(--lh-display-l);
+  --text-display-l--letter-spacing: var(--ls-display-l);
+  --text-display-l--font-weight: 400;
+  --text-display-m: calc(clamp(2.25rem, 4.2vw, 4.25rem) * var(--scale-display-m));
+  --text-display-m--line-height: var(--lh-display-m);
+  --text-display-m--letter-spacing: var(--ls-display-m);
+  --text-display-m--font-weight: 400;
+  --text-h3: calc(clamp(1.75rem, 2.6vw, 2.5rem) * var(--scale-h3));
+  --text-h3--line-height: var(--lh-h3);
+  --text-h3--letter-spacing: var(--ls-h3);
+  --text-h3--font-weight: 400;
+  --text-h4: calc(clamp(1.375rem, 1.8vw, 1.75rem) * var(--scale-h4));
+  --text-h4--line-height: var(--lh-h4);
+  --text-h4--letter-spacing: var(--ls-h4);
+  --text-h4--font-weight: 400;
+  --text-figure: calc(clamp(4.5rem, 14vw, 13rem) * var(--scale-figure));
+  --text-figure--line-height: var(--lh-figure);
+  --text-figure--letter-spacing: var(--ls-figure);
+  --text-figure--font-weight: 400;
+  --text-body-l: calc(1.25rem * var(--scale-body-l));
+  --text-body-l--line-height: var(--lh-body-l);
+  --text-body-l--letter-spacing: var(--ls-body-l);
+  --text-body-l--font-weight: 400;
+  --text-body: calc(1.0625rem * var(--scale-body));
+  --text-body--line-height: var(--lh-body);
+  --text-body--letter-spacing: var(--ls-body);
+  --text-body--font-weight: 400;
+  --text-body-s: calc(0.9375rem * var(--scale-body-s));
+  --text-body-s--line-height: var(--lh-body-s);
+  --text-body-s--letter-spacing: var(--ls-body-s);
+  --text-body-s--font-weight: 400;
+  --text-label: calc(0.75rem * var(--scale-label));
+  --text-label--line-height: var(--lh-label);
+  --text-label--letter-spacing: var(--ls-label);
+  --text-label--font-weight: 400;
+  --text-micro: calc(0.6875rem * var(--scale-micro));
+  --text-micro--line-height: var(--lh-micro);
+  --text-micro--letter-spacing: var(--ls-micro);
+  --text-micro--font-weight: 400;
+  --text-button: calc(0.9375rem * var(--scale-button));
+  --text-button--line-height: var(--lh-button);
+  --text-button--letter-spacing: var(--ls-button);
+  --text-button--font-weight: 600;
+  --text-nav: calc(0.9375rem * var(--scale-nav));
+  --text-nav--line-height: var(--lh-nav);
+  --text-nav--letter-spacing: var(--ls-nav);
+  --text-nav--font-weight: 500;
+
+  --font-*: initial;
+  --font-display: var(--font-display-stack);
+  --font-sans: var(--font-body-stack);
+  --font-mono: var(--font-mono-stack);
+}
+
+:root {
+  --scale-display-xl: 1;
+  --lh-display-xl: 0.95;
+  --ls-display-xl: -0.012em;
+  --scale-display-l: 1;
+  --lh-display-l: 0.98;
+  --ls-display-l: -0.01em;
+  --scale-display-m: 1;
+  --lh-display-m: 1.02;
+  --ls-display-m: -0.008em;
+  --scale-h3: 1;
+  --lh-h3: 1.08;
+  --ls-h3: -0.004em;
+  --scale-h4: 1;
+  --lh-h4: 1.15;
+  --ls-h4: 0em;
+  --scale-figure: 1;
+  --lh-figure: 0.9;
+  --ls-figure: -0.04em;
+  --scale-body-l: 1;
+  --lh-body-l: 1.55;
+  --ls-body-l: 0em;
+  --scale-body: 1;
+  --lh-body: 1.6;
+  --ls-body: 0em;
+  --scale-body-s: 1;
+  --lh-body-s: 1.55;
+  --ls-body-s: 0em;
+  --scale-label: 1;
+  --lh-label: 1.4;
+  --ls-label: 0.08em;
+  --scale-micro: 1;
+  --lh-micro: 1.4;
+  --ls-micro: 0.06em;
+  --scale-button: 1;
+  --lh-button: 1.2;
+  --ls-button: 0em;
+  --scale-nav: 1;
+  --lh-nav: 1.2;
+  --ls-nav: 0em;
+
+  --margin: clamp(20px, 6vw, 96px);
+  --gutter: 24px;
+  --section-dense: clamp(72px, 8vw, 128px);
+  --section: clamp(96px, 12vw, 192px);
+  --section-airy: clamp(128px, 16vw, 256px);
+  --header-h: 72px;
+  --strip-h: 36px;
+  --target-min: 48px;
+  --motion-micro: 160ms;
+  --motion-hover: 240ms;
+  --motion-standard: 520ms;
+  --motion-scene: 1100ms;
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --motion-ease-hover: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-print: steps(1, end);
+  --focus-width: 2px;
+  --focus-offset: 3px;
+  --measure: 62ch;
+  --reading: 68ch;
+
+  /* Families are registered by the Fonts API (astro.config.mjs). */
+  --font-display-stack: var(--font-instrument-serif, ui-serif, Georgia, serif);
+  --font-body-stack: var(--font-instrument-sans, ui-sans-serif, system-ui, sans-serif);
+  --font-mono-stack: var(--font-geist-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+}
+
+/* Arabic: its own display and text faces, deeper line-heights, never any
+   tracking. Plex carries Latin inside Arabic text (brand and store names),
+   Geist Mono carries every figure, so money reads the same in both locales.
+   [lang=ar] also covers an Arabic block inside an English page (the 404). */
+:root:lang(ar),
+[lang='ar'] {
+  --scale-display-xl: 0.86;
+  --lh-display-xl: 1.3;
+  --ls-display-xl: 0em;
+  --scale-display-l: 0.88;
+  --lh-display-l: 1.32;
+  --ls-display-l: 0em;
+  --scale-display-m: 0.9;
+  --lh-display-m: 1.38;
+  --ls-display-m: 0em;
+  --scale-h3: 0.92;
+  --lh-h3: 1.45;
+  --ls-h3: 0em;
+  --scale-h4: 0.95;
+  --lh-h4: 1.55;
+  --ls-h4: 0em;
+  --scale-figure: 1;
+  --lh-figure: 0.9;
+  --ls-figure: 0em;
+  --scale-body-l: 1;
+  --lh-body-l: 1.8;
+  --ls-body-l: 0em;
+  --scale-body: 1.0588;
+  --lh-body: 1.8;
+  --ls-body: 0em;
+  --scale-body-s: 1.0667;
+  --lh-body-s: 1.75;
+  --ls-body-s: 0em;
+  --scale-label: 1.0833;
+  --lh-label: 1.6;
+  --ls-label: 0em;
+  --scale-micro: 1.0909;
+  --lh-micro: 1.6;
+  --ls-micro: 0em;
+  --scale-button: 1.0667;
+  --lh-button: 1.4;
+  --ls-button: 0em;
+  --scale-nav: 1.0667;
+  --lh-nav: 1.4;
+  --ls-nav: 0em;
+  --measure: 55ch;
+  --reading: 60ch;
+  --font-display-stack: var(--font-naskh), var(--font-plex-arabic), ui-serif, serif;
+  --font-body-stack: var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+  --font-mono-stack: var(--font-geist-mono), var(--font-plex-arabic), ui-monospace, monospace;
+}
+@layer base {
+  [lang='ar'] {
+    font-family: var(--font-body-stack);
+  }
+}
+
+/* Temperatures. Night is the digital world, Paper the physical one. */
+.t-night {
+  --bg: var(--color-night-900);
+  --raised: var(--color-night-700);
+  --fg: var(--color-chalk);
+  --fg-2: var(--color-chalk-2);
+  --fg-3: var(--color-chalk-3);
+  --line: var(--color-night-line);
+  --line-strong: var(--color-night-line-strong);
+  --accent: var(--color-signal);
+  --cash: var(--color-amber);
+  --warn: var(--color-amber);
+  --alert: var(--color-alert);
+  --focus: var(--color-signal);
+  --inverse-bg: var(--color-paper-50);
+  --inverse-fg: var(--color-ink);
+  color-scheme: dark;
+}
+.t-paper {
+  --bg: var(--color-paper-50);
+  --raised: var(--color-paper-100);
+  --fg: var(--color-ink);
+  --fg-2: var(--color-ink-2);
+  --fg-3: var(--color-ink-3);
+  --line: var(--color-paper-line);
+  --line-strong: var(--color-paper-line-strong);
+  --accent: var(--color-signal-ink);
+  --cash: var(--color-amber-ink);
+  --warn: var(--color-amber-ink);
+  --alert: var(--color-alert-ink);
+  --focus: var(--color-signal-ink);
+  --inverse-bg: var(--color-navy-800);
+  --inverse-fg: var(--color-paper-50);
+  color-scheme: light;
+}

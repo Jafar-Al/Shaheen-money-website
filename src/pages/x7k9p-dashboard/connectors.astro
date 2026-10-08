@@ -1,0 +1,97 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Section from '../../components/admin/Section.astro';
+import MetricStrip from '../../components/admin/MetricStrip.astro';
+import Segmented from '../../components/admin/Segmented.astro';
+import DataTable from '../../components/admin/DataTable.astro';
+import ChartFrame from '../../components/admin/ChartFrame.astro';
+import Region from '../../components/admin/Region.astro';
+import Icon from '../../components/ui/Icon.astro';
+
+/**
+ * 03 · Connector Network: the shops that hand out cash. Their figures are
+ * cash-outs over the last 30 days, in amber, the site's colour for cash.
+ */
+---
+
+<AdminLayout title="Connector Network">
+  <OpsShell active="connectors" crumb="Connectors">
+    <PageHead n="03" label="Connector Network" title="The shops that hand out *cash*." lead="Every Connector, where it is, and how much cash it has handed over in the last 30 days.">
+      <button slot="tools" type="button" class="ops-btn" data-export="connectors"><Icon name="download" size={18} /><span data-label>Export Connectors</span></button>
+    </PageHead>
+
+    <MetricStrip
+      name="summary"
+      metrics={[
+        { key: 'total', label: 'Total Connectors', spark: false },
+        { key: 'active', label: 'Active', spark: false },
+        { key: 'inactive', label: 'Inactive', spark: false },
+        { key: 'pending', label: 'Pending', spark: false },
+        { key: 'countries', label: 'Countries', spark: false },
+        { key: 'volume', label: 'Cash-out volume · 30D', cash: true, spark: false },
+        { key: 'count', label: 'Cash-outs · 30D', cash: true, spark: false },
+      ]}
+    />
+
+    <Section id="activity" kicker="Connector activity" title="Cash handed over, *day by day*." lead="Completed cash-outs across the network, last 30 days, and the busiest Connectors.">
+      <div class="ops-cols ops-cols-21">
+        <Region name="activity" skeleton="chart" emptyTitle="No cash-outs yet." emptyBody="Daily cash-outs appear once Connectors start handing out cash." errorTitle="Connector activity could not be loaded.">
+          <ChartFrame name="activity" label="Completed cash-outs per day across all Connectors, last 30 days" size="md" />
+        </Region>
+        <div>
+          <p class="ops-subhead"><span class="label">Busiest · 30D</span></p>
+          <Region name="top" skeleton="list" count={5} emptyTitle="No cash-outs yet." errorTitle="These could not be loaded.">
+            <ol class="ops-ledger" data-top></ol>
+          </Region>
+        </div>
+      </div>
+    </Section>
+
+    <section class="ops-sec" aria-labelledby="con-list-title">
+      <h2 id="con-list-title" class="sr-only">All Connectors</h2>
+      <div class="ops-toolbar">
+        <label class="ops-search">
+          <Icon name="search" size={18} />
+          <span class="sr-only">Search Connectors</span>
+          <input class="ops-input" type="search" placeholder="Search name, city or ID" autocomplete="off" spellcheck="false" data-search />
+        </label>
+        <Segmented
+          name="status"
+          label="Status"
+          words
+          options={[
+            { value: '', label: 'All' },
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' },
+            { value: 'pending', label: 'Pending' },
+          ]}
+          value=""
+        />
+        <select class="ops-select" aria-label="Country" data-country>
+          <option value="">All countries</option>
+        </select>
+      </div>
+      <DataTable
+        name="connectors"
+        caption="Connectors, with their place, status and last 30 days of cash-outs"
+        emptyTitle="No Connectors match."
+        emptyBody="Try another search, status or country."
+        columns={[
+          { label: 'Connector', key: 'name', first: 'asc' },
+          { label: 'Country', key: 'country', first: 'asc' },
+          { label: 'City', key: 'city', first: 'asc' },
+          { label: 'Status', key: 'status', first: 'asc' },
+          { label: 'Cash-outs · 30D', key: 'transactionCount', numeric: true },
+          { label: 'Volume · 30D', key: 'volumeUsd', numeric: true },
+          { label: 'Last active', key: 'lastActiveAt' },
+        ]}
+      />
+    </section>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/connectors';
+</script>

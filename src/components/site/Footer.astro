@@ -1,0 +1,324 @@
+---
+import Logo from './Logo.astro';
+import StoreBadges from './StoreBadges.astro';
+import SocialLinks from './SocialLinks.astro';
+import LocaleSwitch from './LocaleSwitch.astro';
+import FeatherField from '../art/FeatherField.astro';
+import Slip from '../ui/Slip.astro';
+import Stamp from '../ui/Stamp.astro';
+import Gap from '../ui/Gap.astro';
+import { brand } from '../../config/site';
+import { common } from '../../copy/common';
+import { facts } from '../../data/facts';
+import { showGaps } from '../../lib/gaps';
+import { href, type Locale, type PageKey } from '../../i18n/config';
+
+/**
+ * Night. The falcon's plume cropped into the trailing corner, the lockup
+ * and both taglines, the official-links warning as a stamped paper slip,
+ * four link groups, the company block (on every page, in both locales:
+ * audit F.3 rule 6), the language switch, the six channels.
+ *
+ * The product column links into the homepage by anchor: those sections used
+ * to be pages.
+ */
+interface Props {
+  locale: Locale;
+  /** Same page in each locale, for the language control. */
+  localeHrefs: Record<Locale, string>;
+}
+
+const { locale, localeHrefs } = Astro.props;
+const t = common[locale];
+const n = t.nav;
+const s = t.homeSections;
+const f = t.footer;
+
+const homeAnchor = (hash: string) => `${href(locale, 'home')}#${hash}`;
+
+const columns: Array<{ title: string; links: Array<{ label: string; href: string }> }> = [
+  {
+    title: f.product,
+    links: [
+      { label: f.getApp, href: href(locale, 'getApp') },
+      { label: s.howItWorks, href: homeAnchor('how') },
+      { label: s.cashOut, href: homeAnchor('cash-out') },
+      { label: s.network, href: homeAnchor('network') },
+      { label: s.pricing, href: homeAnchor('pricing') },
+    ],
+  },
+  {
+    title: f.company,
+    links: (
+      [
+        ['about', n.about.title],
+        ['business', n.business.title],
+        ['blog', n.blog.title],
+        ['contact', n.contact.title],
+      ] as Array<[PageKey, string]>
+    ).map(([k, label]) => ({ label, href: href(locale, k) })),
+  },
+  {
+    title: f.resources,
+    links: [
+      { label: n.media, href: href(locale, 'media') },
+      { label: n.security, href: href(locale, 'security') },
+      { label: s.faq, href: homeAnchor('faq') },
+      { label: f.accessibility, href: href(locale, 'accessibility') },
+      { label: f.reportVulnerability, href: '/.well-known/security.txt' },
+    ],
+  },
+  {
+    title: f.legal,
+    links: (
+      [
+        ['privacy', f.privacy],
+        ['terms', f.terms],
+        ['cookies', f.cookies],
+      ] as Array<[PageKey, string]>
+    ).map(([k, label]) => ({ label, href: href(locale, k) })),
+  },
+];
+
+const c = facts.company;
+const legalLines = [c.legalName, c.registrationNumber, c.registeredAddress?.[locale], c.jurisdiction?.[locale]].filter(
+  (x): x is string => Boolean(x),
+);
+const office = c.office?.value;
+const hasCompanyFacts = legalLines.length > 0 || facts.licences.length > 0 || Boolean(office);
+const year = new Date().getUTCFullYear();
+---
+
+<footer class="site-footer t-night grain" data-temp="night">
+  <div class="footer-plume" aria-hidden="true">
+    <FeatherField seed="footer" variant="corner" />
+  </div>
+
+  <div class="page footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href={href(locale, 'home')} aria-label={t.homeLabel} class="footer-home">
+          <Logo size="lg" />
+        </a>
+        <p class="footer-tagline font-display">{brand.taglineSecondary[locale]}</p>
+        <p class="label footer-slogan">{brand.taglinePrimary[locale]}</p>
+        <StoreBadges locale={locale} />
+      </div>
+
+      <Slip as="aside" no="shaheen.money" class="footer-warning" data-no-print>
+        <Stamp locale={locale} kind="note" tilt={-3} class="footer-stamp" />
+        <p class="footer-warning-text">{f.officialApps}</p>
+      </Slip>
+    </div>
+
+    <nav aria-label={f.nav} data-site-footer-nav class="footer-nav">
+      {
+        columns.map((col) => (
+          <div class="footer-col">
+            <h2 class="label footer-col-title">{col.title}</h2>
+            <ul>
+              {col.links.map((l) => (
+                <li>
+                  <a href={l.href} class="footer-link">
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </nav>
+
+    {
+      (hasCompanyFacts || showGaps) && (
+        <section aria-labelledby="footer-company" class="footer-company">
+          <h2 id="footer-company" class="label footer-col-title">
+            {f.companyDetails}
+          </h2>
+          <div class="footer-company-body">
+            {legalLines.length > 0 && <p>{legalLines.join(' · ')}</p>}
+            {facts.licences.map((l) => (
+              <p>
+                {l.licenceType[locale]} · {l.regulator[locale]} · <span class="num">{l.number}</span> · {l.jurisdiction[locale]}
+                {l.registerUrl && (
+                  <>
+                    {' · '}
+                    <a href={l.registerUrl} target="_blank" rel="noopener noreferrer" class="footer-link-inline">
+                      {l.regulator[locale]}
+                      <span class="sr-only">{t.ui.opensNewTab}</span>
+                    </a>
+                  </>
+                )}
+              </p>
+            ))}
+            {office && (
+              <p class="footer-office">
+                <bdi dir="ltr">{office.address}</bdi>
+                <span aria-hidden="true">{' · '}</span>
+                <a href={`tel:${office.phone.replace(/[^+\d]/g, '')}`} class="footer-link-inline num" dir="ltr">
+                  {office.phone}
+                </a>
+              </p>
+            )}
+            {legalLines.length === 0 && facts.licences.length === 0 && (
+              <Gap need="The company name behind Shaheen Money (src/data/facts.ts, company.legalName)." />
+            )}
+          </div>
+        </section>
+      )
+    }
+
+    <div class="footer-bottom">
+      <LocaleSwitch locale={locale} hrefs={localeHrefs} />
+      <SocialLinks locale={locale} />
+      <p class="micro footer-copy">© {year} {locale === 'ar' ? brand.nameAr : brand.name}. {f.rights}</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    overflow: clip;
+    background-color: var(--bg);
+    color: var(--fg);
+    border-block-start: 1px solid var(--line);
+  }
+  .footer-plume {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-end: 0;
+    inline-size: min(40vw, 38rem);
+    aspect-ratio: 1;
+    color: var(--fg);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+  /* On a phone the plume sits under the copyright line: keep it faint. */
+  @media (width < 48rem) {
+    .footer-plume {
+      opacity: 0.28;
+    }
+  }
+  .footer-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(3.5rem, 7vw, 6rem);
+    padding-block: clamp(4.5rem, 9vw, 8rem) 2rem;
+  }
+
+  .footer-top {
+    display: grid;
+    gap: 3rem;
+  }
+  @media (width >= 64rem) {
+    .footer-top {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+      align-items: end;
+    }
+  }
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .footer-home {
+    display: inline-flex;
+    min-block-size: var(--target-min);
+    align-items: center;
+  }
+  .footer-tagline {
+    text-wrap: balance;
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+    letter-spacing: var(--ls-display-m);
+    max-inline-size: 16ch;
+  }
+  :global(:lang(ar)) .footer-tagline {
+    font-weight: 500;
+  }
+  .footer-slogan {
+    color: var(--fg-2);
+    margin-block-end: 0.5rem;
+  }
+
+  .footer-warning {
+    justify-self: start;
+    max-inline-size: 22rem;
+    rotate: 1.2deg;
+  }
+  .footer-stamp {
+    margin-block-end: 0.875rem;
+  }
+  .footer-warning-text {
+    font-size: var(--text-body-s);
+    line-height: var(--lh-body-s);
+    color: var(--fg);
+  }
+
+  .footer-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem 1.5rem;
+    padding-block-start: 2.5rem;
+    border-block-start: 1px solid var(--line);
+  }
+  @media (width >= 48rem) {
+    .footer-nav {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .footer-col-title {
+    margin-block-end: 0.75rem;
+    color: var(--fg-3);
+  }
+  .footer-link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+    transition: color var(--motion-hover) var(--ease-hover);
+  }
+  .footer-link:hover {
+    color: var(--fg);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+  }
+
+  .footer-company {
+    padding-block-start: 2rem;
+    border-block-start: 1px solid var(--line);
+  }
+  .footer-company-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .footer-link-inline {
+    color: var(--fg);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+    text-decoration-color: var(--line-strong);
+  }
+
+  .footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5rem 2rem;
+    padding-block-start: 2rem;
+    border-block-start: 1px solid var(--line);
+  }
+  .footer-copy {
+    color: var(--fg-3);
+    margin-inline-start: auto;
+  }
+</style>

@@ -1,0 +1,95 @@
+---
+/**
+ * A block of API data with all its states designed (src/admin/ui/region.ts
+ * moves it between them): the skeleton while it first loads, the content,
+ * an empty state that says plainly there is nothing yet, and an error state
+ * with the reason, its code, and a retry where retrying can help.
+ *
+ * The empty state's mark is a route with no city at the end of it, the
+ * same idea as the site's 404.
+ */
+interface Props {
+  name: string;
+  skeleton?: 'metrics' | 'chart' | 'table' | 'list' | 'map' | 'flow' | 'record' | 'block';
+  /** Rows or cells in the skeleton. */
+  count?: number;
+  emptyTitle?: string;
+  emptyBody?: string;
+  errorTitle?: string;
+  class?: string;
+}
+const {
+  name,
+  skeleton = 'block',
+  count = 5,
+  emptyTitle = 'Nothing here yet.',
+  emptyBody = 'When there is activity to show, it will appear here.',
+  errorTitle = 'This could not be loaded.',
+  class: className,
+} = Astro.props;
+const n = Array.from({ length: count }, (_, i) => i);
+---
+
+<div class:list={['ops-region', className]} data-region={name} data-state="loading" aria-busy="true">
+  <div class="ops-sk-set" aria-hidden="true">
+    {
+      skeleton === 'metrics' && (
+        <div class="ops-sk-metrics">
+          {n.map(() => (
+            <div>
+              <span class="ops-sk ops-sk-short" />
+              <span class="ops-sk ops-sk-fig" />
+              <span class="ops-sk ops-sk-line" />
+            </div>
+          ))}
+        </div>
+      )
+    }
+    {skeleton === 'chart' && <span class="ops-sk ops-sk-chart" />}
+    {skeleton === 'map' && <span class="ops-sk ops-sk-map" />}
+    {
+      skeleton === 'flow' && (
+        <div class="ops-sk-flow">
+          {n.map(() => (
+            <span class="ops-sk" />
+          ))}
+        </div>
+      )
+    }
+    {(skeleton === 'table' || skeleton === 'list') && n.map(() => <span class="ops-sk ops-sk-row" />)}
+    {
+      skeleton === 'record' && (
+        <>
+          <span class="ops-sk ops-sk-fig" />
+          <span class="ops-sk ops-sk-short" />
+          {n.map(() => (
+            <span class="ops-sk ops-sk-line" />
+          ))}
+        </>
+      )
+    }
+    {
+      skeleton === 'block' && (
+        <>
+          <span class="ops-sk ops-sk-line" />
+          <span class="ops-sk ops-sk-short" />
+        </>
+      )
+    }
+  </div>
+  <div class="ops-content" data-content><slot /></div>
+  <div class="ops-state ops-state-empty">
+    <svg class="ops-state-mark" viewBox="0 0 88 32" aria-hidden="true" focusable="false">
+      <path class="trail" d="M2 28C20 28 32 6 66 9"></path>
+      <circle class="ring" cx="76" cy="10" r="5.5"></circle>
+    </svg>
+    <p class="ops-state-title" data-empty-title>{emptyTitle}</p>
+    <p class="ops-state-body" data-empty-body>{emptyBody}</p>
+  </div>
+  <div class="ops-state ops-state-error" role="alert">
+    <p class="ops-state-title" data-error-title data-default={errorTitle}>{errorTitle}</p>
+    <p class="ops-state-body" data-error-body></p>
+    <p class="ops-state-code micro" data-error-code></p>
+    <button type="button" class="ops-btn" data-retry>Try again</button>
+  </div>
+</div>

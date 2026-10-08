@@ -1,0 +1,63 @@
+---
+import Icon from '../ui/Icon.astro';
+
+/**
+ * One <select>, on the same underline as the text fields. Pass `options`
+ * for a flat list, or `groups` when the grouping is itself the question
+ * (the business application tells a shop from a company with it). Passing
+ * both puts the flat options last, for a trailing "something else".
+ */
+interface Props {
+  name: string;
+  label: string;
+  hint?: string;
+  placeholder: string;
+  options?: Record<string, string>;
+  groups?: Array<{ label: string; options: Record<string, string> }>;
+  required?: boolean;
+  class?: string;
+}
+
+const { name, label, hint, placeholder, options, groups, required = false, class: className } = Astro.props;
+const id = `f-${name}`;
+---
+
+<div class:list={['field', className]} data-field={name}>
+  <label for={id} class="field-label label">{label}</label>
+  <span class="field-select">
+    <select
+      id={id}
+      name={name}
+      required={required}
+      aria-describedby={hint ? `${id}-hint ${id}-error` : `${id}-error`}
+      class="field-control"
+    >
+      <option value="" disabled selected>{placeholder}</option>
+      {
+        groups?.map((group) => (
+          <optgroup label={group.label}>
+            {Object.entries(group.options).map(([value, text]) => (
+              <option value={value}>{text}</option>
+            ))}
+          </optgroup>
+        ))
+      }
+      {options && Object.entries(options).map(([value, text]) => <option value={value}>{text}</option>)}
+    </select>
+    <Icon name="arrow-down" size={16} class="field-select-icon" />
+  </span>
+  {
+    hint && (
+      <p id={`${id}-hint`} class="field-hint" data-hint>
+        {hint}
+      </p>
+    )
+  }
+  <p id={`${id}-error`} class="field-error" data-error hidden>
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+      <path d="M12 3.5 21 19.5H3z"></path>
+      <path d="M12 9.5v4.5M12 16.5v.5"></path>
+    </svg>
+    <span data-error-text></span>
+  </p>
+</div>

@@ -1,0 +1,124 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Section from '../../components/admin/Section.astro';
+import Segmented from '../../components/admin/Segmented.astro';
+import Region from '../../components/admin/Region.astro';
+import ChartFrame from '../../components/admin/ChartFrame.astro';
+import MetricStrip from '../../components/admin/MetricStrip.astro';
+import Icon from '../../components/ui/Icon.astro';
+
+/**
+ * 08 · Analytics, in four independent modules (users, transactions,
+ * network, assets): each loads, fails and retries on its own, and each
+ * chart is one measure on one axis.
+ */
+const charts = {
+  users: [
+    { name: 'new-users', title: 'New users', meta: 'Sign-ups per period' },
+    { name: 'active-users', title: 'Active users', meta: 'Users with a session in the period' },
+    { name: 'total-users', title: 'Total users', meta: 'Accounts at the end of each period' },
+  ],
+  txns: [
+    { name: 'txn-count', title: 'Transactions', meta: 'Every transaction, any outcome' },
+    { name: 'txn-volume', title: 'Completed volume', meta: 'US dollars' },
+    { name: 'success-rate', title: 'Success rate', meta: 'Completed ÷ all, per period' },
+    { name: 'failure-rate', title: 'Failure rate', meta: 'Failed ÷ all, per period' },
+  ],
+};
+---
+
+<AdminLayout title="Analytics">
+  <OpsShell active="analytics" crumb="Analytics">
+    <PageHead n="08" label="Analytics" title="How the network is *growing*." lead="Users, transactions, the network and its assets, each on its own scale and each with its table.">
+      <Segmented
+        slot="tools"
+        name="range"
+        label="Period"
+        options={[
+          { value: '7d', label: '7D' },
+          { value: '30d', label: '30D' },
+          { value: '90d', label: '90D' },
+          { value: '1y', label: '1Y' },
+        ]}
+        value="90d"
+      />
+      <button slot="tools" type="button" class="ops-btn" data-export="analytics"><Icon name="download" size={18} /><span data-label>Export analytics</span></button>
+    </PageHead>
+
+    <Section id="users" kicker="User analytics" title="Who joins, and who *stays*." lead="Growth and activity per period, and how each week's sign-ups keep using the app.">
+      <Region name="users" skeleton="chart" emptyTitle="No users in this period." errorTitle="User analytics could not be loaded.">
+        <div class="ops-grid-charts">
+          {
+            charts.users.map((c) => (
+              <div>
+                <p class="ops-subhead">
+                  <span class="label">{c.title}</span>
+                  <span class="micro">{c.meta}</span>
+                </p>
+                <ChartFrame name={c.name} label={`${c.title}: ${c.meta}`} size="sm" />
+              </div>
+            ))
+          }
+          <div>
+            <p class="ops-subhead"><span class="label">Retention</span><span class="micro">Share of each week's sign-ups active in later weeks</span></p>
+            <div class="ops-tablewrap" data-retention></div>
+          </div>
+        </div>
+      </Region>
+    </Section>
+
+    <Section id="transactions" kicker="Transaction analytics" title="How money *moves*." lead="Count and completed volume per period, and how often transactions succeed and fail.">
+      <Region name="txns" skeleton="chart" emptyTitle="No transactions in this period." errorTitle="Transaction analytics could not be loaded.">
+        <div class="ops-grid-charts">
+          {
+            charts.txns.map((c) => (
+              <div>
+                <p class="ops-subhead">
+                  <span class="label">{c.title}</span>
+                  <span class="micro">{c.meta}</span>
+                </p>
+                <ChartFrame name={c.name} label={`${c.title}: ${c.meta}`} size="sm" />
+              </div>
+            ))
+          }
+        </div>
+      </Region>
+    </Section>
+
+    <Section id="network" kicker="Network analytics" title="How far it *reaches*." lead="Countries with completed volume, active Connectors, corridors in use, and volume by region.">
+      <MetricStrip
+        name="network-figures"
+        metrics={[
+          { key: 'countries', label: 'Countries with volume', spark: false },
+          { key: 'connectors', label: 'Active Connectors', spark: false, cash: true },
+          { key: 'corridors', label: 'Corridors in use', spark: false },
+        ]}
+      />
+      <Region name="regions" skeleton="list" count={5} emptyTitle="No volume in this period." errorTitle="Regions could not be loaded.">
+        <p class="ops-subhead ops-subhead-gap"><span class="label">Volume by region</span></p>
+        <ol class="ops-ledger" data-regions></ol>
+      </Region>
+    </Section>
+
+    <Section id="assets" kicker="Asset analytics" title="What it moves *in*." lead="Completed volume and transaction count by asset.">
+      <Region name="assets" skeleton="list" count={3} emptyTitle="No asset volume in this period." errorTitle="Asset analytics could not be loaded.">
+        <div class="ops-cols ops-cols-2">
+          <div>
+            <p class="ops-subhead"><span class="label">Volume by asset</span></p>
+            <ol class="ops-ledger" data-asset-volume></ol>
+          </div>
+          <div>
+            <p class="ops-subhead"><span class="label">Transactions by asset</span></p>
+            <ol class="ops-ledger" data-asset-count></ol>
+          </div>
+        </div>
+      </Region>
+    </Section>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/analytics';
+</script>

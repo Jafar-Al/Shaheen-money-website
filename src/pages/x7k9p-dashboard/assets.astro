@@ -1,0 +1,76 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Section from '../../components/admin/Section.astro';
+import Segmented from '../../components/admin/Segmented.astro';
+import Region from '../../components/admin/Region.astro';
+import ChartFrame from '../../components/admin/ChartFrame.astro';
+
+/**
+ * 07 · Assets: the digital assets money moves in (USDC, USDT, EUROC as the
+ * API reports them). Small multiples on one shared scale, never one chart
+ * with three colours fighting.
+ */
+const codes = ['USDC', 'USDT', 'EUROC'];
+---
+
+<AdminLayout title="Assets">
+  <OpsShell active="assets" crumb="Assets">
+    <PageHead n="07" label="Assets" title="The assets that *carry* the money." lead="Completed volume and transactions by digital asset, and each asset's share of the total.">
+      <Segmented
+        slot="tools"
+        name="range"
+        label="Period"
+        options={[
+          { value: '7d', label: '7D' },
+          { value: '30d', label: '30D' },
+          { value: '90d', label: '90D' },
+          { value: '1y', label: '1Y' },
+        ]}
+        value="30d"
+      />
+    </PageHead>
+
+    <Region name="assets" skeleton="list" count={3} emptyTitle="No asset volume in this period." emptyBody="Volumes appear once transfers complete." errorTitle="Assets could not be loaded.">
+      <div class="ops-tablewrap">
+        <table class="ops-table ops-table-stack">
+          <caption class="sr-only">Volume, share, transactions and change by asset</caption>
+          <thead>
+            <tr>
+              <th scope="col">Asset</th>
+              <th scope="col" class="is-num">Volume</th>
+              <th scope="col">Share of volume</th>
+              <th scope="col" class="is-num">Transactions</th>
+              <th scope="col" class="is-num">Change</th>
+              <th scope="col">Trend</th>
+            </tr>
+          </thead>
+          <tbody data-assets></tbody>
+        </table>
+      </div>
+    </Region>
+
+    <Section id="multiples" kicker="Over time" title="Each asset, *side by side*." lead="Completed volume per period, on one shared scale so the three compare directly.">
+      <Region name="multiples" skeleton="chart" emptyTitle="No asset volume in this period." errorTitle="These charts could not be loaded.">
+        <div class="ops-multiples">
+          {
+            codes.map((code) => (
+              <div>
+                <p class="ops-subhead">
+                  <span class="label">{code}</span>
+                  <span class="micro" data-multiple-total={code} />
+                </p>
+                <ChartFrame name={`asset-${code}`} label={`${code} completed volume over time`} size="sm" />
+              </div>
+            ))
+          }
+        </div>
+      </Region>
+    </Section>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/assets';
+</script>

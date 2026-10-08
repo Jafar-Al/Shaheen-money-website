@@ -1,0 +1,153 @@
+/*
+ * The two downloadable documents (src/pages/[locale]/media/company-profile
+ * and pitch-deck): the site's system set for paper. Loaded by
+ * src/layouts/PrintLayout.astro only.
+ */
+
+.sheet-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  box-sizing: border-box;
+}
+
+/* "01 — Who we are": the chapter folio, as on the site. */
+.doc-chapter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--fg-2);
+}
+.doc-chapter .num {
+  color: var(--accent);
+}
+.doc-chapter::after {
+  content: '';
+  order: 1;
+  inline-size: 2.5rem;
+  block-size: 1px;
+  background-color: var(--line-strong);
+}
+.doc-chapter .doc-chapter-label {
+  order: 2;
+}
+
+.doc-title {
+  font-family: var(--font-display-stack);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+:lang(ar) .doc-title {
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+.doc-lead {
+  color: var(--fg-2);
+}
+.doc-sub {
+  font-family: var(--font-display-stack);
+  font-weight: 400;
+  color: var(--fg);
+}
+:lang(ar) .doc-sub {
+  font-weight: 500;
+}
+
+/* A sourced figure: huge mono numerals, a label, the source under it. */
+.doc-figure-num {
+  font-family: var(--font-mono-stack);
+  font-variant-numeric: tabular-nums;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--fg);
+}
+:lang(ar) .doc-figure-num {
+  letter-spacing: 0;
+}
+.doc-figure-label {
+  color: var(--fg-2);
+}
+
+/* Rows between hairlines. */
+.doc-rows {
+  border-block-start: 1px solid var(--line);
+}
+.doc-row {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  gap: 0.25rem 0.75rem;
+  padding-block: 0.7rem;
+  border-block-end: 1px solid var(--line);
+}
+.doc-row .num {
+  grid-row: span 2;
+  padding-block-start: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+.doc-row-title {
+  font-family: var(--font-display-stack);
+  color: var(--fg);
+}
+:lang(ar) .doc-row-title {
+  font-weight: 500;
+}
+.doc-row-body {
+  color: var(--fg-2);
+}
+
+/* The fee table: the item, then the fee in the display face. */
+.doc-fees {
+  border-block-start: 1px solid var(--line);
+}
+.doc-fee {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.65rem;
+  border-block-end: 1px solid var(--line);
+}
+.doc-fee-value {
+  font-family: var(--font-display-stack);
+  color: var(--fg);
+}
+
+/* Footer of every sheet: the lockup's name, the document, the page. */
+.doc-foot {
+  position: absolute;
+  z-index: 1;
+  inset-inline: var(--doc-pad-x);
+  inset-block-end: calc(var(--doc-pad-y) * 0.55);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--fg-3);
+}
+
+.doc-quote {
+  font-family: var(--font-display-stack);
+  color: var(--fg);
+}
+:lang(ar) .doc-quote {
+  font-weight: 500;
+}
+
+.doc-contact {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.5rem 1.5rem;
+  align-items: baseline;
+}
+.doc-contact dt {
+  color: var(--fg-3);
+}
+.doc-contact dd {
+  margin: 0;
+  color: var(--fg);
+}

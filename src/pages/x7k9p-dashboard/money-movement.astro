@@ -1,0 +1,60 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Section from '../../components/admin/Section.astro';
+import Segmented from '../../components/admin/Segmented.astro';
+import FlowRoute from '../../components/admin/FlowRoute.astro';
+import TxnAnalytics from '../../components/admin/TxnAnalytics.astro';
+import Region from '../../components/admin/Region.astro';
+
+/** 06 · Money Movement: the product's own path, receive → store → send → pay → cash out. */
+---
+
+<AdminLayout title="Money Movement">
+  <OpsShell active="money" crumb="Money Movement">
+    <PageHead n="06" label="Money Movement" title="From arrival to *cash in hand*." lead="Money arrives in a wallet, stays there in digital dollars, and leaves as a transfer, a payment or cash from a Connector.">
+      <Segmented
+        slot="tools"
+        name="range"
+        label="Period"
+        options={[
+          { value: '24h', label: '24H' },
+          { value: '7d', label: '7D' },
+          { value: '30d', label: '30D' },
+          { value: '90d', label: '90D' },
+        ]}
+        value="30d"
+      />
+    </PageHead>
+
+    <FlowRoute name="flow" />
+
+    <Section id="steps" kicker="By step" title="Each step, *in figures*." lead="Completed transactions only. The average is the volume divided by the count.">
+      <Region name="steps" skeleton="table" count={4} emptyTitle="No money has moved in this period." errorTitle="These figures could not be loaded.">
+        <div class="ops-tablewrap">
+          <table class="ops-table ops-table-stack">
+            <caption class="sr-only">Volume, count, average and change for each step</caption>
+            <thead>
+              <tr>
+                <th scope="col">Step</th>
+                <th scope="col" class="is-num">Volume</th>
+                <th scope="col" class="is-num">Transactions</th>
+                <th scope="col" class="is-num">Average</th>
+                <th scope="col" class="is-num">Share of outflow</th>
+                <th scope="col" class="is-num">Change</th>
+              </tr>
+            </thead>
+            <tbody data-steps></tbody>
+          </table>
+        </div>
+      </Region>
+    </Section>
+
+    <TxnAnalytics id="txn" title="Each step, *over time*." lead="Pick a step to see its completed volume per period." />
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/money';
+</script>

@@ -1,0 +1,22 @@
+---
+import Icon from '../ui/Icon.astro';
+import Region from './Region.astro';
+
+/**
+ * The record drawer (src/admin/ui/drawer.ts): a user, a transaction or a
+ * Connector opens here, beside the list, without leaving it. A native modal
+ * dialog: focus stays inside, Escape closes, focus returns.
+ */
+---
+
+<dialog class="ops-drawer" data-drawer aria-label="Record">
+  <div class="ops-drawer-head">
+    <span class="micro" data-drawer-kicker>Record</span>
+    <button type="button" class="ops-icon-btn" data-drawer-close aria-label="Close">
+      <Icon name="close" size={20} />
+    </button>
+  </div>
+  <div class="ops-drawer-body">
+    <Region name="drawer" skeleton="record" count={7} emptyTitle="Nothing to show." errorTitle="This record could not be loaded." />
+  </div>
+</dialog>

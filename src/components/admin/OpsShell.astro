@@ -1,0 +1,122 @@
+---
+import Logo from '../site/Logo.astro';
+import Icon from '../ui/Icon.astro';
+import Stamp from '../ui/Stamp.astro';
+import OpsNav from './OpsNav.astro';
+import Segmented from './Segmented.astro';
+import CommandPalette from './CommandPalette.astro';
+import Drawer from './Drawer.astro';
+import { routes, type RouteKey } from '../../admin/config';
+
+/**
+ * The console's frame: the sidebar (full on desktops, a numbered rail on
+ * tablets, a sheet on phones), the top bar (where you are, search, system
+ * status, temperature) and the page.
+ *
+ * Nothing in it is shown until the session is confirmed: the gate covers
+ * the page meanwhile (src/admin/ui/shell.ts sets html[data-auth]).
+ */
+interface Props {
+  active: RouteKey;
+  crumb: string;
+}
+const { active, crumb } = Astro.props;
+---
+
+<div class="ops-gate" role="status">
+  <Logo markOnly size="lg" />
+  <span class="ops-gate-line" aria-hidden="true"></span>
+  <p class="micro">Checking your session</p>
+</div>
+<noscript>
+  <p class="ops-gate">The operations console needs JavaScript.</p>
+</noscript>
+
+<a href="#main" class="skip-link">Skip to content</a>
+<div class="ops-shell">
+  <aside class="ops-side" aria-label="Console">
+    <div class="ops-side-head">
+      <a class="ops-side-home" href={routes.commandCenter} aria-label="Shaheen Money operations: Command Center">
+        <Logo />
+      </a>
+    </div>
+    <OpsNav active={active} />
+    <div class="ops-side-foot">
+      <div class="ops-me">
+        <span class="ops-disc ops-disc-solid" data-me-initials aria-hidden="true"></span>
+        <span class="ops-me-text">
+          <span class="ops-me-name" data-me-name></span>
+          <span class="micro ops-me-role" data-me-role></span>
+        </span>
+        <button type="button" class="ops-icon-btn" data-sign-out aria-label="Sign out" title="Sign out">
+          <Icon name="sign-out" size={20} directional />
+        </button>
+      </div>
+      <button type="button" class="ops-icon-btn ops-collapse" data-collapse aria-label="Collapse the sidebar" aria-pressed="false" title="Collapse the sidebar">
+        <Icon name="arrow-right" size={18} class="ops-collapse-icon" />
+      </button>
+    </div>
+  </aside>
+
+  <div class="ops-main">
+    <header class="ops-top">
+      <button type="button" class="ops-icon-btn ops-menu-btn" data-open-sheet aria-label="Open navigation" aria-haspopup="dialog">
+        <Icon name="menu" size={22} />
+      </button>
+      <a class="ops-top-logo" href={routes.commandCenter} aria-label="Command Center"><Logo markOnly /></a>
+      <p class="ops-crumbs micro"><span>Operations</span><span aria-hidden="true">/</span><b>{crumb}</b></p>
+      <span class="ops-top-stamp" data-mock-only hidden title="Every figure on this screen is generated in your browser (src/admin/mock)."><Stamp locale="en" kind="mock" tilt={-2} /></span>
+      <div class="ops-top-end">
+        <button type="button" class="ops-search-trigger" data-open-palette aria-label="Search and go to" aria-keyshortcuts="Control+K Meta+K">
+          <Icon name="search" size={18} />
+          <span class="ops-search-text">Search users, transactions, Connectors</span>
+          <kbd class="ops-kbd" data-kbd>Ctrl K</kbd>
+        </button>
+        <a class="ops-status" href={routes.health} data-status-pill data-tone="muted">
+          <span class="ops-dot" aria-hidden="true"></span>
+          <span class="ops-status-text micro" data-status-text>Checking status</span>
+        </a>
+        <Segmented
+          name="temperature"
+          label="Temperature"
+          words
+          class="ops-temp"
+          options={[
+            { value: 'night', label: 'Night' },
+            { value: 'paper', label: 'Paper' },
+          ]}
+          value="night"
+        />
+      </div>
+    </header>
+    <main id="main" class="ops-page" tabindex="-1">
+      <slot />
+    </main>
+  </div>
+</div>
+
+<dialog class="ops-sheet" data-sheet aria-label="Navigation">
+  <div class="ops-side-head">
+    <Logo />
+    <button type="button" class="ops-icon-btn ops-sheet-close" data-close-sheet aria-label="Close navigation">
+      <Icon name="close" size={20} />
+    </button>
+  </div>
+  <OpsNav active={active} />
+  <div class="ops-side-foot">
+    <div class="ops-me">
+      <span class="ops-disc ops-disc-solid" data-me-initials aria-hidden="true"></span>
+      <span class="ops-me-text">
+        <span class="ops-me-name" data-me-name></span>
+        <span class="micro ops-me-role" data-me-role></span>
+      </span>
+      <button type="button" class="ops-icon-btn" data-sign-out aria-label="Sign out" title="Sign out">
+        <Icon name="sign-out" size={20} directional />
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<CommandPalette />
+<Drawer />
+<div class="ops-toasts" data-toasts role="status" aria-live="polite"></div>

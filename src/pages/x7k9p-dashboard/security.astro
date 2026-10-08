@@ -1,0 +1,99 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Section from '../../components/admin/Section.astro';
+import MetricStrip from '../../components/admin/MetricStrip.astro';
+import Region from '../../components/admin/Region.astro';
+
+/**
+ * 11 · Security: who is signed in to operations, failed sign-ins, and
+ * security events. It reports what the security endpoint records; it makes
+ * no claim of its own about how Shaheen is protected.
+ */
+const table = (name: string, caption: string, heads: string[]) => ({ name, caption, heads });
+const tables = {
+  sessions: table('sessions', 'Admin sessions that are open now', ['Admin', 'Device', 'Location', 'IP', 'Started', 'Last seen']),
+  failed: table('failed', 'Failed sign-in attempts, newest first', ['When', 'Account', 'From', 'Reason']),
+  recent: table('recent', 'Successful admin sign-ins, newest first', ['When', 'Account', 'From']),
+};
+---
+
+<AdminLayout title="Security">
+  <OpsShell active="security" crumb="Security">
+    <PageHead n="11" label="Security" title="Who is *signed in*." lead="Open admin sessions, sign-in attempts and security events, from this console's own audit log. Addresses are masked before they are stored.">
+      <p slot="meta" class="ops-note" data-storage-note hidden>
+        This server keeps the log in memory, one copy per server instance, so this page may not show everything. Connect Upstash Redis (UPSTASH_REDIS_REST_URL and _TOKEN) for one complete log, shared lockouts and sessions that can be ended early.
+      </p>
+    </PageHead>
+
+    <MetricStrip
+      name="figures"
+      metrics={[
+        { key: 'sessions', label: 'Active admin sessions', spark: false },
+        { key: 'failed', label: 'Failed sign-ins · 24H', spark: false },
+        { key: 'signins', label: 'Admin sign-ins · 7D', spark: false },
+        { key: 'events', label: 'Security events · 7D', spark: false },
+      ]}
+    />
+
+    {
+      [tables.sessions].map((t) => (
+        <Section id="sessions" kicker="Sessions" title="Open *now*." lead="Every admin session the server still accepts. Yours is marked.">
+          <Region name={t.name} skeleton="table" count={4} emptyTitle="No other sessions are open." errorTitle="Sessions could not be loaded.">
+            <div class="ops-tablewrap">
+              <table class="ops-table ops-table-stack">
+                <caption class="sr-only">{t.caption}</caption>
+                <thead>
+                  <tr>
+                    {t.heads.map((x) => (
+                      <th scope="col">{x}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody data-rows={t.name} />
+              </table>
+            </div>
+          </Region>
+        </Section>
+      ))
+    }
+
+    <div>
+      {
+        [
+          { t: tables.failed, kicker: 'Failed sign-ins', title: 'Turned *away*.', lead: 'Attempts the sign-in service refused in the last 24 hours.' },
+          { t: tables.recent, kicker: 'Recent sign-ins', title: 'Let *in*.', lead: 'Successful admin sign-ins, last 7 days.' },
+        ].map(({ t, kicker, title, lead }) => (
+          <Section id={t.name} kicker={kicker} title={title} lead={lead}>
+            <Region name={t.name} skeleton="table" count={6} emptyTitle="Nothing recorded." errorTitle="These could not be loaded.">
+              <div class="ops-tablewrap">
+                <table class="ops-table ops-table-stack">
+                  <caption class="sr-only">{t.caption}</caption>
+                  <thead>
+                    <tr>
+                      {t.heads.map((x) => (
+                        <th scope="col">{x}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody data-rows={t.name} />
+                </table>
+              </div>
+            </Region>
+          </Section>
+        ))
+      }
+    </div>
+
+    <Section id="events" kicker="Security events" title="Worth *knowing*." lead="Lockouts, new devices, role changes, revoked sessions and exports.">
+      <Region name="events" skeleton="list" count={5} emptyTitle="No security events in the last 7 days." errorTitle="Security events could not be loaded.">
+        <ol class="ops-feed" data-events></ol>
+      </Region>
+    </Section>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/security';
+</script>

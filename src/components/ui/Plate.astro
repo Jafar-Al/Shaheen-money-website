@@ -1,0 +1,54 @@
+---
+import type { ImageMetadata } from 'astro';
+import Photo from '../media/Photo.astro';
+
+/**
+ * A photographic plate: the one frame every real photograph goes through
+ * (Connectors at their counters, leadership, press), with a consistent crop
+ * and a hairline edge. It renders nothing until there is a real, consented
+ * photograph to show: no placeholder boxes, no generated people, no stock.
+ */
+interface Props {
+  src?: ImageMetadata | undefined;
+  alt: string;
+  /** Rendered width in CSS pixels at the largest layout. */
+  width: number;
+  sizes?: string;
+  ratio?: 'portrait' | 'square' | 'landscape';
+  class?: string;
+}
+const { src, alt, width, sizes = `${width}px`, ratio = 'portrait', class: className } = Astro.props;
+---
+
+{
+  src && (
+    <figure class:list={['plate', `plate-${ratio}`, className]}>
+      <Photo src={src} alt={alt} width={width} sizes={sizes} class="plate-img" />
+    </figure>
+  )
+}
+
+<style>
+  .plate {
+    margin: 0;
+    overflow: clip;
+    border-radius: var(--radius-sm);
+    outline: 1px solid var(--line);
+    outline-offset: 4px;
+  }
+  .plate-portrait {
+    aspect-ratio: 4 / 5;
+  }
+  .plate-square {
+    aspect-ratio: 1;
+  }
+  .plate-landscape {
+    aspect-ratio: 3 / 2;
+  }
+  .plate :global(.plate-img),
+  .plate :global(img) {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+</style>

@@ -1,0 +1,54 @@
+---
+import Region from './Region.astro';
+
+/**
+ * Money movement as a route through five stations: Receive → Store → Send →
+ * Pay → Cash out. The site's Packet motion runs it: one signal dash takes
+ * each leg in turn (never under reduced motion). Cash out is amber, the
+ * site's colour for physical cash; Store is a hollow node, because Shaheen
+ * is self-custodial and the balance is the user's, not Shaheen's.
+ *
+ * The labels are written here; the figures come from the API
+ * (src/admin/pages/flow.ts).
+ */
+interface Props {
+  name: string;
+}
+const { name } = Astro.props;
+
+const stops = [
+  { key: 'receive', label: 'Receive' },
+  { key: 'store', label: 'Store', note: 'Self-custodial: balances belong to users, not to Shaheen.' },
+  { key: 'send', label: 'Send' },
+  { key: 'payment', label: 'Pay' },
+  { key: 'cash_out', label: 'Cash out' },
+] as const;
+---
+
+<Region name={name} skeleton="flow" count={5} emptyTitle="No money has moved in this period." emptyBody="Volumes appear here as soon as the first transfers complete." errorTitle="Money movement could not be loaded.">
+  <ol class="ops-flow" aria-label="Money movement, in order">
+    {
+      stops.map((st, i) => (
+        <li class:list={['ops-flow-stop', st.key === 'cash_out' && 'is-cash', st.key === 'store' && 'is-store']} data-stage={st.key}>
+          <span class="ops-flow-track" aria-hidden="true">
+            <span class="ops-flow-node" />
+            {i < stops.length - 1 && <span class="ops-flow-packet" data-i={i} />}
+          </span>
+          <div>
+            <p class="ops-flow-n micro">{String(i + 1).padStart(2, '0')}</p>
+            <h3 class="ops-flow-name">{st.label}</h3>
+            <p class="ops-flow-value" data-value>
+              —
+            </p>
+            <div class="ops-flow-meta">
+              <span class="micro" data-count />
+              <span data-delta />
+            </div>
+            {'note' in st && <p class="ops-flow-note">{st.note}</p>}
+            <svg class:list={['ops-spark', st.key === 'cash_out' && 'is-cash']} data-spark aria-hidden="true" focusable="false" />
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</Region>

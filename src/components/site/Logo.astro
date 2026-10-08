@@ -1,0 +1,93 @@
+---
+import { wordmark } from '../../assets/brand/wordmark';
+
+/**
+ * The lockup: the falcon in its disc, and "Shaheen Money" with "Money" in
+ * the accent (signal on Night, signal-ink on Paper).
+ *
+ * The mark references the sprite in BrandSprite.astro; the wordmark is the
+ * outline of the lockup's own letters (scripts/brand/build-wordmark.mjs),
+ * so it is the same drawing in both languages and needs no font. Colours
+ * come from the temperature it sits on.
+ */
+interface Props {
+  /** Mark only, e.g. in tight spaces. */
+  markOnly?: boolean;
+  size?: 'md' | 'lg';
+  class?: string;
+}
+
+const { markOnly = false, size = 'md', class: className } = Astro.props;
+---
+
+<span class:list={['logo', `logo-${size}`, className]} dir="ltr">
+  <span class="logo-mark">
+    <svg viewBox="0 0 240 240" aria-hidden="true" focusable="false">
+      <use href="#falcon-mark"></use>
+    </svg>
+  </span>
+  {
+    !markOnly && (
+      <svg
+        class="logo-word"
+        viewBox={wordmark.viewBox}
+        width={Math.round(wordmark.aspect * 100)}
+        height="100"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path class="logo-word-1" d={wordmark.shaheen} />
+        <path class="logo-word-2" d={wordmark.money} />
+      </svg>
+    )
+  }
+</span>
+
+<style>
+  .logo {
+    --size: 1.1875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+  .logo-lg {
+    --size: 1.625rem;
+    gap: 0.875rem;
+  }
+  .logo-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: calc(var(--size) * 1.7);
+    block-size: calc(var(--size) * 1.7);
+    border-radius: var(--radius-full);
+    background-color: var(--inverse-bg);
+    color: var(--inverse-fg);
+    transition: background-color var(--motion-hover) var(--ease-hover);
+  }
+  .logo-mark svg {
+    inline-size: 62%;
+    block-size: 62%;
+  }
+  /* 1.22 is the wordmark box in ems (wordmark.em); the width follows from
+     the viewBox. No inline style: the CSP forbids style attributes. */
+  .logo-word {
+    block-size: calc(var(--size) * 1.22);
+    inline-size: auto;
+  }
+  .logo-word-1 {
+    fill: var(--fg);
+  }
+  .logo-word-2 {
+    fill: var(--accent);
+  }
+  @media (forced-colors: active) {
+    .logo-word-1,
+    .logo-word-2 {
+      fill: CanvasText;
+    }
+    .logo-mark {
+      border: 1px solid CanvasText;
+    }
+  }
+</style>

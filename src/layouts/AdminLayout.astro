@@ -1,0 +1,53 @@
+---
+import '../styles/global.css';
+import '../admin/styles/admin.css';
+import { createHash } from 'node:crypto';
+import { Font } from 'astro:assets';
+import BrandSprite from '../components/site/BrandSprite.astro';
+import { STORAGE } from '../admin/config';
+
+/**
+ * The document for every Operations Command Center page: the site's own
+ * tokens, fonts and stylesheet, plus the console's (admin.css). English
+ * fonts only, the same four files as the English site.
+ *
+ * Never indexed, never in the sitemap or the navigation. The page itself
+ * holds no data: everything is fetched from the admin API after the
+ * session is confirmed (src/admin/ui/shell.ts).
+ *
+ * Before first paint, a small inline script applies the admin's saved
+ * temperature (Night or Paper), density and sidebar, and the motion level,
+ * so nothing flashes. Like BaseLayout's, it is hashed into the page's CSP.
+ */
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'Shaheen Money operations: users, transactions, Connectors and the network, for authorised staff.' } = Astro.props;
+
+const prefsScript = `(function(){var d=document.documentElement,n=navigator,t,y,b;try{t=localStorage.getItem('${STORAGE.temperature}');y=localStorage.getItem('${STORAGE.density}');b=localStorage.getItem('${STORAGE.sidebar}')}catch(e){}if(t==='paper'){d.classList.remove('t-night');d.classList.add('t-paper')}if(y==='compact')d.dataset.density='compact';if(b==='rail')d.dataset.sidebar='rail';var c=n.connection,m=n.deviceMemory,h=n.hardwareConcurrency;d.dataset.motion=matchMedia('(prefers-reduced-motion: reduce)').matches?'reduced':(c&&c.saveData)||(m&&m<=2)||(h&&h<=4)?'lite':'full';d.dataset.mac=/Mac|iPhone|iPad/.test(n.platform||n.userAgent)?'1':'0'})();`;
+Astro.csp?.insertScriptHash(`sha256-${createHash('sha256').update(prefsScript).digest('base64')}`);
+---
+
+<!doctype html>
+<html lang="en" dir="ltr" class="ops-root t-night" data-auth="pending" data-density="comfortable">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title} · Shaheen Operations</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="no-referrer" />
+    <script is:inline set:html={prefsScript} />
+    <meta name="theme-color" content="#060b1c" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <Font cssVariable="--font-instrument-serif" preload />
+    <Font cssVariable="--font-instrument-sans" preload />
+    <Font cssVariable="--font-geist-mono" />
+  </head>
+  <body class="ops-body">
+    <BrandSprite />
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,191 @@
+---
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
+import Button from '../ui/Button.astro';
+import TextLink from '../ui/TextLink.astro';
+import Stamp from '../ui/Stamp.astro';
+import Gap from '../ui/Gap.astro';
+import SourceNote from '../ui/SourceNote.astro';
+import Globe from './Globe.astro';
+import { home } from '../../copy/home';
+import { facts } from '../../data/facts';
+import { formatAsOf, formatNumber, formatPercent } from '../../lib/format';
+import { href, type Locale } from '../../i18n/config';
+
+/**
+ * 04 — The network, on Paper.
+ *
+ * The globe (Globe.astro) is shown exactly as it is: a night plate set into
+ * the paper page, the digital network seen from the physical world. Beside
+ * it, two sentences and one way in (ask about your country). It is stamped
+ * "Example corridors": nothing is claimed about times, fees or
+ * availability.
+ *
+ * Then the invitation to shop owners, as a full-width band. Keeps ids
+ * "network" and "connector" so old links land.
+ */
+interface Props {
+  locale: Locale;
+  n: number;
+}
+const { locale, n } = Astro.props;
+const t = home[locale].network;
+const { activeConnectors, countries } = facts.network;
+const commission = facts.connectorProgram.commissionPercent;
+---
+
+<section id="network" class="net t-paper grain cv-auto" data-temp="paper" aria-labelledby="network-title">
+  <div class="page rhythm net-grid">
+    <header class="net-head">
+      <Chapter n={n} label={t.label} />
+      <h2 id="network-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
+      <p class="lead">{t.lead}</p>
+      {
+        activeConnectors && countries ? (
+          <div class="net-figures">
+            <p class="font-display net-figures-text">
+              {t.figures(
+                formatNumber(activeConnectors.value, locale),
+                formatNumber(countries.value, locale),
+                formatAsOf(activeConnectors.source.asOf, locale),
+              )}
+            </p>
+            <SourceNote source={activeConnectors.source} locale={locale} />
+          </div>
+        ) : (
+          <Gap need="Network figures: active Connectors and countries, with as-of month and source. Never labelled 'live' unless fetched at request time." />
+        )
+      }
+      <TextLink href={href(locale, 'contact')} size="lg">{t.coverageCta}</TextLink>
+    </header>
+
+    <div class="net-map">
+      <Globe locale={locale} label={t.globeLabel} class="net-globe" />
+      <div class="net-legend">
+        <Stamp locale={locale} kind="corridors" tilt={-2} />
+        <p class="net-caption">{t.caption}</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="connector" class="net-band t-night" data-temp="night">
+    <div class="page net-band-inner">
+      <p class="label net-band-label">{t.merchant.label}</p>
+      <h3 class="net-band-title font-display">{t.merchant.title}</h3>
+      <p class="net-band-body">{t.merchant.body}</p>
+      {
+        commission ? (
+          <div class="net-band-commission">
+            <p class="font-display">{t.merchant.commission(formatPercent(commission.value, locale))}</p>
+            <SourceNote source={commission.source} locale={locale} />
+          </div>
+        ) : (
+          <Gap need="Connector commission (% per cash-out), with the date it applies from." />
+        )
+      }
+      <Button href={href(locale, 'business')}>{t.merchant.cta}</Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .net {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .net-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 3rem;
+    align-items: center;
+    padding-block: var(--section);
+  }
+  .net-head {
+    grid-column: 1 / span 5;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .net-head h2 {
+    max-inline-size: 12ch;
+  }
+  .net-figures-text {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+  }
+
+  .net-map {
+    grid-column: 7 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .net-map :global(.net-globe) {
+    inline-size: min(100%, 36rem);
+    margin-inline: auto;
+  }
+  .net-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem 1.5rem;
+  }
+  .net-caption {
+    flex: 1 1 18rem;
+    max-inline-size: 36ch;
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+
+  /* ── The Connector band ──────────────────────────────────────────── */
+  .net-band {
+    background-color: var(--color-navy-800);
+    color: var(--fg);
+  }
+  .net-band-inner {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 1.5rem;
+    align-items: end;
+    padding-block: clamp(3.5rem, 7vw, 6rem);
+  }
+  .net-band-label {
+    grid-column: 1 / -1;
+    color: var(--accent);
+  }
+  .net-band-title {
+    grid-column: 1 / span 7;
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+  }
+  :global(:lang(ar)) .net-band-title {
+    font-weight: 500;
+  }
+  .net-band-body {
+    grid-column: 8 / -1;
+    color: var(--fg-2);
+    max-inline-size: 36ch;
+  }
+  .net-band-inner :global([data-gap]),
+  .net-band-commission {
+    grid-column: 1 / span 7;
+  }
+  .net-band-inner :global(.btn) {
+    grid-column: 8 / -1;
+    justify-self: start;
+  }
+
+  @media (width < 64rem) {
+    .net-head,
+    .net-map,
+    .net-band-title,
+    .net-band-body,
+    .net-band-inner :global(.btn) {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

@@ -1,0 +1,27 @@
+---
+/**
+ * The frame every console chart is drawn into (src/admin/ui/charts.ts →
+ * TimeChart): the plot, its tooltip, and the "View as table" twin that
+ * holds every value without hovering. The plot is left to right in every
+ * language, like the map: time is not mirrored.
+ */
+interface Props {
+  name: string;
+  label: string;
+  size?: 'sm' | 'md' | 'lg';
+}
+const { name, label, size = 'md' } = Astro.props;
+---
+
+<figure class:list={['ops-chart', `ops-chart-${size}`]} data-chart={name}>
+  <div class="ops-chart-plot" tabindex="0" role="group" aria-roledescription="chart" aria-label={label} dir="ltr">
+    <svg class="ops-chart-svg" aria-hidden="true" focusable="false"></svg>
+    <div class="ops-tip" aria-hidden="true"></div>
+  </div>
+  <details class="ops-chart-table">
+    <summary class="micro">View as table</summary>
+    <div class="ops-tablewrap">
+      <table class="ops-table"><caption class="sr-only">{label}</caption></table>
+    </div>
+  </details>
+</figure>

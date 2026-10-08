@@ -1,0 +1,491 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/ui/PageHero.astro';
+import Ledger from '../../components/ui/Ledger.astro';
+import Slip from '../../components/ui/Slip.astro';
+import Button from '../../components/ui/Button.astro';
+import IndexRow from '../../components/ui/IndexRow.astro';
+import Icon from '../../components/ui/Icon.astro';
+import Device from '../../components/app/Device.astro';
+import { media } from '../../copy/business';
+import { common } from '../../copy/common';
+import { brand, contact } from '../../config/site';
+import { facts } from '../../data/facts';
+import { appScreens, brandAssets, brandColours, brandFonts, documentsFor, film } from '../../data/media';
+import { href, localeStaticPaths, type Locale } from '../../i18n/config';
+
+/**
+ * The press kit, in the order people ask for it: the company documents and
+ * the film first, then the mark in the files we actually ship (with the
+ * rules for using it), the palette and the type, the app's screens, and the
+ * facts a newsroom needs. Every download is generated from
+ * src/assets/brand/falcon.svg (npm run media), and src/data/media.ts fails
+ * the build if a listed file is missing.
+ */
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const t = media[locale];
+const ui = common[locale].ui;
+const documents = documentsFor(locale).filter((d) => d.download !== null);
+const founder = facts.team[0];
+---
+
+<BaseLayout locale={locale} path="/media" title={t.meta.title} description={t.meta.description} bothScripts>
+  <PageHero locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.media }]} seed="media" />
+
+  <!-- 1. The documents and the film: what most people come for. -->
+  <section class="t-night grain m-sec" data-temp="night" aria-labelledby="docs-title">
+    <div class="page rhythm m-split">
+      <header class="m-head">
+        <h2 id="docs-title" class="m-h2 font-display">{t.docsTitle}</h2>
+      </header>
+      <div class="m-doc-list m-split-main">
+        {
+          documents.map((doc, i) => (
+            <IndexRow
+              n={i + 1}
+              title={doc.title[locale]}
+              text={doc.description[locale]}
+              meta={`${doc.download!.format} · ${doc.download!.sizeKb} KB`}
+              href={doc.download!.file}
+            />
+          ))
+        }
+        <IndexRow
+          n={documents.length + 1}
+          title={film.title[locale]}
+          text={film.description[locale]}
+          meta={`${film.download.format} · ${film.download.sizeKb} KB`}
+          href={film.download.file}
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. The mark, in the files we ship, and how to use it. -->
+  <section class="t-paper grain m-sec" data-temp="paper" aria-labelledby="logo-title">
+    <div class="page rhythm">
+      <header class="m-head">
+        <h2 id="logo-title" class="m-h2 font-display">{t.logoTitle}</h2>
+        <p class="lead">{t.logoLead}</p>
+      </header>
+      <ul class="marks">
+        {
+          brandAssets.map((asset) => (
+            <li class="mark">
+              <div class:list={['mark-preview', asset.preview === 'dark' ? 't-night' : 't-paper']}>
+                <span class:list={['mark-glyph', asset.circle && 'mark-circle']}>
+                  <svg viewBox="0 0 240 240" role="img" aria-label={asset.name[locale]} focusable="false">
+                    <use href="#falcon-mark" />
+                  </svg>
+                </span>
+              </div>
+              <h3 class="mark-name font-display">{asset.name[locale]}</h3>
+              <p class="mark-note">{asset.note[locale]}</p>
+              <ul class="mark-files">
+                {asset.files.map((file) => (
+                  <li>
+                    <a href={file.file} download class="mark-file">
+                      <Icon name="download" size={16} />
+                      <span>{file.label[locale]}</span>
+                      <span class="num mark-size">{file.sizeKb} KB</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="m-split m-rules">
+        <h3 class="m-h3 font-display">{t.rulesTitle}</h3>
+        <Ledger items={t.rules.map((r) => ({ title: r.title, body: r.body }))} class="m-split-main" />
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Colour and type. -->
+  <section class="t-paper m-sec" data-temp="paper" aria-labelledby="colours-title">
+    <div class="page rhythm m-split">
+      <header class="m-head">
+        <h2 id="colours-title" class="m-h2 font-display">{t.coloursTitle}</h2>
+        <p class="lead">{t.coloursLead}</p>
+      </header>
+      <ul class="swatches m-split-main">
+        {
+          brandColours.map((colour) => (
+            <li class="swatch">
+              <span class:list={['swatch-chip', colour.swatch]} aria-hidden="true" />
+              <span class="swatch-text">
+                <span class="swatch-name font-display">{colour.name}</span>
+                <code class="num swatch-hex" dir="ltr">
+                  {colour.hex}
+                </code>
+                <span class="swatch-use">{colour.use[locale]}</span>
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div class="page rhythm m-split">
+      <header class="m-head">
+        <h2 class="m-h2 font-display">{t.typeTitle}</h2>
+        <p class="lead">{t.typeLead}</p>
+      </header>
+      <ul class="fonts m-split-main">
+        {
+          brandFonts.map((font) => (
+            <li class="font-row">
+              <span class="label font-name" dir="ltr" lang="en">
+                {font.name}
+              </span>
+              <span class:list={['font-sample', `font-${font.face}`]} lang={font.sampleLang} dir={font.sampleLang === 'ar' ? 'rtl' : 'ltr'}>
+                {font.sample}
+              </span>
+              <span class="font-use">{font.use[locale]}</span>
+              <a href={font.licence} target="_blank" rel="noopener noreferrer" class="ink-link font-licence">
+                {t.licence}
+                <span class="sr-only">{ui.opensNewTab}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- 4. The app, as it is: both screens, to show and to download. -->
+  <section class="t-night grain m-sec" data-temp="night" aria-labelledby="app-title">
+    <div class="page rhythm m-split m-app">
+      <header class="m-app-copy">
+        <h2 id="app-title" class="m-h2 font-display">{t.appTitle}</h2>
+        <p class="lead">{t.appLead}</p>
+        <ul class="mark-files m-app-files">
+          {
+            appScreens.map((file) => (
+              <li>
+                <a href={file.file} download class="mark-file">
+                  <Icon name="download" size={16} />
+                  <span>{file.label[locale]}</span>
+                  <span class="num mark-size">{file.sizeKb} KB</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </header>
+      <Device locale={locale} pair class="m-split-main m-app-device" />
+    </div>
+  </section>
+
+  <!-- 5. The facts a newsroom needs, and who to ask. -->
+  <section class="t-paper grain m-sec" data-temp="paper">
+    <div class="page rhythm m-split">
+      <div class="m-docs">
+        <Slip as="section" no={t.pressTitle} class="m-press" labelledby="press-title">
+          <h2 id="press-title" class="m-press-title font-display">{t.pressTitle}</h2>
+          <p class="m-press-body">{t.pressBody}</p>
+          <p>
+            <a href={`mailto:${contact.email}`} class="ink-link" dir="ltr">{contact.email}</a>
+          </p>
+          <Button href={href(locale, 'contact')} variant="line">{t.pressCta}</Button>
+        </Slip>
+      </div>
+
+      <div class="m-facts m-split-main">
+        <h2 class="m-h2 font-display">{t.factsTitle}</h2>
+        <dl class="facts">
+          <div>
+            <dt class="label">{t.description}</dt>
+            <dd>{t.descriptionBody}</dd>
+          </div>
+          <div>
+            <dt class="label">{common[locale].nav.media}</dt>
+            <dd dir="ltr" lang="en">{brand.name} · shaheen.money</dd>
+          </div>
+          {
+            facts.company.legalName && (
+              <div>
+                <dt class="label">{t.company}</dt>
+                <dd>
+                  {facts.company.legalName}
+                  {facts.company.jurisdiction && `, ${facts.company.jurisdiction[locale]}`}
+                </dd>
+              </div>
+            )
+          }
+          {
+            founder && (
+              <div>
+                <dt class="label">{t.founded}</dt>
+                <dd>{(locale === 'ar' && founder.nameAr) || founder.name}</dd>
+              </div>
+            )
+          }
+        </dl>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .m-sec {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .m-head {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-inline-size: 44rem;
+  }
+  .m-h2 {
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+  }
+  .m-h3 {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+  }
+  .m-rules {
+    margin-block-start: clamp(3rem, 6vw, 5rem);
+  }
+  .m-split {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 2.5rem;
+    align-items: start;
+  }
+  .m-split > h2,
+  .m-split > h3,
+  .m-split > .m-head,
+  .m-docs {
+    grid-column: 1 / span 5;
+  }
+  .m-split :global(.m-split-main),
+  .m-split-main {
+    grid-column: 7 / -1;
+  }
+
+  .marks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3rem var(--gutter);
+    margin-block-start: 3rem;
+  }
+  .mark {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .mark-preview {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--line);
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .mark-glyph svg {
+    inline-size: 5.5rem;
+    block-size: 5.5rem;
+    fill: currentColor;
+  }
+  .mark-circle {
+    display: grid;
+    place-items: center;
+    inline-size: 8rem;
+    block-size: 8rem;
+    border-radius: var(--radius-full);
+    background-color: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+  .mark-circle svg {
+    inline-size: 4.5rem;
+    block-size: 4.5rem;
+  }
+  .mark-name {
+    margin-block-start: 0.5rem;
+    font-size: var(--text-h4);
+  }
+  .mark-note {
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .mark-files {
+    border-block-start: 1px solid var(--line);
+  }
+  .mark-file {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-block-size: var(--target-min);
+    border-block-end: 1px solid var(--line);
+    font-size: var(--text-body-s);
+    color: var(--fg);
+  }
+  .mark-file:hover span:first-of-type {
+    text-decoration-line: underline;
+    text-underline-offset: 0.25em;
+  }
+  .mark-size {
+    margin-inline-start: auto;
+    font-size: var(--text-micro);
+    color: var(--fg-3);
+  }
+
+  .swatches {
+    border-block-start: 1px solid var(--line);
+  }
+  .swatch {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: center;
+    padding-block: 1rem;
+    border-block-end: 1px solid var(--line);
+  }
+  .swatch-chip {
+    display: block;
+    aspect-ratio: 1;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+  }
+  .swatch-text {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 1rem;
+    align-items: baseline;
+  }
+  .swatch-name {
+    font-size: var(--text-h4);
+  }
+  .swatch-hex {
+    font-size: var(--text-label);
+    color: var(--fg-2);
+  }
+  .swatch-use {
+    grid-column: 1 / -1;
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .fonts {
+    border-block-start: 1px solid var(--line);
+  }
+  .font-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-block: 1.25rem;
+    border-block-end: 1px solid var(--line);
+  }
+  .font-name {
+    color: var(--fg-2);
+  }
+  /* Each specimen in its own face, whatever the page's language. */
+  .font-sample {
+    font-size: var(--text-h3);
+    line-height: 1.3;
+  }
+  .font-serif {
+    font-family: var(--font-instrument-serif), ui-serif, serif;
+  }
+  .font-naskh {
+    font-family: var(--font-naskh), serif;
+    font-weight: 500;
+  }
+  .font-sans {
+    font-family: var(--font-instrument-sans), ui-sans-serif, sans-serif;
+    font-weight: 600;
+  }
+  .font-plex {
+    font-family: var(--font-plex-arabic), ui-sans-serif, sans-serif;
+    font-weight: 600;
+  }
+  .font-mono {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .font-use {
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .font-licence {
+    align-self: flex-start;
+    min-block-size: var(--target-min);
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--text-body-s);
+  }
+
+  .m-docs {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .m-doc-list {
+    border-block-start: 1px solid var(--line);
+  }
+  .m-docs :global(.m-press) {
+    rotate: -1deg;
+  }
+  .m-press-title {
+    font-size: var(--text-h3);
+  }
+  .m-press-body {
+    margin-block: 0.75rem;
+  }
+  .m-press :global(.btn) {
+    margin-block-start: 1rem;
+  }
+  .m-facts {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .facts {
+    border-block-start: 1px solid var(--line);
+  }
+  .facts > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-block: 1rem;
+    border-block-end: 1px solid var(--line);
+  }
+  .facts dt {
+    color: var(--fg-2);
+  }
+
+  @media (width < 64rem) {
+    .marks {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .m-split > h2,
+    .m-split > .m-head,
+    .m-docs,
+    .m-split :global(.m-split-main),
+    .m-split-main {
+      grid-column: 1 / -1;
+    }
+  }
+  .m-app {
+    align-items: center;
+  }
+  .m-app-copy {
+    grid-column: 1 / span 5;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .m-app-files {
+    max-inline-size: 26rem;
+  }
+  @media (width < 64rem) {
+    .m-app-copy {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

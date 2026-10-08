@@ -1,0 +1,59 @@
+---
+import Region from './Region.astro';
+
+/**
+ * A paged table of records (src/admin/ui/table.ts): ledger rows between
+ * hairlines, mono figures right-aligned, sortable headers that say their
+ * state (aria-sort), and a pager below. On a phone each row becomes a
+ * ledger entry, label beside value, instead of a table to scroll sideways.
+ */
+interface Column {
+  label: string;
+  /** Sort key sent to the API; omit for a column that cannot be sorted. */
+  key?: string;
+  numeric?: boolean;
+  /** Direction of the first click on this header. */
+  first?: 'asc' | 'desc';
+}
+interface Props {
+  name: string;
+  caption: string;
+  columns: Column[];
+  emptyTitle?: string;
+  emptyBody?: string;
+  /** Stack rows on phones (default). */
+  stack?: boolean;
+  rows?: number;
+}
+const { name, caption, columns, emptyTitle = 'No matching records.', emptyBody = 'Try a different filter or search.', stack = true, rows = 8 } = Astro.props;
+---
+
+<div data-table={name}>
+  <Region name={`${name}-rows`} skeleton="table" count={rows} emptyTitle={emptyTitle} emptyBody={emptyBody} errorTitle="These records could not be loaded.">
+    <div class="ops-tablewrap">
+      <table class:list={['ops-table', stack && 'ops-table-stack']}>
+        <caption class="sr-only">{caption}</caption>
+        <thead>
+          <tr>
+            {
+              columns.map((c) => (
+                <th scope="col" class={c.numeric ? 'is-num' : undefined} data-sort-key={c.key} data-sort-first={c.first} aria-sort={c.key ? 'none' : undefined}>
+                  {c.key ? (
+                    <button type="button" class="ops-th-sort">
+                      {c.label}
+                      <span class="ops-sort-mark" aria-hidden="true" />
+                    </button>
+                  ) : (
+                    c.label
+                  )}
+                </th>
+              ))
+            }
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </Region>
+  <div class="ops-pager" data-pager></div>
+</div>

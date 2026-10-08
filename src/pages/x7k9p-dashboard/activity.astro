@@ -1,0 +1,47 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Segmented from '../../components/admin/Segmented.astro';
+import Region from '../../components/admin/Region.astro';
+
+/** 09 · Activity: one timeline for users, money, Connectors, security and the platform. */
+---
+
+<AdminLayout title="Activity">
+  <OpsShell active="activity" crumb="Activity">
+    <PageHead n="09" label="Activity" title="What *just* happened." lead="Events across the network, newest first, grouped by day. Names link to their records.">
+      <Segmented
+        slot="tools"
+        name="category"
+        label="Show"
+        words
+        class="ops-seg-scroll"
+        options={[
+          { value: '', label: 'All' },
+          { value: 'users', label: 'Users' },
+          { value: 'transactions', label: 'Transactions' },
+          { value: 'connectors', label: 'Connectors' },
+          { value: 'security', label: 'Security' },
+          { value: 'system', label: 'System' },
+        ]}
+        value=""
+      />
+    </PageHead>
+
+    <section class="ops-sec" aria-labelledby="feed-title">
+      <h2 id="feed-title" class="sr-only">Timeline</h2>
+      <Region name="feed" skeleton="list" count={10} emptyTitle="Nothing in this category yet." emptyBody="Events appear here as they happen." errorTitle="Activity could not be loaded.">
+        <div data-feed></div>
+        <div class="ops-sec-foot ops-feed-more">
+          <button type="button" class="ops-btn" data-more hidden>Show earlier events</button>
+          <p class="micro ops-sub" data-end hidden>That is everything from the last seven days.</p>
+        </div>
+      </Region>
+    </section>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/activity';
+</script>

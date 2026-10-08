@@ -1,0 +1,175 @@
+---
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
+import Ledger from '../ui/Ledger.astro';
+import Slip from '../ui/Slip.astro';
+import Stamp from '../ui/Stamp.astro';
+import Gap from '../ui/Gap.astro';
+import SourceNote from '../ui/SourceNote.astro';
+import ShopCounter from '../art/ShopCounter.astro';
+import { home } from '../../copy/home';
+import { common } from '../../copy/common';
+import { facts } from '../../data/facts';
+import { formatUsd } from '../../lib/format';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * 02 — Cash out: digital money becoming physical, on Paper.
+ *
+ * The page turns from Night to Paper here, at a plain edge. Three steps in
+ * words, the engraved shop where cash changes hands, and the slip the
+ * Connector works from: the same $200.00 and code the app shows. The slip
+ * is an example and says so (stamped Illustrative). No pin, no scrub, no
+ * script: it lands as it is scrolled to, and stays put.
+ */
+interface Props {
+  locale: Locale;
+  n: number;
+}
+const { locale, n } = Astro.props;
+const t = home[locale].cashOut;
+const app = home[locale].app.collect;
+const ui = common[locale].ui;
+const minimum = facts.pricing.minCashOutUsd;
+---
+
+<section id="cash-out" class="co t-paper grain cv-auto" data-temp="paper" aria-labelledby="cash-out-title">
+  <div class="page rhythm co-grid">
+    <header class="co-head">
+      <Chapter n={n} label={t.label} />
+      <h2 id="cash-out-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
+      <p class="lead">{t.lead}</p>
+    </header>
+
+    <div class="co-steps">
+      <Ledger items={t.steps} titleFace="sans" />
+      {
+        minimum ? (
+          <div class="co-minimum">
+            <p class="co-minimum-text font-display">{t.minimum(formatUsd(minimum.value, locale))}</p>
+            <SourceNote source={minimum.source} locale={locale} />
+          </div>
+        ) : (
+          <Gap need="Minimum cash-out amount in USD, with the date it applies from." />
+        )
+      }
+    </div>
+
+    <div class="co-art">
+      <div class="co-shop">
+        <ShopCounter />
+      </div>
+      <Slip no={app.title} class="co-slip" data-reveal>
+        <Stamp locale={locale} kind="illustrative" tilt={-3} class="co-stamp" />
+        <p class="co-amount num"><bdi>{app.amount}</bdi></p>
+        <p class="co-at">{app.at}</p>
+        <p class="co-code-label label">{app.codeLabel}</p>
+        <p class="co-code num" lang="en" dir="ltr">{app.code}</p>
+        <p class="co-note">{app.note}</p>
+      </Slip>
+      <p class="co-hint label">{ui.illustrative} · {ui.illustrativeHint}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .co {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .co-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: clamp(2.5rem, 5vw, 4rem);
+    align-items: start;
+    padding-block: var(--section);
+  }
+  .co-head {
+    grid-column: 1 / span 6;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .co-head h2 {
+    max-inline-size: 12ch;
+  }
+  .co-steps {
+    grid-column: 1 / span 5;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .co-minimum-text {
+    font-size: var(--text-h3);
+  }
+  .co-art {
+    grid-column: 7 / -1;
+    grid-row: 1 / span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .co-shop {
+    max-inline-size: 34rem;
+  }
+  /* The slip rests across the foot of the shop, on its inside corner. */
+  .co-art :global(.co-slip) {
+    inline-size: min(100%, 21rem);
+    align-self: flex-end;
+    margin-block-start: -4rem;
+    rotate: -1.5deg;
+  }
+  .co-stamp {
+    position: absolute;
+    inset-block-start: 0.875rem;
+    inset-inline-end: 1rem;
+  }
+  .co-amount {
+    font-size: clamp(2.75rem, 5vw, 3.75rem);
+    line-height: 1;
+    text-decoration-line: underline;
+    text-decoration-color: var(--cash);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.18em;
+  }
+  .co-at {
+    margin-block-start: 0.75rem;
+    color: var(--fg-2);
+  }
+  .co-code-label {
+    margin-block-start: 1.75rem;
+    color: var(--fg-2);
+  }
+  .co-code {
+    margin-block-start: 0.25rem;
+    font-size: clamp(3rem, 6vw, 4.25rem);
+    line-height: 1;
+    letter-spacing: 0.06em;
+  }
+  .co-note {
+    margin-block-start: 1.5rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px dashed var(--line-strong);
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .co-hint {
+    color: var(--fg-3);
+  }
+
+  @media (width < 64rem) {
+    .co-head,
+    .co-steps,
+    .co-art {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    .co-art :global(.co-slip) {
+      align-self: center;
+      margin-block-start: -2rem;
+    }
+  }
+</style>

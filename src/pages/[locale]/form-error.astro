@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ResultPage from '../../components/ui/ResultPage.astro';
+import { formError } from '../../copy/support';
+import { localeStaticPaths, type Locale } from '../../i18n/config';
+
+/** Where a failed no-JS submission lands. The browser's Back keeps what was typed. */
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const t = formError[locale];
+---
+
+<BaseLayout locale={locale} path="/form-error" title={t.meta.title} description={t.meta.description} noindex>
+  <ResultPage title={t.title} body={t.body} kind="error" />
+</BaseLayout>

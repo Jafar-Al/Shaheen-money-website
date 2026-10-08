@@ -1,0 +1,32 @@
+---
+import Icon from '../ui/Icon.astro';
+
+/**
+ * The command palette (src/admin/ui/palette.ts): ⌘K / Ctrl K. Go to any
+ * page your role can open, or find a user, a transaction or a Connector.
+ */
+---
+
+<dialog class="ops-palette" data-palette aria-label="Search and go to">
+  <div class="ops-palette-field">
+    <Icon name="search" size={20} />
+    <input
+      class="ops-palette-input"
+      type="text"
+      role="combobox"
+      aria-expanded="true"
+      aria-controls="ops-palette-list"
+      aria-autocomplete="list"
+      aria-label="Search users, transactions and Connectors, or go to a page"
+      placeholder="Search users, transactions, Connectors, or go to…"
+      autocomplete="off"
+      spellcheck="false"
+      data-palette-input
+    />
+    <kbd class="ops-kbd">Esc</kbd>
+  </div>
+  <div class="ops-palette-list" id="ops-palette-list" role="listbox" aria-label="Results" data-palette-list></div>
+  <p class="ops-palette-foot micro" aria-hidden="true">
+    <span>↑ ↓ Move</span><span>Enter Open</span><span>Esc Close</span>
+  </p>
+</dialog>

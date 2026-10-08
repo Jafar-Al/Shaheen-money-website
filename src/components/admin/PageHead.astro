@@ -1,0 +1,36 @@
+---
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
+
+/**
+ * A console page's opening, in the site's chapter form: the numbered mono
+ * folio (the page's number in the sidebar), a display headline with its one
+ * italic word, a line of context. Controls that scope the whole page sit at
+ * the inline end, above everything they filter.
+ */
+interface Props {
+  n: string;
+  label: string;
+  title: string;
+  lead?: string;
+  /** The Command Center's greeting is set a size larger. */
+  xl?: boolean;
+}
+const { n, label, title, lead, xl = false } = Astro.props;
+---
+
+<header class="ops-head">
+  <div class="ops-head-main">
+    <Chapter n={Number(n)} label={label} />
+    <h1 class:list={['ops-title', xl && 'ops-title-xl']} data-headline><Emph text={title} /></h1>
+    {lead && <p class="ops-lead">{lead}</p>}
+    <slot name="meta" />
+  </div>
+  {
+    Astro.slots.has('tools') && (
+      <div class="ops-head-tools">
+        <slot name="tools" />
+      </div>
+    )
+  }
+</header>

@@ -1,0 +1,75 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import MetricStrip from '../../components/admin/MetricStrip.astro';
+import Segmented from '../../components/admin/Segmented.astro';
+import DataTable from '../../components/admin/DataTable.astro';
+import Icon from '../../components/ui/Icon.astro';
+
+/** 02 · Users: every account, searchable, with the full record in a drawer. */
+---
+
+<AdminLayout title="Users">
+  <OpsShell active="users" crumb="Users">
+    <PageHead n="02" label="Users" title="Everyone on *Shaheen*." lead="Accounts, their status and when they were last active. Open any row for the full record.">
+      <button slot="tools" type="button" class="ops-btn" data-export="users"><Icon name="download" size={18} /><span data-label>Export users</span></button>
+    </PageHead>
+
+    <MetricStrip
+      name="summary"
+      metrics={[
+        { key: 'total', label: 'Total users' },
+        { key: 'new30d', label: 'New · 30D' },
+        { key: 'active30d', label: 'Active · 30D' },
+        { key: 'inactive', label: 'Inactive', spark: false },
+      ]}
+    />
+
+    <section class="ops-sec" aria-labelledby="users-list-title">
+      <h2 id="users-list-title" class="sr-only">User list</h2>
+      <div class="ops-toolbar">
+        <label class="ops-search">
+          <Icon name="search" size={18} />
+          <span class="sr-only">Search users</span>
+          <input class="ops-input" type="search" placeholder="Search name, email or ID" autocomplete="off" spellcheck="false" data-search />
+        </label>
+        <Segmented
+          name="status"
+          label="Status"
+          words
+          class="ops-seg-scroll"
+          options={[
+            { value: '', label: 'All' },
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'suspended', label: 'Suspended' },
+          ]}
+          value=""
+        />
+        <select class="ops-select" aria-label="Country" data-country>
+          <option value="">All countries</option>
+        </select>
+      </div>
+      <DataTable
+        name="users"
+        caption="Users, with their country, join date, status, last activity and wallet"
+        emptyTitle="No users match."
+        emptyBody="Try another search, status or country."
+        columns={[
+          { label: 'User', key: 'name', first: 'asc' },
+          { label: 'Country', key: 'country', first: 'asc' },
+          { label: 'Joined', key: 'joinedAt' },
+          { label: 'Status', key: 'status', first: 'asc' },
+          { label: 'Last activity', key: 'lastActiveAt' },
+          { label: 'Wallet' },
+        ]}
+      />
+    </section>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/users';
+</script>

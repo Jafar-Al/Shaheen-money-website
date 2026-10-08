@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/ui/Button.astro';
+import FeatherField from '../components/art/FeatherField.astro';
+import { notFound } from '../copy/misc';
+
+/**
+ * One 404 for every path. It has its own title and is never indexed
+ * (audit K-10: the old 404 carried the homepage's metadata). Both languages
+ * are offered, since the visitor's language cannot be known from a bad URL.
+ *
+ * The art: a single feather whose accent barb runs on as a dashed route
+ * and stops at an open ring, where a city should be.
+ */
+const en = notFound.en;
+const ar = notFound.ar;
+---
+
+<BaseLayout locale="en" path="/404" title="Page not found — Shaheen Money" description={en.body} noindex errorPage temp="night">
+  <section class="nf under-header t-night grain" data-temp="night">
+    <div class="nf-art" aria-hidden="true">
+      <FeatherField seed="stray" variant="single" trail />
+    </div>
+
+    <div class="page nf-inner">
+      <p class="num nf-code" aria-hidden="true">404</p>
+      <div class="nf-pair">
+        <div class="nf-block" lang="en" dir="ltr">
+          <h1 class="nf-title font-display">{en.title}</h1>
+          <p class="nf-body">{en.body}</p>
+          <Button href="/en" variant="solid">{en.home}</Button>
+        </div>
+        <div class="nf-block" lang="ar" dir="rtl">
+          <h2 class="nf-title font-display">{ar.title}</h2>
+          <p class="nf-body">{ar.body}</p>
+          <Button href="/ar" variant="line">{ar.home}</Button>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    position: relative;
+    overflow: clip;
+    min-block-size: 100svh;
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .nf-art {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    inline-size: min(100%, 70rem);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+  .nf-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2.5rem, 6vw, 4.5rem);
+    padding-block: calc(var(--header-h) + clamp(4rem, 12vw, 9rem)) var(--section);
+  }
+  .nf-code {
+    font-size: var(--text-figure);
+    line-height: var(--lh-figure);
+    letter-spacing: var(--ls-figure);
+    color: var(--fg);
+  }
+  .nf-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3rem var(--gutter);
+    padding-block-start: 2rem;
+    border-block-start: 1px solid var(--line);
+    max-inline-size: 64rem;
+  }
+  .nf-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .nf-title {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+  }
+  .nf-body {
+    max-inline-size: 36ch;
+    margin-block-end: 0.75rem;
+    color: var(--fg-2);
+  }
+  @media (width < 48rem) {
+    .nf-pair {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .nf-art {
+      opacity: 0.4;
+    }
+  }
+</style>

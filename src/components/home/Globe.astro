@@ -1,0 +1,177 @@
+---
+import { GLOBE_SIZE, globeGeometry } from '../../lib/globe';
+import type { City } from '../../data/network-map';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * The network globe: Natural Earth land and borders in an orthographic
+ * projection, great-circle corridors between real city coordinates
+ * (src/data/network-map.ts). Rendered to SVG at build time; the browser only
+ * receives paths. Routes draw once when the globe scrolls into view
+ * (src/scripts/globe.ts); without JS or with reduced motion they are simply
+ * there.
+ */
+interface Props {
+  locale: Locale;
+  label: string;
+  class?: string;
+}
+const { locale, label, class: className } = Astro.props;
+const g = globeGeometry(locale);
+
+// Label placement around each dot, in screen space (not mirrored in RTL).
+const place: Record<City['label'], { dx: number; dy: number; anchor: 'start' | 'middle' | 'end' }> = {
+  e: { dx: 16, dy: 7, anchor: 'start' },
+  w: { dx: -16, dy: 7, anchor: 'end' },
+  n: { dx: 0, dy: -16, anchor: 'middle' },
+  s: { dx: 0, dy: 30, anchor: 'middle' },
+  ne: { dx: 12, dy: -12, anchor: 'start' },
+  nw: { dx: -12, dy: -12, anchor: 'end' },
+  se: { dx: 12, dy: 26, anchor: 'start' },
+  sw: { dx: -12, dy: 26, anchor: 'end' },
+};
+---
+
+<figure class:list={['globe', className]} data-globe>
+  <svg
+    viewBox={`0 0 ${GLOBE_SIZE} ${GLOBE_SIZE}`}
+    role="img"
+    aria-label={label}
+    direction="ltr"
+    class="block h-auto w-full overflow-visible"
+  >
+    <defs>
+      <radialGradient id="globe-shade" cx="36%" cy="30%" r="78%">
+        <stop offset="0%" class="globe-shade-1"></stop>
+        <stop offset="100%" class="globe-shade-2"></stop>
+      </radialGradient>
+    </defs>
+    <path class="globe-sphere" d={g.sphere}></path>
+    <path class="globe-graticule" d={g.graticule}></path>
+    <path class="globe-land" d={g.land}></path>
+    <path class="globe-borders" d={g.borders}></path>
+    <path class="globe-rim" d={g.sphere}></path>
+    <g class="globe-routes">
+      {g.routes.map((d) => <path d={d} pathLength="1" />)}
+    </g>
+    <g class="globe-cities">
+      {
+        g.cities.map((c) => {
+          const p = place[c.label];
+          return (
+            <g>
+              <circle class="globe-city-halo" cx={c.x} cy={c.y} r="11" />
+              <circle class="globe-city" cx={c.x} cy={c.y} r="5" />
+              <text x={c.x + p.dx} y={c.y + p.dy} text-anchor={p.anchor} class:list={['globe-label', c.minor && 'globe-label-minor']}>
+                {c.name}
+              </text>
+            </g>
+          );
+        })
+      }
+    </g>
+  </svg>
+  <slot />
+</figure>
+
+<style>
+  /* Geography is not mirrored in Arabic: anchor labels in screen space.
+     (The Arabic words themselves still render right to left.) */
+  .globe svg {
+    direction: ltr;
+  }
+  .globe-shade-1 {
+    stop-color: var(--color-navy-600);
+  }
+  .globe-shade-2 {
+    stop-color: var(--color-navy-800);
+  }
+  .globe-sphere {
+    fill: url(#globe-shade);
+  }
+  .globe-graticule {
+    fill: none;
+    stroke: var(--color-white);
+    stroke-opacity: 0.06;
+    stroke-width: 1;
+  }
+  .globe-land {
+    fill: var(--color-white);
+    fill-opacity: 0.13;
+  }
+  .globe-borders {
+    fill: none;
+    stroke: var(--color-navy);
+    stroke-opacity: 0.55;
+    stroke-width: 0.8;
+  }
+  .globe-rim {
+    fill: none;
+    stroke: var(--color-white);
+    stroke-opacity: 0.18;
+    stroke-width: 1.5;
+  }
+  .globe-routes path {
+    fill: none;
+    stroke: var(--color-cyan);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  .globe-city {
+    fill: var(--color-white);
+  }
+  .globe-city-halo {
+    fill: var(--color-cyan);
+    fill-opacity: 0.22;
+  }
+  .globe-label {
+    fill: var(--color-white);
+    font-size: 22px;
+    font-weight: 500;
+    paint-order: stroke;
+    stroke: var(--color-navy-800);
+    stroke-width: 6px;
+    stroke-linejoin: round;
+  }
+
+  /* Phones: fewer, larger names (the SVG is ~370px wide there). */
+  @media (width < 48rem) {
+    .globe-label {
+      font-size: 34px;
+      stroke-width: 9px;
+    }
+    .globe-label-minor {
+      display: none;
+    }
+  }
+
+  /* Draw once, when the globe scrolls into view (src/scripts/globe.ts). */
+  .globe[data-state='pending'] .globe-routes path {
+    stroke-dashoffset: 1;
+  }
+  .globe[data-state='pending'] .globe-cities {
+    opacity: 0;
+  }
+  .globe[data-state='drawing'] .globe-routes path {
+    transition: stroke-dashoffset 1.2s var(--ease-in-out);
+  }
+  .globe[data-state='drawing'] .globe-cities {
+    transition: opacity 0.6s var(--ease-out);
+  }
+  .globe-routes path:nth-child(2) { transition-delay: 90ms; }
+  .globe-routes path:nth-child(3) { transition-delay: 180ms; }
+  .globe-routes path:nth-child(4) { transition-delay: 270ms; }
+  .globe-routes path:nth-child(5) { transition-delay: 360ms; }
+  .globe-routes path:nth-child(6) { transition-delay: 450ms; }
+  .globe-routes path:nth-child(7) { transition-delay: 540ms; }
+  .globe-routes path:nth-child(8) { transition-delay: 630ms; }
+  .globe-routes path:nth-child(9) { transition-delay: 720ms; }
+  .globe-routes path:nth-child(10) { transition-delay: 810ms; }
+  .globe-routes path:nth-child(n + 11) { transition-delay: 900ms; }
+</style>
+
+<script>
+  import '../../scripts/globe';
+</script>

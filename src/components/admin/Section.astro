@@ -1,0 +1,53 @@
+---
+import Emph from '../ui/Emph.astro';
+
+/**
+ * A section of a console page: a hairline above, a mono kicker, a title in
+ * the display face with its one italic word, and the controls that scope
+ * only this section at the inline end. No box around it: rules and space.
+ */
+interface Props {
+  id: string;
+  kicker: string;
+  title: string;
+  lead?: string;
+  n?: number | undefined;
+  class?: string;
+}
+const { id, kicker, title, lead, n, class: className } = Astro.props;
+---
+
+<section class:list={['ops-sec', className]} id={id} aria-labelledby={`${id}-title`}>
+  <header class="ops-sec-head">
+    <div>
+      <p class="ops-sec-kicker label">
+        {
+          n !== undefined && (
+            <>
+              <span class="num">{String(n).padStart(2, '0')}</span>
+              <i aria-hidden="true" />
+            </>
+          )
+        }
+        <span>{kicker}</span>
+      </p>
+      <h2 class="ops-sec-title" id={`${id}-title`}><Emph text={title} /></h2>
+      {lead && <p class="ops-sec-lead" data-lead>{lead}</p>}
+    </div>
+    {
+      Astro.slots.has('tools') && (
+        <div class="ops-sec-tools">
+          <slot name="tools" />
+        </div>
+      )
+    }
+  </header>
+  <slot />
+  {
+    Astro.slots.has('foot') && (
+      <div class="ops-sec-foot">
+        <slot name="foot" />
+      </div>
+    )
+  }
+</section>

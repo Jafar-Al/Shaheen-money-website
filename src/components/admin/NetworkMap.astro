@@ -1,0 +1,71 @@
+---
+import { geoEqualEarth, geoPath } from 'd3-geo';
+import { feature } from 'topojson-client';
+import type { Topology, GeometryCollection } from 'topojson-specification';
+import land110 from 'world-atlas/land-110m.json';
+import Stamp from '../ui/Stamp.astro';
+import Region from './Region.astro';
+
+/**
+ * The network as a map: the site's atlas (Equal Earth, Natural Earth 1:110m
+ * land as a soft tone with a faint coast, no borders, no grid), with the
+ * corridors as great-circle hairlines in the accent, their weight following
+ * volume, and one packet running one corridor at a time. Countries with
+ * Connectors carry an amber ring: where cash comes out.
+ *
+ * The land is drawn here, at build time; the projection's parameters go to
+ * the browser (data-*) so src/admin/pages/network-map.ts places markers and
+ * routes from whatever the API returns. Geography never mirrors: the SVG is
+ * left to right in every language.
+ */
+interface Props {
+  name: string;
+  /** Taller framing for the Global Network page. */
+  size?: 'md' | 'lg';
+}
+const { name, size = 'md' } = Astro.props;
+
+const W = 1000;
+const H = size === 'lg' ? 520 : 470;
+// From the Americas' east coast to the Gulf: everywhere the network reaches today.
+const frame = { type: 'MultiPoint' as const, coordinates: [[-96, 18], [-96, 56], [64, 14], [64, 52], [-20, 62], [20, 8]] };
+const projection = geoEqualEarth().rotate([15, 0]).precision(0.6);
+projection.fitExtent(
+  [
+    [28, 28],
+    [W - 28, H - 28],
+  ],
+  frame,
+);
+projection.clipExtent([
+  [0, 0],
+  [W, H],
+]);
+const landTopo = land110 as unknown as Topology<{ land: GeometryCollection }>;
+const land = geoPath(projection).digits(1)(feature(landTopo, landTopo.objects.land)) ?? '';
+const [tx, ty] = projection.translate();
+const landId = `ops-land-${name}`;
+---
+
+<Region name={name} skeleton="map" emptyTitle="No network activity in this period." emptyBody="Corridors appear as soon as money moves between two countries." errorTitle="The network could not be loaded.">
+  <div class="ops-map" data-map={name} data-w={W} data-h={H} data-scale={projection.scale().toFixed(4)} data-tx={tx.toFixed(3)} data-ty={ty.toFixed(3)} data-rotate="15">
+    <svg class="ops-map-svg" viewBox={`0 0 ${W} ${H}`} direction="ltr" role="img" aria-label="Map of countries and the corridors between them. The same figures are in the tables beside it.">
+      <defs>
+        <path id={landId} class="map-land-shape" d={land}></path>
+      </defs>
+      <use href={`#${landId}`} class="map-land"></use>
+      <use href={`#${landId}`} class="map-coast"></use>
+      <g data-arcs></g>
+      <g data-packets aria-hidden="true"></g>
+      <g data-nodes></g>
+      <g data-labels aria-hidden="true"></g>
+    </svg>
+    <div class="ops-tip" aria-hidden="true"></div>
+    <span class="ops-map-stamp" data-mock-only hidden><Stamp locale="en" kind="mock" tilt={-3} /></span>
+  </div>
+  <div class="ops-map-legend micro">
+    <span><i class="ops-key-arc" aria-hidden="true"></i>Corridor (weight = volume)</span>
+    <span><i class="ops-key-node" aria-hidden="true"></i>Users in the country</span>
+    <span><i class="ops-key-ring" aria-hidden="true"></i>Has active Connectors</span>
+  </div>
+</Region>

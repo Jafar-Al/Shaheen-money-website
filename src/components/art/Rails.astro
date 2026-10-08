@@ -1,0 +1,78 @@
+---
+/**
+ * Connected rails, engraved: parallel lines (a bank's, a wallet's, a
+ * payment network's) that meet at interchanges and run on as one, the
+ * picture of "connect your rails to ours". Hairlines and nodes only, drawn
+ * in code, with one route through it picked out in the accent. Decorative.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+
+const W = 600;
+const H = 360;
+const lanes = [70, 130, 190, 250, 310];
+// Each switch moves one lane toward the middle and back, as an S-curve.
+const switches: Array<{ x: number; from: number; to: number }> = [
+  { x: 150, from: 0, to: 1 },
+  { x: 230, from: 4, to: 3 },
+  { x: 300, from: 1, to: 2 },
+  { x: 360, from: 3, to: 2 },
+  { x: 430, from: 2, to: 1 },
+];
+/** The curve of a switch, from (x, y1) across to (x + 80, y2). */
+const c = (x: number, y1: number, y2: number) => `C${x + 40} ${y1} ${x + 40} ${y2} ${x + 80} ${y2}`;
+const s = (x: number, y1: number, y2: number) => `M${x} ${y1}${c(x, y1, y2)}`;
+const [l0, l1, l2] = [lanes[0]!, lanes[1]!, lanes[2]!];
+const route = `M0 ${l0}H150${c(150, l0, l1)}H300${c(300, l1, l2)}H430${c(430, l2, l1)}H${W}`;
+const sleepers: string[] = [];
+for (const y of lanes) for (let x = 12; x < W; x += 24) sleepers.push(`M${x} ${y - 5}v10`);
+---
+
+<svg class:list={['rails', className]} viewBox={`0 0 ${W} ${H}`} aria-hidden="true" focusable="false" data-art data-reveal>
+  <path class="rails-fine" d={sleepers.join('')}></path>
+  {lanes.map((y) => <path class="rails-line" d={`M0 ${y}H${W}`} pathLength="1" data-draw />)}
+  {switches.map((w) => <path class="rails-line" d={s(w.x, lanes[w.from]!, lanes[w.to]!)} />)}
+  {switches.map((w) => <circle class="rails-node" cx={w.x} cy={lanes[w.from]} r="4" />)}
+  <path class="rails-route" d={route} pathLength="1" data-draw></path>
+</svg>
+
+<style>
+  .rails {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    color: var(--fg);
+  }
+  .rails path,
+  .rails circle {
+    fill: none;
+  }
+  /* Paths that draw themselves in (pathLength + dash) keep normal
+     scaling: under non-scaling-stroke, Chromium measures dashes in screen
+     pixels and the draw stops short on any drawing scaled above 1:1. */
+  .rails path:not([data-draw]),
+  .rails circle {
+    vector-effect: non-scaling-stroke;
+  }
+  .rails-line {
+    stroke: currentColor;
+    stroke-width: 1;
+    stroke-opacity: 0.7;
+  }
+  .rails-fine {
+    stroke: currentColor;
+    stroke-width: 0.6;
+    stroke-opacity: 0.3;
+  }
+  .rails-node {
+    fill: var(--bg);
+    stroke: currentColor;
+    stroke-width: 1;
+  }
+  .rails-route {
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+</style>

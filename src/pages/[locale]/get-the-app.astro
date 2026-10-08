@@ -1,0 +1,98 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/ui/Breadcrumbs.astro';
+import StoreBadges from '../../components/site/StoreBadges.astro';
+import Device from '../../components/app/Device.astro';
+import FalconFold from '../../components/home/FalconFold.astro';
+import Stamp from '../../components/ui/Stamp.astro';
+import Emph from '../../components/ui/Emph.astro';
+import { getApp } from '../../copy/misc';
+import { common } from '../../copy/common';
+import { localeStaticPaths, type Locale } from '../../i18n/config';
+
+/**
+ * Where the download button and /download send computers (and anything that
+ * is not a phone): the closing scene of the homepage as a page of its own.
+ * Both stores (a phone sees only its own), the app as it is, and the
+ * official-links warning stamped under them. No QR code.
+ */
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const t = getApp[locale];
+
+---
+
+<BaseLayout locale={locale} path="/get-the-app" title={t.meta.title} description={t.meta.description} temp="night">
+  <section class="app-hero under-header t-night grain" data-temp="night" data-app-hero>
+    <div class="page app-hero-inner">
+      <Breadcrumbs locale={locale} items={[{ label: common[locale].nav.getApp }]} />
+      <div class="app-grid">
+        <div class="app-copy">
+          <FalconFold />
+          <h1 class="text-display-l font-display"><Emph text={t.title} /></h1>
+          <p class="lead">{t.lead}</p>
+          <StoreBadges locale={locale} />
+          <p class="app-official">
+            <Stamp locale={locale} kind="note" tilt={-2} />
+            <span>{t.official}</span>
+          </p>
+        </div>
+        <Device locale={locale} pair class="app-device" />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .app-hero {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .app-hero {
+    overflow: clip;
+  }
+  .app-hero-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    padding-block: calc(var(--header-h) + 1.5rem) var(--section);
+  }
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 4rem;
+    align-items: center;
+  }
+  .app-copy {
+    grid-column: 1 / span 6;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.75rem;
+  }
+  .app-grid :global(.app-device) {
+    grid-column: 8 / -1;
+  }
+  .app-official {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    max-inline-size: 28rem;
+    color: var(--fg-2);
+  }
+  @media (width < 64rem) {
+    .app-copy,
+    .app-grid :global(.app-device) {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
+
+<script>
+  import { initParallax } from '../../lib/motion/pointer';
+  import { afterFirstPaint } from '../../lib/motion/level';
+  const hero = document.querySelector<HTMLElement>('[data-app-hero]');
+  if (hero) afterFirstPaint(() => initParallax(hero));
+</script>

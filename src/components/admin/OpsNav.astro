@@ -1,0 +1,45 @@
+---
+import { routes, type RouteKey } from '../../admin/config';
+import { NAV, NAV_NUMBER } from '../../admin/nav';
+
+/**
+ * The console's navigation (src/admin/nav.ts). Every entry carries the
+ * permission its page needs; the shell removes the ones this session does
+ * not have before the page is shown.
+ */
+interface Props {
+  active: RouteKey;
+}
+const { active } = Astro.props;
+---
+
+<nav class="ops-nav" aria-label="Operations">
+  {
+    NAV.map((g) => (
+      <div class="ops-nav-section">
+        <p class="ops-nav-group micro">
+          <span>{g.group}</span>
+        </p>
+        <ul class="ops-nav-list">
+          {g.items.map((item) => (
+            <li>
+              <a
+                class="ops-nav-link"
+                href={routes[item.key]}
+                data-nav-key={item.key}
+                data-permission={item.permission}
+                aria-current={active === item.key ? 'page' : undefined}
+                title={item.label}
+              >
+                <span class="ops-nav-n num" aria-hidden="true">
+                  {NAV_NUMBER[item.key]}
+                </span>
+                <span class="ops-nav-label">{item.label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</nav>

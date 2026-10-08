@@ -1,0 +1,88 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Section from '../../components/admin/Section.astro';
+import Segmented from '../../components/admin/Segmented.astro';
+import Slip from '../../components/ui/Slip.astro';
+import Stamp from '../../components/ui/Stamp.astro';
+import { SCENARIOS } from '../../admin/mock/scenario';
+
+/**
+ * 12 · Profile & settings: who you are signed in as, what your role allows,
+ * how the console looks for you, and where its data comes from. In mock
+ * mode, the switch that shows each screen's loading, empty and error states.
+ */
+---
+
+<AdminLayout title="Profile & settings">
+  <OpsShell active="account" crumb="Profile & settings">
+    <PageHead n="12" label="Profile & settings" title="Your *account*." lead="Your session, what your role allows, and how the console looks for you." />
+
+    <div class="ops-cols ops-cols-12">
+      <Section id="profile" kicker="Profile" title="Signed in *as*.">
+        <Slip no="Operations account" meta="Session" class="ops-profile-slip">
+          <p class="ops-drawer-title" data-p-name></p>
+          <p class="micro" data-p-role></p>
+          <dl class="ops-dl ops-profile-dl">
+            <div><dt>Email</dt><dd data-p-email></dd></div>
+            <div><dt>Session</dt><dd class="ops-mono" data-p-session></dd></div>
+            <div><dt>Signed in</dt><dd data-p-issued></dd></div>
+            <div><dt>Session ends</dt><dd data-p-expires></dd></div>
+          </dl>
+          <div class="ops-session-actions">
+            <button type="button" class="ops-btn ops-btn-solid" data-sign-out>Sign out</button>
+          </div>
+        </Slip>
+      </Section>
+      <Section id="permissions" kicker="Role" title="What your role *allows*." lead="Granted by the server for this session. The API checks the same list on every request.">
+        <ul class="ops-perms" data-perms></ul>
+      </Section>
+    </div>
+
+    <Section id="preferences" kicker="Preferences" title="How it *looks*." lead="Kept in this browser only.">
+      <div class="ops-choice">
+        <div>
+          <span><b>Temperature</b><p>Night for the digital world, Paper for long reading. The site's two grounds.</p></span>
+          <Segmented name="pref-temperature" label="Temperature" words options={[{ value: 'night', label: 'Night' }, { value: 'paper', label: 'Paper' }]} value="night" />
+        </div>
+      </div>
+      <div class="ops-choice">
+        <div>
+          <span><b>Density</b><p>Compact shows more rows on a screen.</p></span>
+          <Segmented name="pref-density" label="Density" words options={[{ value: 'comfortable', label: 'Comfortable' }, { value: 'compact', label: 'Compact' }]} value="comfortable" />
+        </div>
+      </div>
+      <div class="ops-choice">
+        <div>
+          <span><b>Sidebar</b><p>On large screens: the full sidebar, or the numbered rail.</p></span>
+          <Segmented name="pref-sidebar" label="Sidebar" words options={[{ value: 'full', label: 'Full' }, { value: 'rail', label: 'Rail' }]} value="full" />
+        </div>
+      </div>
+    </Section>
+
+    <Section id="source" kicker="Data source" title="Where the figures *come from*.">
+      <div class="ops-choice" data-mock-only hidden>
+        <div>
+          <span><b>Demo data, generated on the server</b><p>Every figure, name and event in this console is invented by src/admin/mock (ADMIN_DATA_SOURCE=demo) so the screens can be reviewed before the Shaheen app is connected. None of it describes real people or real money. Sign-ins and the Security page are real.</p></span>
+          <Stamp locale="en" kind="mock" tilt={-2} />
+        </div>
+      </div>
+      <div class="ops-choice" data-live-only hidden>
+        <div>
+          <span><b>The Shaheen app’s database</b><p data-api-base></p></span>
+        </div>
+      </div>
+      <div class="ops-choice" data-mock-only hidden>
+        <div>
+          <span><b>Test a state</b><p data-scenario-hint>See each screen's loading, empty and error states.</p></span>
+          <Segmented name="scenario" label="Mock scenario" words class="ops-seg-scroll" options={SCENARIOS.map((s) => ({ value: s.id, label: s.label }))} value="normal" />
+        </div>
+      </div>
+    </Section>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/account';
+</script>

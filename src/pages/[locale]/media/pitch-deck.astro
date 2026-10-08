@@ -1,0 +1,640 @@
+---
+import PrintLayout from '../../../layouts/PrintLayout.astro';
+import Logo from '../../../components/site/Logo.astro';
+import FeatherField from '../../../components/art/FeatherField.astro';
+import FalconFlight from '../../../components/home/FalconFlight.astro';
+import HeroAtlas from '../../../components/home/HeroAtlas.astro';
+import SourceNote from '../../../components/ui/SourceNote.astro';
+import Emph from '../../../components/ui/Emph.astro';
+import Device from '../../../components/app/Device.astro';
+import { docs } from '../../../copy/docs';
+import { about } from '../../../copy/trust';
+import { home } from '../../../copy/home';
+import { business } from '../../../copy/business';
+import { common } from '../../../copy/common';
+import { facts } from '../../../data/facts';
+import { problemStats } from '../../../data/stats';
+import { figureHTML } from '../../../lib/figure';
+import { contact, socials } from '../../../config/site';
+import { localeStaticPaths, type Locale } from '../../../i18n/config';
+
+/**
+ * The pitch deck, eleven 1280 × 720 slides, printed to
+ * public/media/shaheen-money-pitch-deck-<locale>.pdf by scripts/build-docs.mjs.
+ * The cover is the homepage's first screen: the falcon landing on Amman on
+ * the same map. Everything else is the site's copy and sourced facts; no
+ * market sizes, traction or projections are stated, because none have been
+ * supplied.
+ */
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const d = docs[locale];
+const a = about[locale];
+const h = home[locale];
+const c = business[locale].connectors;
+const ui = common[locale].ui;
+const founder = facts.team[0];
+const office = facts.company.office?.value;
+const fees = facts.pricing.schedule;
+const [globalCost, target, lebanon] = problemStats;
+const slides = 11;
+const n = (i: number) => `${String(i).padStart(2, '0')} / ${slides}`;
+const lastWord = (line: string) => {
+  const i = line.lastIndexOf(' ');
+  return [line.slice(0, i + 1), line.slice(i + 1)] as const;
+};
+---
+
+<PrintLayout locale={locale} title={`${d.deck.title} — Shaheen Money`} description={d.deck.description} format="slides">
+  {/* 1. Cover: the first screen of the site. */}
+  <section class="sheet t-night s-cover">
+    <div class="s-stage" aria-hidden="true">
+      <HeroAtlas frame="wide" locale={locale} />
+      <div class="s-falcon"><FalconFlight /></div>
+    </div>
+    <div class="s-cover-fade" aria-hidden="true"></div>
+    <div class="sheet-inner">
+      <header class="s-top">
+        <Logo size="lg" />
+        <span class="label">{d.deck.title}</span>
+      </header>
+      <div class="s-cover-copy">
+        <h1 class="doc-title s-cover-title">
+          {
+            h.hero.title.map((line) => {
+              const [lead, word] = lastWord(line);
+              return (
+                <span class="s-line">
+                  {lead}
+                  <em class="emph">{word}</em>
+                </span>
+              );
+            })
+          }
+        </h1>
+        <p class="s-cover-sub">{h.hero.subtitle}</p>
+      </div>
+      <p class="label s-cover-foot">
+        <span>{d.company}</span>
+        <span>{ui.stamp.corridors} · {d.edition}</span>
+      </p>
+    </div>
+  </section>
+
+  {/* 2. The problem */}
+  <section class="sheet t-paper">
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">01</span><span class="doc-chapter-label">{d.problem}</span></p>
+      <h2 class="doc-title s-title"><Emph text={d.problemTitle} /></h2>
+      <div class="s-figures">
+        {
+          [globalCost, target, lebanon].map((stat, i) =>
+            stat ? (
+              <figure class="s-figure">
+                <p class="doc-figure-num s-figure-num" dir="ltr" set:html={figureHTML(stat.display)} />
+                <figcaption class="doc-figure-label">{stat.label[locale]}</figcaption>
+                <SourceNote source={stat.source} locale={locale} n={i + 1} />
+              </figure>
+            ) : null,
+          )
+        }
+      </div>
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money</span><span class="num">{n(2)}</span></footer>
+  </section>
+
+  {/* 3. Our answer */}
+  <section class="sheet t-night s-answer">
+    <div class="s-field" aria-hidden="true"><FeatherField seed="deck-answer" variant="strip" follow /></div>
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">02</span><span class="doc-chapter-label">{d.answer}</span></p>
+      <h2 class="doc-title s-title s-answer-title">{h.hero.subtitle}</h2>
+      <ol class="s-pillars">
+        {
+          [h.steps.items[0], h.steps.items[1], h.steps.items[3]].map((s, i) =>
+            s ? (
+              <li>
+                <span class="num">{String(i + 1).padStart(2, '0')}</span>
+                <span class="doc-row-title">{s.title}</span>
+                <span class="doc-row-body">{s.body}</span>
+              </li>
+            ) : null,
+          )
+        }
+      </ol>
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money</span><span class="num">{n(3)}</span></footer>
+  </section>
+
+  {/* 4. How it works */}
+  <section class="sheet t-paper">
+    <div class="sheet-inner s-split">
+      <div class="s-split-text">
+        <p class="label doc-chapter"><span class="num">03</span><span class="doc-chapter-label">{h.steps.label}</span></p>
+        <h2 class="doc-title s-title"><Emph text={h.steps.title} /></h2>
+        <ol class="doc-rows">
+          {
+            h.steps.items.map((s, i) => (
+              <li class="doc-row">
+                <span class="num">{String(i + 1).padStart(2, '0')}</span>
+                <span class="doc-row-title">{s.title}</span>
+                <span class="doc-row-body">{s.body}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+      <Device locale={locale} class="s-device" />
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money</span><span class="num">{n(4)}</span></footer>
+  </section>
+
+  {/* 5. The app */}
+  <section class="sheet t-night">
+    <div class="sheet-inner s-split">
+      <div class="s-split-text">
+        <p class="label doc-chapter"><span class="num">04</span><span class="doc-chapter-label">{d.app}</span></p>
+        <h2 class="doc-title s-title">{d.appLead}</h2>
+        <ul class="s-actions">
+          {d.appActions.map((x) => <li>{x}</li>)}
+        </ul>
+      </div>
+      <Device locale={locale} pair class="s-device s-device-pair" />
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money</span><span class="num">{n(5)}</span></footer>
+  </section>
+
+  {/* 6. Connectors */}
+  <section class="sheet t-paper">
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">05</span><span class="doc-chapter-label">{d.connectors}</span></p>
+      <h2 class="doc-title s-title">{c.title}</h2>
+      <p class="doc-lead s-lead">{c.lead}</p>
+      <div class="s-two">
+        <div>
+          <h3 class="doc-sub s-sub">{c.whyTitle}</h3>
+          <ol class="doc-rows">
+            {
+              c.why.map((x, i) => (
+                <li class="doc-row">
+                  <span class="num">{String(i + 1).padStart(2, '0')}</span>
+                  <span class="doc-row-title">{x.title}</span>
+                  <span class="doc-row-body">{x.body}</span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+        <div>
+          <h3 class="doc-sub s-sub">{c.stepsTitle}</h3>
+          <ol class="doc-rows">
+            {
+              c.steps.map((x, i) => (
+                <li class="doc-row">
+                  <span class="num">{String(i + 1).padStart(2, '0')}</span>
+                  <span class="doc-row-title">{x.title}</span>
+                  <span class="doc-row-body">{x.body}</span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </div>
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money</span><span class="num">{n(6)}</span></footer>
+  </section>
+
+  {/* 7. Pricing */}
+  <section class="sheet t-paper">
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">06</span><span class="doc-chapter-label">{d.pricing}</span></p>
+      <h2 class="doc-title s-title"><Emph text={h.cost.title} /></h2>
+      {
+        fees && (
+          <div class="s-fees">
+            <ul class="doc-fees">
+              {fees.value.map((row) => (
+                <li class="doc-fee">
+                  <span class="s-fee-item">{row.item[locale]}</span>
+                  <span class="doc-fee-value s-fee-value">{row.fee[locale]}</span>
+                </li>
+              ))}
+            </ul>
+            <SourceNote source={fees.source} locale={locale} />
+          </div>
+        )
+      }
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money</span><span class="num">{n(7)}</span></footer>
+  </section>
+
+  {/* 8. Trust */}
+  <section class="sheet t-night">
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">07</span><span class="doc-chapter-label">{d.trust}</span></p>
+      {facts.safeguarding && <p class="doc-quote s-trust">{facts.safeguarding.value[locale]}</p>}
+      {
+        facts.digitalDollar && (
+          <div class="s-dollar">
+            <p class="doc-lead">{facts.digitalDollar.value[locale]}</p>
+            <SourceNote source={facts.digitalDollar.source} locale={locale} />
+          </div>
+        )
+      }
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money</span><span class="num">{n(8)}</span></footer>
+  </section>
+
+  {/* 9. Who it's for */}
+  <section class="sheet t-paper">
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">08</span><span class="doc-chapter-label">{d.audiencesTitle}</span></p>
+      <ul class="s-audiences">
+        {
+          d.audiences.map((x, i) => (
+            <li>
+              <span class="num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="doc-title s-audience-title">{x.title}</span>
+              <span class="doc-row-body s-audience-body">{x.body}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money</span><span class="num">{n(9)}</span></footer>
+  </section>
+
+  {/* 10. Team */}
+  <section class="sheet t-paper">
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">09</span><span class="doc-chapter-label">{d.team}</span></p>
+      <blockquote class="doc-quote s-quote">“{a.quote}”</blockquote>
+      {
+        founder && (
+          <p class="label s-founder">
+            <span dir="ltr">{(locale === 'ar' && founder.nameAr) || founder.name}</span> · {founder.role[locale]}
+          </p>
+        )
+      }
+      <ol class="s-story">
+        {
+          a.chapters.map((x, i) => (
+            <li>
+              <span class="num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="doc-row-title">{x.name}</span>
+              <span class="doc-row-body">{x.body}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money</span><span class="num">{n(10)}</span></footer>
+  </section>
+
+  {/* 11. Contact */}
+  <section class="sheet t-night s-contact">
+    <div class="s-field s-field-low" aria-hidden="true"><FeatherField seed="deck-contact" variant="strip" follow /></div>
+    <div class="sheet-inner">
+      <p class="label doc-chapter"><span class="num">10</span><span class="doc-chapter-label">{d.contact}</span></p>
+      <div class="s-contact-main">
+        <Logo size="lg" class="s-contact-logo" />
+        <h2 class="doc-title s-title">{d.reach}</h2>
+        <ul class="s-contact-list">
+          <li class="s-contact-big"><bdi dir="ltr">{contact.email}</bdi></li>
+          {office && <li class="num"><bdi dir="ltr">{office.phone}</bdi></li>}
+          {office && <li><bdi dir="ltr">{office.address}</bdi></li>}
+          <li><bdi dir="ltr">shaheen.money · {socials.map((x) => x.label).join(' · ')}</bdi></li>
+        </ul>
+      </div>
+      <p class="label s-contact-foot">
+        {d.company}
+        {facts.company.jurisdiction && <> · {facts.company.jurisdiction[locale]}</>}
+      </p>
+    </div>
+    <footer class="doc-foot label"><span>Shaheen Money</span><span class="num">{n(11)}</span></footer>
+  </section>
+</PrintLayout>
+
+<style is:global>
+  @page {
+    size: 1280px 720px;
+  }
+</style>
+
+<style>
+  .sheet {
+    --doc-pad-x: 72px;
+    --doc-pad-y: 60px;
+  }
+  .sheet-inner {
+    padding: var(--doc-pad-y) var(--doc-pad-x) calc(var(--doc-pad-y) * 1.35);
+    gap: 22px;
+  }
+  .s-title {
+    font-size: 54px;
+    max-inline-size: 18em;
+  }
+  :global(:lang(ar)) .s-title {
+    font-size: 44px;
+  }
+  .s-lead {
+    max-inline-size: 44em;
+    font-size: 18px;
+    line-height: 1.55;
+  }
+  .s-sub {
+    font-size: 24px;
+    margin-block-end: 10px;
+  }
+  .doc-row-title {
+    font-size: 21px;
+  }
+  .doc-row-body {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  /* Cover: the map and the falcon, as on the homepage. The map never
+     mirrors, so the stage is placed with physical left. */
+  .s-cover {
+    background-color: var(--color-navy-800);
+  }
+  .s-stage {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    inline-size: 1280px;
+    block-size: 800px;
+  }
+  .s-falcon {
+    position: absolute;
+    left: 50%;
+    top: 17%;
+    inline-size: 15%;
+  }
+  .s-falcon :global(.falcon-stage) {
+    inline-size: 100%;
+  }
+  .s-cover-fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 70%, transparent) 30%, transparent 58%);
+  }
+  .s-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--fg-2);
+  }
+  .s-cover-copy {
+    margin-block-start: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .s-cover-title {
+    font-size: 76px;
+  }
+  :global(:lang(ar)) .s-cover-title {
+    font-size: 64px;
+  }
+  .s-line {
+    display: block;
+  }
+  .s-cover-sub {
+    max-inline-size: 34em;
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--fg-2);
+  }
+  .s-cover-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block-start: 14px;
+    border-block-start: 1px solid var(--line);
+    color: var(--fg-3);
+  }
+
+  /* Figures */
+  .s-figures {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 40px;
+    margin-block-start: auto;
+  }
+  .s-figure {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding-block-start: 16px;
+    border-block-start: 1px solid var(--line-strong);
+  }
+  .s-figure-num {
+    font-size: 104px;
+  }
+  .s-figure .doc-figure-label {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  /* Our answer */
+  .s-answer {
+    background-color: var(--color-navy-800);
+  }
+  .s-field {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 0;
+    block-size: 240px;
+    opacity: 0.6;
+  }
+  .s-field-low {
+    inset-block-start: auto;
+    inset-block-end: 0;
+  }
+  .s-answer-title {
+    margin-block-start: 90px;
+    font-size: 46px;
+    max-inline-size: 22em;
+  }
+  :global(:lang(ar)) .s-answer-title {
+    font-size: 38px;
+  }
+  .s-pillars {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px;
+    margin-block-start: auto;
+  }
+  .s-pillars li {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-block-start: 14px;
+    border-block-start: 1px solid var(--line-strong);
+  }
+  .s-pillars .num,
+  .s-story .num,
+  .s-audiences .num {
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  /* Text beside the phone */
+  .s-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 48px;
+    align-items: center;
+  }
+  .s-split-text {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .s-split-text .s-title {
+    font-size: 44px;
+  }
+  .s-split :global(.s-device .device-stage) {
+    inline-size: 230px;
+  }
+  .s-split :global(.s-device .device-caption) {
+    font-size: 10px;
+  }
+  .s-split :global(.s-device-pair .device-stage) {
+    inline-size: 250px;
+  }
+  .s-split .doc-row {
+    padding-block: 9px;
+  }
+  .s-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .s-actions li {
+    padding: 8px 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-full);
+    font-size: 15px;
+  }
+
+  .s-two {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 48px;
+    margin-block-start: auto;
+  }
+
+  /* Pricing */
+  .s-fees {
+    margin-block-start: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .s-fee-item {
+    font-size: 22px;
+  }
+  .s-fee-value {
+    font-size: 40px;
+  }
+
+  /* Trust */
+  .s-trust {
+    margin-block-start: 30px;
+    font-size: 36px;
+    line-height: 1.25;
+    max-inline-size: 26em;
+  }
+  :global(:lang(ar)) .s-trust {
+    font-size: 30px;
+    line-height: 1.6;
+  }
+  .s-dollar {
+    margin-block-start: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-inline-size: 60em;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Who it's for */
+  .s-audiences {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 56px;
+    margin-block: auto;
+  }
+  .s-audiences li {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-block-start: 14px;
+    border-block-start: 1px solid var(--line-strong);
+  }
+  .s-audience-title {
+    font-size: 34px;
+  }
+  .s-audience-body {
+    font-size: 16px;
+  }
+
+  /* Team */
+  .s-quote {
+    margin: 10px 0 0;
+    font-size: 34px;
+    line-height: 1.25;
+    max-inline-size: 30em;
+  }
+  :global(:lang(ar)) .s-quote {
+    font-size: 27px;
+    line-height: 1.65;
+  }
+  .s-founder {
+    color: var(--fg-2);
+  }
+  .s-story {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px;
+    margin-block-start: auto;
+  }
+  .s-story li {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-block-start: 12px;
+    border-block-start: 1px solid var(--line);
+  }
+
+  /* Contact */
+  .s-contact {
+    background-color: var(--color-navy-800);
+  }
+  .s-contact-main {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-block: auto;
+  }
+  .s-contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 18px;
+    color: var(--fg-2);
+  }
+  .s-contact-big {
+    font-family: var(--font-display-stack);
+    font-size: 34px;
+    color: var(--fg);
+  }
+  .s-contact-foot {
+    color: var(--fg-3);
+  }
+</style>

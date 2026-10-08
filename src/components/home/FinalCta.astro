@@ -1,0 +1,166 @@
+---
+// In the browser: src/scripts/home/close.ts (loaded once by the homepage).
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
+import Stamp from '../ui/Stamp.astro';
+import DownloadButton from '../site/DownloadButton.astro';
+import Photo from '../media/Photo.astro';
+import FalconFold from './FalconFold.astro';
+import FeatherField from '../art/FeatherField.astro';
+import render from '../../assets/app/app-render.webp';
+import { home } from '../../copy/home';
+import { common } from '../../copy/common';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * 06 — Download: the close, and the bookend to the first screen. The page
+ * returns to Night, the falcon comes back and folds into its resting mark.
+ * Three steps and the one download button, the same as the hero: it goes
+ * straight to the right store for the phone it is pressed on. Beside it, the
+ * app as the owner's own render shows it (the home screen; the balance is an
+ * example, so it is stamped Illustrative). id="download" keeps old
+ * /#download links working.
+ */
+interface Props {
+  locale: Locale;
+  n: number;
+}
+const { locale, n } = Astro.props;
+const t = home[locale].final;
+const ui = common[locale].ui;
+---
+
+<section id="download" class="close t-night grain cv-auto" data-temp="night" aria-labelledby="final-title" data-close>
+  <div class="close-field" aria-hidden="true">
+    <FeatherField seed="download" variant="strip" follow />
+  </div>
+  <div class="page rhythm-airy close-grid">
+    <div class="close-copy">
+      <FalconFold />
+      <Chapter n={n} label={common[locale].nav.getApp} />
+      <h2 id="final-title" class="text-display-xl font-display close-title"><Emph text={t.title} /></h2>
+      <p class="lead">{t.lead}</p>
+      <ol class="close-steps" aria-label={t.stepsLabel}>
+        {
+          t.steps.map((step, i) => (
+            <li class="close-step">
+              <span class="num close-step-n">{String(i + 1).padStart(2, '0')}</span>
+              <span>{step}</span>
+            </li>
+          ))
+        }
+      </ol>
+      <DownloadButton locale={locale} />
+    </div>
+
+    <figure class="close-render">
+      <div class="close-render-stage" data-parallax="-6">
+        <Photo src={render} alt={ui.screenIos} width={560} sizes="(width < 64rem) 22rem, 28rem" class="close-render-img" />
+        <Stamp locale={locale} kind="illustrative" tilt={-4} class="close-stamp" />
+      </div>
+      <figcaption class="close-caption label">{ui.illustrativeHint}</figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .close {
+    position: relative;
+    overflow: clip;
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .close-field {
+    position: absolute;
+    inset: auto 0 0;
+    block-size: 60%;
+    opacity: 0.5;
+    color: var(--fg);
+    pointer-events: none;
+  }
+  .close-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 4rem;
+    align-items: center;
+  }
+  .close-copy {
+    grid-column: 1 / span 7;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.75rem;
+  }
+  .close-title {
+    font-size: min(8vw, 8rem);
+    line-height: var(--lh-display-xl);
+  }
+  :global(:lang(ar)) .close-title {
+    font-size: min(7vw, 7rem);
+  }
+  /* Download, create the account, receive: three steps on one hairline. */
+  .close-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 2rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid var(--line);
+    color: var(--fg-2);
+  }
+  .close-step {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  .close-step-n {
+    font-size: var(--text-label);
+    color: var(--accent);
+  }
+
+  .close-render {
+    grid-column: 8 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    margin: 0;
+  }
+  .close-render-stage {
+    position: relative;
+    inline-size: min(100%, 28rem);
+    transition: translate 1.2s var(--ease-out);
+  }
+  .close-render-stage :global(.close-render-img) {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+  }
+  .close-render-stage :global(.close-stamp) {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: 1.25rem;
+    inset-inline-end: -0.75rem;
+    background-color: var(--bg);
+  }
+  .close-caption {
+    max-inline-size: 26ch;
+    text-align: center;
+    color: var(--fg-2);
+  }
+  @media (width < 64rem) {
+    .close-copy,
+    .close-render {
+      grid-column: 1 / -1;
+    }
+    .close-title {
+      font-size: 13vw;
+    }
+    :global(:lang(ar)) .close-title {
+      font-size: 11vw;
+    }
+  }
+</style>

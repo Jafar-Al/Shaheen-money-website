@@ -1,0 +1,81 @@
+---
+import Section from './Section.astro';
+import Segmented from './Segmented.astro';
+import Region from './Region.astro';
+import ChartFrame from './ChartFrame.astro';
+
+/**
+ * Transaction analytics: volume over time for one kind of transaction (or
+ * all), beside the period's count by outcome. The type filter scopes only
+ * this section; the period comes from the page above it.
+ * Filled by src/admin/pages/blocks.ts → txnBlock.
+ */
+interface Props {
+  id: string;
+  n?: number;
+  title?: string;
+  lead?: string;
+}
+const { id, n, title = 'Transactions, *over time*.', lead = 'Completed volume per period, and how every transaction in the period ended.' } = Astro.props;
+---
+
+<Section id={id} n={n} kicker="Transaction analytics" title={title} lead={lead}>
+  <Segmented
+    slot="tools"
+    name={`${id}-type`}
+    label="Transaction type"
+    words
+    class="ops-seg-scroll"
+    options={[
+      { value: 'all', label: 'All' },
+      { value: 'receive', label: 'Receive' },
+      { value: 'send', label: 'Send' },
+      { value: 'payment', label: 'Payment' },
+      { value: 'cash_out', label: 'Cash out' },
+    ]}
+  />
+  <Region name={`${id}-data`} skeleton="chart" emptyTitle="No transactions in this period." emptyBody="Choose a longer period, or another type." errorTitle="Transaction analytics could not be loaded.">
+    <div class="ops-cols ops-cols-21 ops-txn">
+      <div>
+        <p class="ops-subhead"><span class="label" data-chart-title>Completed volume</span><span class="micro" data-chart-meta></span></p>
+        <ChartFrame name={`${id}-chart`} label="Completed transaction volume over time" size="lg" />
+      </div>
+      <div class="ops-txn-side">
+        <p class="label ops-metric-label">Transactions</p>
+        <p class="ops-metric-value num" data-total>—</p>
+        <span data-total-delta></span>
+        <div class="ops-meter" data-meter aria-hidden="true"></div>
+        <ul class="ops-ledger">
+          {
+            (
+              [
+                ['completed', 'Completed', 'good'],
+                ['pending', 'Pending', 'quiet'],
+                ['failed', 'Failed', 'alert'],
+                ['cancelled', 'Cancelled', 'muted'],
+              ] as const
+            ).map(([key, label, tone]) => (
+              <li class="ops-ledger-row no-n" data-row={key}>
+                <span class="ops-badge" data-tone={tone}>
+                  <span class="ops-dot" aria-hidden="true" />
+                  {label}
+                </span>
+                <span class="ops-ledger-end">
+                  <span data-count>—</span>
+                  <small data-share />
+                </span>
+              </li>
+            ))
+          }
+          <li class="ops-ledger-row no-n">
+            <span class="ops-badge">Completed volume</span>
+            <span class="ops-ledger-end">
+              <span data-volume>—</span>
+              <small data-volume-delta />
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </Region>
+</Section>

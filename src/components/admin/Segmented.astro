@@ -1,0 +1,44 @@
+---
+/**
+ * A segmented control (src/admin/ui/segmented.ts): the site's EN | ع
+ * switch, generalised to any number of options. A radio group, so arrow
+ * keys move between options and assistive technology hears one choice.
+ * Mono capitals for periods (24H 7D 30D); `words` for labels (All, Active).
+ */
+interface Props {
+  name: string;
+  label: string;
+  options: ReadonlyArray<{ value: string; label: string }>;
+  value?: string | undefined;
+  words?: boolean;
+  class?: string;
+}
+const { name, label, options, value = options[0]?.value, words = false, class: className } = Astro.props;
+const index = Math.max(0, options.findIndex((o) => o.value === value));
+---
+
+<div
+  class:list={['ops-seg', words && 'ops-seg-words', className]}
+  role="radiogroup"
+  aria-label={label}
+  data-seg={name}
+  data-value={value}
+  data-n={options.length}
+  data-i={index}
+>
+  <span class="ops-seg-ind" aria-hidden="true"></span>
+  {
+    options.map((o) => (
+      <button
+        type="button"
+        role="radio"
+        class="ops-seg-opt"
+        data-value={o.value}
+        aria-checked={o.value === value ? 'true' : 'false'}
+        tabindex={o.value === value ? 0 : -1}
+      >
+        {o.label}
+      </button>
+    ))
+  }
+</div>

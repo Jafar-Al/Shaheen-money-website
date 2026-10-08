@@ -1,0 +1,97 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Segmented from '../../components/admin/Segmented.astro';
+import TxnAnalytics from '../../components/admin/TxnAnalytics.astro';
+import DataTable from '../../components/admin/DataTable.astro';
+import Slip from '../../components/ui/Slip.astro';
+import Stamp from '../../components/ui/Stamp.astro';
+import Icon from '../../components/ui/Icon.astro';
+
+/**
+ * 04 · Transactions. The period at the top scopes the analytics and the
+ * list; the list has its own type, status and search filters. A record
+ * opens as the site's receipt slip (the template below).
+ */
+---
+
+<AdminLayout title="Transactions">
+  <OpsShell active="transactions" crumb="Transactions">
+    <PageHead n="04" label="Transactions" title="Every transfer, *in order*." lead="What moved, between whom, and how it ended. Open any row for its receipt.">
+      <Segmented
+        slot="tools"
+        name="range"
+        label="Period"
+        options={[
+          { value: '24h', label: '24H' },
+          { value: '7d', label: '7D' },
+          { value: '30d', label: '30D' },
+          { value: '90d', label: '90D' },
+          { value: '1y', label: '1Y' },
+        ]}
+        value="30d"
+      />
+      <button slot="tools" type="button" class="ops-btn" data-export="transactions"><Icon name="download" size={18} /><span data-label>Export</span></button>
+    </PageHead>
+
+    <TxnAnalytics id="txn" />
+
+    <section class="ops-sec" aria-labelledby="txn-list-title">
+      <div class="ops-sec-head">
+        <div>
+          <p class="ops-sec-kicker label"><span>Ledger</span></p>
+          <h2 class="ops-sec-title" id="txn-list-title">All transactions</h2>
+          <p class="ops-sec-lead" data-filter-note hidden></p>
+        </div>
+      </div>
+      <div class="ops-toolbar">
+        <label class="ops-search">
+          <Icon name="search" size={18} />
+          <span class="sr-only">Search transactions</span>
+          <input class="ops-input" type="search" placeholder="Search ID or name" autocomplete="off" spellcheck="false" data-search />
+        </label>
+        <select class="ops-select" aria-label="Type" data-type>
+          <option value="">All types</option>
+          <option value="receive">Receive</option>
+          <option value="send">Send</option>
+          <option value="payment">Payment</option>
+          <option value="cash_out">Cash out</option>
+        </select>
+        <select class="ops-select" aria-label="Status" data-status>
+          <option value="">All statuses</option>
+          <option value="completed">Completed</option>
+          <option value="pending">Pending</option>
+          <option value="failed">Failed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <button type="button" class="ops-btn ops-btn-quiet" data-clear-user hidden>Show every user</button>
+      </div>
+      <DataTable
+        name="txns"
+        caption="Transactions, newest first"
+        emptyTitle="No transactions match."
+        emptyBody="Try a longer period, or clear a filter."
+        columns={[
+          { label: 'Transaction', key: 'type', first: 'asc' },
+          { label: 'Amount', key: 'usdValue', numeric: true },
+          { label: 'From → To' },
+          { label: 'Corridor' },
+          { label: 'Status', key: 'status', first: 'asc' },
+          { label: 'Created', key: 'createdAt' },
+        ]}
+      />
+    </section>
+
+    <template data-receipt>
+      <Slip no="Transaction receipt" meta="—" class="ops-receipt">
+        <div data-receipt-body></div>
+        <p class="ops-receipt-stamp" data-mock-only><Stamp locale="en" kind="mock" tilt={-3} /></p>
+      </Slip>
+    </template>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/transactions';
+</script>

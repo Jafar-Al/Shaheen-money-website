@@ -1,0 +1,70 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Section from '../../components/admin/Section.astro';
+import Segmented from '../../components/admin/Segmented.astro';
+import NetworkMap from '../../components/admin/NetworkMap.astro';
+import Region from '../../components/admin/Region.astro';
+
+/** 05 · Global Network: where users are, where cash comes out, and the corridors between. */
+---
+
+<AdminLayout title="Global Network">
+  <OpsShell active="network" crumb="Global Network">
+    <PageHead n="05" label="Global Network" title="Cities apart. *Connected*." lead="Where users are, where cash comes out, and how much moves along each corridor.">
+      <Segmented
+        slot="tools"
+        name="range"
+        label="Period"
+        options={[
+          { value: '7d', label: '7D' },
+          { value: '30d', label: '30D' },
+          { value: '90d', label: '90D' },
+          { value: '1y', label: '1Y' },
+        ]}
+        value="30d"
+      />
+    </PageHead>
+
+    <NetworkMap name="map" size="lg" />
+
+    <div class="ops-cols ops-cols-12">
+      <Section id="corridors" kicker="Corridors" title="The busiest *routes*." lead="Cross-border volume, completed transfers only.">
+        <Region name="corridors" skeleton="list" count={8} emptyTitle="No cross-border transfers in this period." errorTitle="Corridors could not be loaded.">
+          <div data-corridors></div>
+        </Region>
+      </Section>
+      <Section id="countries" kicker="Countries" title="Country by *country*." lead="Users, active Connectors, and volume sent from and received in each country.">
+        <Region name="countries" skeleton="table" count={8} emptyTitle="No countries yet." errorTitle="Countries could not be loaded.">
+          <div class="ops-tablewrap">
+            <table class="ops-table ops-table-stack">
+              <caption class="sr-only">Users, Connectors and volume by country</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Country</th>
+                  <th scope="col" class="is-num">Users</th>
+                  <th scope="col" class="is-num">Connectors</th>
+                  <th scope="col" class="is-num">Sent</th>
+                  <th scope="col" class="is-num">Received</th>
+                  <th scope="col" class="is-num">Volume</th>
+                </tr>
+              </thead>
+              <tbody data-countries></tbody>
+            </table>
+          </div>
+        </Region>
+      </Section>
+    </div>
+
+    <Section id="regions" kicker="Regions" title="Volume by *region*." lead="Each country's volume counted once where it starts and once where it ends.">
+      <Region name="regions" skeleton="list" count={5} emptyTitle="No volume in this period." errorTitle="Regions could not be loaded.">
+        <ol class="ops-ledger" data-regions></ol>
+      </Region>
+    </Section>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/network';
+</script>
