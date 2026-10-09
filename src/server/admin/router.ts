@@ -39,6 +39,7 @@ import { exportAnalytics, exportConnectors, exportTransactions, exportUsers } fr
 import { securityOverview } from './security';
 import { client, current, describe, end, rawAddress, refresh, type Current } from './session';
 import { dataSourceName, mfaRequired, sessionSecret } from './settings';
+import { StoreUnavailableError, incr, ttl } from './store';
 
 // ── Responses ────────────────────────────────────────────────────────────
 const NO_STORE = { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' };
@@ -124,13 +125,24 @@ const found = <T>(v: T | null): T => {
   return v;
 };
 class NotFound extends Error {}
+class TooMany extends Error {
+  constructor(readonly retryAfter: number) {
+    super('too_many');
+  }
+}
+
+/** Exports read the whole filtered set: at most this many per account per window. */
+const EXPORT_LIMIT = 10;
+const EXPORT_WINDOW = 10 * 60;
 
 async function csv(r: Req, kind: 'users' | 'transactions' | 'connectors' | 'analytics'): Promise<Response> {
+  const limitKey = `ops:export:${r.me.account.id}`;
+  if ((await incr(limitKey, EXPORT_WINDOW)) > EXPORT_LIMIT) throw new TooMany((await ttl(limitKey)) || EXPORT_WINDOW);
   const src = await r.src();
   const f = Object.fromEntries(['search', 'status', 'country', 'type', 'range', 'userId'].map((k) => [k, r.q.text(k)]));
   const built =
     kind === 'users'
-      ? await exportUsers(src, f, mask(r.pii))
+      ? await exportUsers(src, f, mask(r.pii), r.pii)
       : kind === 'transactions'
         ? await exportTransactions(src, f)
         : kind === 'connectors'
@@ -175,6 +187,7 @@ const routes: Route[] = [
       const p = await (await r.src()).getUsers({
         ...r.q.page(),
         search: r.q.text('search'),
+        matchEmail: r.pii,
         status: r.q.one<UserStatus>('status', ['active', 'inactive', 'pending', 'suspended']),
         country: r.q.country(),
         sort: r.q.one<UserSortKey>('sort', ['name', 'country', 'joinedAt', 'status', 'lastActiveAt']),
@@ -248,7 +261,7 @@ const routes: Route[] = [
     run: async (r) => {
       const term = r.q.text('q', 100) ?? '';
       if (term.length < 2) return { users: [], transactions: [], connectors: [] };
-      const res = await (await r.src()).search(term);
+      const res = await (await r.src()).search(term, { matchEmail: r.pii });
       const may = (p: Permission) => r.me.permissions.includes(p);
       return {
         users: may('users:read') ? res.users.map(mask(r.pii)) : [],
@@ -365,6 +378,8 @@ export async function handle(ctx: APIContext): Promise<Response> {
     return result instanceof Response ? result : json(200, result);
   } catch (err) {
     if (err instanceof BadRequest) return problem(400, 'bad_request', `“${err.message}” is not a valid value here.`);
+    if (err instanceof TooMany) return problem(429, 'rate_limited', 'Too many exports. Try again later.', { 'Retry-After': String(err.retryAfter) });
+    if (err instanceof StoreUnavailableError) return problem(503, 'unavailable', 'A security service did not answer. Try again in a moment.');
     if (err instanceof NotFound) return problem(404, 'not_found');
     if (err instanceof NotConnectedError) return problem(503, 'not_connected', err.message);
     if (err instanceof SourceUnavailableError) return problem(503, 'unavailable', err.message);

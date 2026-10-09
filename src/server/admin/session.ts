@@ -21,7 +21,7 @@ import type { AdminSession, Permission } from '../../admin/types/admin';
 import { permissionsFor } from '../../admin/services/permissions';
 import { findById, type AdminAccount } from './accounts';
 import { b64url, randomId, safeEqual, sign } from './crypto';
-import { SESSION, dataSourceName, sessionSecret } from './settings';
+import { SESSION, dataSourceName, sessionSecret, sharedStoreRequired } from './settings';
 import { del, get, getMany, isShared, list, push, set } from './store';
 
 export interface Claims {
@@ -51,14 +51,32 @@ const ABS = SESSION.absoluteHours * 3_600_000;
 const sessionKey = (sid: string) => `ops:session:${sid}`;
 const INDEX = 'ops:sessions';
 
+/**
+ * The caller's address. The first X-Forwarded-For entry is whatever the
+ * caller wrote, so it is never trusted: Vercel's own x-real-ip first, then
+ * the platform's address, then the hop the nearest proxy appended (last).
+ */
+function address(request: Request, clientAddress: string | undefined): string {
+  const h = request.headers;
+  return h.get('x-real-ip')?.trim() || clientAddress || h.get('x-forwarded-for')?.split(',').pop()?.trim() || '';
+}
+
+const decode = (s: string) => {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+};
+
 /** Who is asking, as far as it is safe to keep: masked address, rough place, browser. */
 export function client(request: Request, clientAddress: string | undefined): Client {
   const h = request.headers;
-  const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip') || clientAddress || '';
+  const ip = address(request, clientAddress);
   const ipMasked = ip.includes(':') ? `${ip.split(':').slice(0, 2).join(':')}:…` : ip.split('.').length === 4 ? `${ip.split('.').slice(0, 2).join('.')}.x.x` : 'unknown';
   const city = h.get('x-vercel-ip-city');
   const country = h.get('x-vercel-ip-country');
-  const location = city || country ? [city ? decodeURIComponent(city) : null, country].filter(Boolean).join(', ') : null;
+  const location = city || country ? [city ? decode(city) : null, country].filter(Boolean).join(', ') : null;
   const ua = h.get('user-agent') ?? '';
   const browser = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'Browser';
   const os = /Windows/.test(ua) ? 'Windows' : /iPhone|iPad/.test(ua) ? 'iOS' : /Mac OS X/.test(ua) ? 'macOS' : /Android/.test(ua) ? 'Android' : /Linux/.test(ua) ? 'Linux' : 'Unknown';
@@ -67,7 +85,7 @@ export function client(request: Request, clientAddress: string | undefined): Cli
 
 /** The raw address, for counting failures only: hashed before it is stored. */
 export function rawAddress(request: Request, clientAddress: string | undefined): string {
-  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || clientAddress || 'unknown';
+  return address(request, clientAddress) || 'unknown';
 }
 
 function encode(claims: Claims, secret: string): string {
@@ -75,7 +93,7 @@ function encode(claims: Claims, secret: string): string {
   return `${body}.${sign(body, secret)}`;
 }
 
-function decode(value: string, secret: string): Claims | null {
+function decodeClaims(value: string, secret: string): Claims | null {
   const [body, mac] = value.split('.');
   if (!body || !mac || !safeEqual(sign(body, secret), mac)) return null;
   try {
@@ -138,7 +156,9 @@ export async function current(cookies: AstroCookies, { slide = true } = {}): Pro
   const secret = sessionSecret();
   const raw = cookies.get(SESSION.cookie)?.value;
   if (!secret || !raw) return null;
-  const claims = decode(raw, secret);
+  // Real staff without the shared store: no session is honoured (see settings).
+  if (sharedStoreRequired() && !isShared()) return null;
+  const claims = decodeClaims(raw, secret);
   const now = Date.now();
   if (!claims || claims.exp <= now || claims.abs <= now) return null;
   const account = await findById(claims.aid);

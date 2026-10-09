@@ -186,6 +186,12 @@ export interface UserQuery {
   page: number;
   pageSize: number;
   search?: string | undefined;
+  /**
+   * Match `search` against emails as well as names and IDs. The server sets
+   * it only for roles with users:read_pii, so a masked email cannot be
+   * recovered by searching for it a letter at a time.
+   */
+  matchEmail?: boolean | undefined;
   status?: UserStatus | undefined;
   country?: CountryCode | undefined;
   sort?: UserSortKey | undefined;

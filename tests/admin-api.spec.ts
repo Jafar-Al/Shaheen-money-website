@@ -126,6 +126,36 @@ test.describe('permissions, on the server', () => {
     await admin.dispose();
   });
 
+  test('a masked email cannot be recovered by searching for it', async ({ request, playwright }) => {
+    // The admin (users:read_pii) learns one full email and its owner.
+    const admin = await playwright.request.newContext({ baseURL: 'http://localhost:4322' });
+    await signIn(admin, 'admin@shaheen.test');
+    const first = (await (await admin.get('/api/admin/users?pageSize=1', { headers: H })).json()).items[0];
+    const local = String(first.email).split('@')[0]!;
+    expect((await (await admin.get(`/api/admin/users?search=${encodeURIComponent(first.email)}`, { headers: H })).json()).total).toBeGreaterThan(0);
+    await admin.dispose();
+
+    // Operations (masked emails) searching that email, or a piece of it, finds nothing by email.
+    await signIn(request, 'operations@shaheen.test');
+    const byEmail = await (await request.get(`/api/admin/users?search=${encodeURIComponent(first.email)}`, { headers: H })).json();
+    expect(byEmail.total).toBe(0);
+    const palette = await (await request.get(`/api/admin/search?q=${encodeURIComponent(first.email)}`, { headers: H })).json();
+    expect(palette.users).toHaveLength(0);
+    // A guess that is only part of the email's local part (and not the name) finds nothing either.
+    const partial = local.replace(/[^a-z0-9]/gi, '').slice(-4);
+    if (partial.length >= 2 && !String(first.name).toLowerCase().replace(/[^a-z0-9]/g, '').includes(partial.toLowerCase())) {
+      const res = await (await request.get(`/api/admin/users?search=${encodeURIComponent(partial + '@')}`, { headers: H })).json();
+      expect(res.total).toBe(0);
+    }
+  });
+
+  test('exports are rate-limited per account', async ({ request }) => {
+    await signIn(request, 'operations@shaheen.test');
+    let last = 0;
+    for (let i = 0; i < 11; i++) last = (await request.get('/api/admin/transactions/export?range=24h', { headers: H })).status();
+    expect(last).toBe(429);
+  });
+
   test('inputs outside their allowed values are refused', async ({ request }) => {
     await signIn(request, 'admin@shaheen.test');
     expect((await request.get('/api/admin/users?status=evil', { headers: H })).status()).toBe(400);

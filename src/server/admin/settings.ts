@@ -31,6 +31,17 @@ export function mode(): Mode {
   });
 }
 
+/**
+ * Real staff on a deployment (not the demo): lockouts, ending a session and
+ * one-time codes must hold on every server instance, so the shared store is
+ * required. Without it each serverless instance would keep its own counters
+ * (a lockout could be dodged by landing on another instance) and signing out
+ * could not revoke a copied cookie.
+ */
+export function sharedStoreRequired(): boolean {
+  return !DEV && !mode().demoAccounts;
+}
+
 /** Where the figures come from: the Shaheen app's database, or generated demo data. */
 export function dataSourceName(): 'shaheen' | 'demo' {
   return mode().dataSource;

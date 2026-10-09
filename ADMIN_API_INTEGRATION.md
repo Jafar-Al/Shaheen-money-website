@@ -38,6 +38,31 @@ development, and the demo on a showcase deployment with `ADMIN_DEMO=true`
 stamp. Once `connected` is `true` in `shaheen-source.ts`, only the app's
 data is ever used: the demo and its accounts are switched off everywhere.
 
+## Security rules for the data file
+
+`src/server/admin/shaheen-source.ts` is the only part of the console that
+touches the Shaheen app's database, so it is where a mistake would matter
+most. The rules are written at the top of the file; in short:
+
+1. **Parameterised queries only.** Every request value is a bound parameter.
+   Never join strings or template literals into SQL (SQL injection is the
+   most common flaw in code written in a hurry, by people or by AI tools).
+2. **Fixed column maps.** Sort and filter keys arrive already checked, but
+   map them to column names through a fixed object; never put a request
+   value into a column, table or `ORDER BY`.
+3. **A read-only database user** with `SELECT` on the needed tables only.
+4. **TLS to the database**, credentials in server environment variables only.
+5. **Never return secrets**; select columns by name, never `SELECT *`.
+6. **Emails:** return them in full (the router masks per role), but match a
+   search against emails only when `matchEmail` is true.
+7. **Bounded queries:** paging, filters and sorting in the database, with a
+   statement timeout.
+8. **Quiet errors:** throw `SourceUnavailableError`, log details on the
+   server only, never personal data.
+
+If an AI assistant writes the file, give it these rules in the prompt and
+review the result against them before deploying.
+
 ## Writing a function
 
 - Return **full** data: emails in full (the router masks them per role).

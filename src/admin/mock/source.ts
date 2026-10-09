@@ -97,8 +97,10 @@ export function createDemoSource(scenarioName?: string): AdminDataSource {
     if (scenario === 'error') throw new SourceUnavailableError('Demo scenario: every data request fails.');
   };
 
-  const users = (q: { search?: string | undefined; status?: string | undefined; country?: string | undefined }): MockUser[] =>
-    empty ? [] : world().users.filter((u) => (!q.status || u.status === q.status) && (!q.country || u.country === q.country) && matches(q.search, u.name, u.email, u.id));
+  const users = (q: { search?: string | undefined; matchEmail?: boolean | undefined; status?: string | undefined; country?: string | undefined }): MockUser[] =>
+    empty
+      ? []
+      : world().users.filter((u) => (!q.status || u.status === q.status) && (!q.country || u.country === q.country) && matches(q.search, u.name, u.id, ...(q.matchEmail ? [u.email] : [])));
 
   const transactions = (q: {
     search?: string | undefined;
@@ -289,12 +291,12 @@ export function createDemoSource(scenarioName?: string): AdminDataSource {
       return systemHealth(degraded);
     },
 
-    async search(query) {
+    async search(query, options) {
       await gate();
       const q = query.trim();
       if (q.length < 2 || empty) return { users: [], transactions: [], connectors: [] };
       const w = world();
-      const us = w.users.filter((u) => matches(q, u.name, u.email, u.id)).slice(0, 5);
+      const us = w.users.filter((u) => matches(q, u.name, u.id, ...(options?.matchEmail ? [u.email] : []))).slice(0, 5);
       const ts: MockTxn[] = [];
       for (let i = w.txns.length - 1; i >= 0 && ts.length < 5; i--) if (matches(q, w.txns[i]!.id)) ts.push(w.txns[i]!);
       const cs = w.connectors.filter((c) => matches(q, c.name, c.city, c.id)).slice(0, 5);

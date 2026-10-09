@@ -99,7 +99,7 @@ const REFUSAL: Record<string, string> = {
 function askForCode(): void {
   codeField.hidden = false;
   code.required = true;
-  message('This account uses a second factor. Enter the code from your authenticator app.', 'quiet');
+  message('Enter the 6-digit code from your authenticator app to continue.', 'quiet');
   code.focus();
 }
 
@@ -128,6 +128,13 @@ form.addEventListener('submit', async (e) => {
       return;
     }
     password.value = '';
+    // Once a code has been asked for, a refusal may be the password or the
+    // code: the server does not say which, and neither does the page.
+    if (reason === 'invalid_credentials' && !codeField.hidden) {
+      message('That email, password or code don’t match an operations account.', 'alert');
+      password.focus();
+      return;
+    }
     if (reason === 'rate_limited') {
       const minutes = err instanceof AuthError && err.retryAfterSeconds ? Math.max(1, Math.ceil(err.retryAfterSeconds / 60)) : 15;
       message(`Too many attempts. For your account’s safety, try again in about ${minutes} minute${minutes === 1 ? '' : 's'}.`, 'alert');

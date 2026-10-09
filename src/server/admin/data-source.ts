@@ -66,8 +66,12 @@ export interface AdminDataSource {
   getActivity(query: ActivityQuery): Promise<CursorPage<ActivityEvent>>;
   getSystemHealth(): Promise<SystemHealth>;
 
-  /** Up to five users, transactions and Connectors matching free text (ID, name, email, city). */
-  search(query: string): Promise<SearchResults>;
+  /**
+   * Up to five users, transactions and Connectors matching free text (ID,
+   * name, city). Users' emails are matched only when options.matchEmail is
+   * true, which the server sets for roles with users:read_pii.
+   */
+  search(query: string, options?: { matchEmail?: boolean }): Promise<SearchResults>;
 }
 
 export { NotConnectedError, SourceUnavailableError } from './errors';

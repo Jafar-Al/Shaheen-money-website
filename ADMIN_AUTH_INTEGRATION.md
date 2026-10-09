@@ -35,11 +35,15 @@ is the data connection described in [ADMIN_API_INTEGRATION.md](ADMIN_API_INTEGRA
    Both are secrets: paste them only into Vercel, never into a chat, an email
    or the repository. Then redeploy.
 
-3. **Recommended:** connect Upstash Redis (`UPSTASH_REDIS_REST_URL`,
-   `UPSTASH_REDIS_REST_TOKEN`, the same store the site's forms can use). With
-   it, lockouts and the audit log are shared by every server instance and a
-   session can be ended early. Without it everything still works, but the
-   Security page may show only part of the log.
+3. **Required for real staff:** connect Upstash Redis (`UPSTASH_REDIS_REST_URL`,
+   `UPSTASH_REDIS_REST_TOKEN`, the same store the site's forms can use). It
+   makes lockouts, one-time codes and sign-out hold on every serverless
+   instance; without it a lockout could be dodged by reaching another
+   instance, and signing out could not revoke a copied cookie. So a
+   deployment with real staff accounts refuses every sign-in until it is set
+   (the demo, with `ADMIN_DEMO=true`, works without it). If Upstash stops
+   answering, the console refuses rather than falling back to weaker
+   per-instance memory (fail closed).
 
 Add more staff the same way (`--role OPERATIONS`, `COMPLIANCE` or `SUPPORT`),
 list them with `npm run admin:list`, remove one with
@@ -90,6 +94,8 @@ time, so the settings say what the site does.
 `POST /api/admin/auth/sign-in` with `{ email, password, code? }`
 (`src/server/admin/auth.ts`):
 
+0. **Store ready.** A deployment with real staff accounts and no shared
+   store (Upstash) refuses with `503 not_configured` (see setup step 3).
 1. **Lockout first.** Five failures on an account, or thirty from one
    address, within 15 minutes → `429` with `Retry-After`, before any password
    is checked.
@@ -103,6 +109,12 @@ time, so the settings say what the site does.
    Each code is accepted once. In production an account without a second
    factor cannot sign in unless `ADMIN_REQUIRE_MFA=false`; the demo
    accounts, while the demo is on, are the only exception.
+   **Where the second factor is required (production), no answer ever
+   confirms a password on its own:** without a code, every email (real or
+   not) gets `401 mfa_required` before the password is even checked; with a
+   code, a wrong password and a wrong code both get `401 invalid_credentials`
+   (the audit log keeps the real reason). A leaked password cannot be tested
+   without the authenticator.
 4. **Console access.** A valid account without `console:access` (role `USER`)
    gets `403 not_authorized`.
 5. **Session.** A signed, httpOnly cookie is set and the outcome is written
@@ -111,9 +123,9 @@ time, so the settings say what the site does.
 | Answer | Meaning | What the page says |
 | --- | --- | --- |
 | `200 { session }` | signed in | goes to the page you were sent from |
-| `401 invalid_credentials` | wrong email or password | "That email and password don't match an operations account." |
-| `401 mfa_required` | the account has a second factor | shows the code field |
-| `401 mfa_invalid` | wrong or reused code | "That code didn't match…" |
+| `401 invalid_credentials` | wrong email or password (in production: or wrong code) | "That email and password don't match…" (after a code was asked for: "That email, password or code don't match…") |
+| `401 mfa_required` | a code is needed (in production: asked of every email, before the password) | shows the code field |
+| `401 mfa_invalid` | wrong or reused code (development only; production answers `invalid_credentials`) | "That code didn't match…" |
 | `403 not_authorized` | no console access | "This account can't open the operations console." |
 | `429` + `Retry-After` | locked out | "Too many attempts… about N minutes." |
 | `503 not_configured` | no accounts or secret, or no second factor where required | "Sign-in isn't set up on this server yet…" |
@@ -136,8 +148,9 @@ on every request, so a role change applies at once.
 - **Idle timeout** 30 minutes; each request in the second half of the window
   slides it forward, and the console refreshes it 5 minutes before the end.
 - **Absolute limit** 8 hours after sign-in, whatever happens.
-- **With Upstash**, the session must also still be on the server's list of
-  open sessions, so sign-out (and revocation) end it everywhere at once.
+- **With Upstash** (required for real staff), the session must also still be
+  on the server's list of open sessions, so sign-out (and revocation) end it
+  everywhere at once.
 
 ## Every request after sign-in
 

@@ -9,6 +9,10 @@
  *  3. An account with a second factor must send its current 6-digit code; a
  *     code is accepted once (replay is refused). In production an account
  *     without a second factor cannot sign in unless ADMIN_REQUIRE_MFA=false.
+ *     Where a second factor is required, the password is not even checked
+ *     until the code comes with it, and a wrong password and a wrong code
+ *     get the same answer: no response ever confirms a password on its own
+ *     (a leaked password cannot be tested without the authenticator).
  *     The demo accounts are the exception: they exist only while the demo
  *     is on, see generated data only, and their password is published.
  *  4. An account without console access (role USER) is refused even with
@@ -22,9 +26,9 @@ import { permissionsFor } from '../../admin/services/permissions';
 import { accounts, findByEmail, type AdminAccount } from './accounts';
 import { maskEmail, record } from './audit';
 import { dummyHash, verifyPassword, verifyTotp } from './crypto';
-import { LOCKOUT, mfaRequired, sessionSecret } from './settings';
+import { LOCKOUT, mfaRequired, sessionSecret, sharedStoreRequired } from './settings';
 import { start, type Claims, type Client } from './session';
-import { del, getNumber, incr, set, ttl } from './store';
+import { del, getNumber, incr, isShared, set, ttl } from './store';
 
 export interface SignInInput {
   email: string;
@@ -48,13 +52,17 @@ const exemptAddress = (ip: string) => import.meta.env.DEV && /^(::1|127\.|::ffff
 async function fail(email: string, ip: string, who: Client, code: AuthErrorCode, reason: FailReason): Promise<SignInResult> {
   await incr(accountKey(email), LOCKOUT.windowSeconds);
   if (!exemptAddress(ip)) await incr(addressKey(ip), LOCKOUT.windowSeconds);
-  await record({ kind: code === 'mfa_invalid' ? 'mfa_failed' : 'sign_in_failed', account: maskEmail(email), actor: null, ...who, reason });
+  await record({ kind: reason === 'mfa_failed' ? 'mfa_failed' : 'sign_in_failed', account: maskEmail(email), actor: null, ...who, reason });
   return { ok: false, code };
 }
 
 export async function signIn(input: SignInInput, ip: string, who: Client, cookies: AstroCookies): Promise<SignInResult> {
   const email = input.email.trim().toLowerCase();
   if (!sessionSecret() || !(await accounts()).length) return { ok: false, code: 'not_configured' };
+  if (sharedStoreRequired() && !isShared()) {
+    console.error('[ops] Sign-in refused: real staff accounts need the shared store (UPSTASH_REDIS_REST_URL and _TOKEN).');
+    return { ok: false, code: 'not_configured' };
+  }
 
   // 1. Locked?
   const accountFails = await getNumber(accountKey(email));
@@ -70,30 +78,39 @@ export async function signIn(input: SignInInput, ip: string, who: Client, cookie
     return { ok: false, code: 'rate_limited', retryAfter };
   }
 
-  // 2. Password, in equal time whether or not the account exists.
+  // 2. Where a second factor is required, ask for it before checking
+  //    anything: every account, real or not, gets the same answer, so a
+  //    password is never confirmed without its code. (The demo accounts have
+  //    no second factor and a published password: they skip this step.)
+  const strict = mfaRequired();
   const account = await findByEmail(email);
+  const demoWithoutCode = !!account?.demo && !account.totpSecret;
+  if (strict && !input.code && !demoWithoutCode) return { ok: false, code: 'mfa_required' };
+
+  // 3. Password, in equal time whether or not the account exists.
   const passwordOk = await verifyPassword(input.password, account?.passwordHash ?? (await dummyHash()));
   if (!account || !passwordOk) return fail(email, ip, who, 'invalid_credentials', 'invalid_credentials');
 
-  // 3. Second factor.
+  // 4. Second factor.
   if (account.totpSecret) {
     if (!input.code) return { ok: false, code: 'mfa_required' };
     const step = verifyTotp(account.totpSecret, input.code);
     // One use per code: claim the step for this account.
     const fresh = step !== null && (await set(`ops:totp:${account.id}:${step}`, '1', 120, true));
-    if (!fresh) return fail(email, ip, who, 'mfa_invalid', 'mfa_failed');
+    // Strict: a wrong code answers exactly like a wrong password.
+    if (!fresh) return fail(email, ip, who, strict ? 'invalid_credentials' : 'mfa_invalid', 'mfa_failed');
   } else if (mfaRequired() && !account.demo) {
     await record({ kind: 'sign_in_failed', account: maskEmail(email), actor: null, ...who, reason: 'no_second_factor' });
     return { ok: false, code: 'not_configured' };
   }
 
-  // 4. Console access.
+  // 5. Console access.
   if (!permissionsFor(account.role).includes('console:access')) {
     await record({ kind: 'sign_in_failed', account: maskEmail(email), actor: null, ...who, reason: 'not_authorized' });
     return { ok: false, code: 'not_authorized' };
   }
 
-  // 5. In.
+  // 6. In.
   await del(accountKey(email));
   const claims = await start(cookies, account, who, !!account.totpSecret);
   if (!claims) return { ok: false, code: 'not_configured' };

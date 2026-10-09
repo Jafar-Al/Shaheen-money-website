@@ -27,8 +27,8 @@ export interface Built {
   rows: number;
 }
 
-export async function exportUsers(src: AdminDataSource, q: Record<string, string | undefined>, mask: (u: AdminUser) => AdminUser): Promise<Built> {
-  const rows = (await all((x) => src.getUsers(x), { search: q.search, status: q.status as never, country: q.country })).map(mask);
+export async function exportUsers(src: AdminDataSource, q: Record<string, string | undefined>, mask: (u: AdminUser) => AdminUser, matchEmail: boolean): Promise<Built> {
+  const rows = (await all((x) => src.getUsers(x), { search: q.search, matchEmail, status: q.status as never, country: q.country })).map(mask);
   return {
     rows: rows.length,
     csv: toCsv(rows, [
