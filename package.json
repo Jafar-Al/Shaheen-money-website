@@ -59,5 +59,12 @@
     "@types/topojson-client": "^3.1.5",
     "subset-font": "^2.9.0",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "http-cache-semantics": "4.3.0",
+    "source-map-js": "1.2.2",
+    "@vercel/routing-utils": {
+      "path-to-regexp": "6.3.0"
+    }
   }
 }
