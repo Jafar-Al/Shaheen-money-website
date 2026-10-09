@@ -27,10 +27,13 @@
  *     (router.ts), but still map them to column names through a fixed object
  *     here, e.g. { joinedAt: 'created_at' }[query.sort]. Never put a request
  *     value into a column name, table name or ORDER BY directly.
- *  3. A read-only database user. The console only reads: connect with a user
- *     that has SELECT on the tables it needs and nothing else (no INSERT,
- *     UPDATE, DELETE, DDL). If this file is ever compromised, it can change
- *     nothing.
+ *  3. A read-only database user for the reads: SELECT on the tables they
+ *     need and nothing else (no INSERT, UPDATE, DELETE, DDL). The five
+ *     actions (messages, SMS, push, money, refunds) never write to the
+ *     database from here: they call the Shaheen app's own backend (the
+ *     service that holds the wallet keys, the SMS and push providers and the
+ *     ledger), with its own credential, passing sentBy and idempotencyKey so
+ *     the app can record who did it and refuse a repeat.
  *  4. Encrypted connection (TLS) to the database, credentials in server
  *     environment variables only (never PUBLIC_, never in this file, never
  *     committed). Rotate them if they are ever pasted anywhere.
@@ -59,6 +62,7 @@
  */
 import type { AdminDataSource } from './data-source';
 import { NotConnectedError } from './errors';
+// For actions the app refuses (e.g. insufficient funds): throw new ActionRefusedError('insufficient_funds', 'The master wallet does not hold enough USDC.')
 
 /**
  * Set to true when every function in this file reads the Shaheen app's
@@ -102,4 +106,11 @@ export const shaheenSource: AdminDataSource = {
 
   // The command palette
   search: async (_query) => notConnected(),
+
+  // Actions (administrators only): call the Shaheen app's backend, never the database directly
+  countAudience: async (_audience, _channel) => notConnected(),
+  sendMessage: async (_request) => notConnected(),
+  getMasterWallet: async () => notConnected(),
+  sendMoney: async (_request) => notConnected(),
+  issueRefund: async (_request) => notConnected(),
 };

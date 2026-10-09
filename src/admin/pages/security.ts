@@ -24,6 +24,9 @@ const EVENT: Record<SecurityEvent['kind'], string> = {
   'mfa.failed': 'Second factor failed',
   'account.locked': 'Account locked',
   'export.created': 'Data exported',
+  'message.sent': 'Message sent',
+  'money.sent': 'Money sent',
+  'refund.issued': 'Refund issued',
   new_device: 'New device',
 };
 

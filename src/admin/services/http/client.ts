@@ -86,6 +86,12 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
       /* the status is enough */
     }
     if (body.code === 'not_connected') throw new ApiError('not_connected', res.status, body.message);
+    // A refused action (or input) says why: the page shows the server's own words.
+    if (body.code && body.message && (res.status === 409 || res.status === 422 || res.status === 429 || (res.status === 400 && body.code !== 'bad_request'))) {
+      const err = new ApiError('refused', res.status, body.message);
+      err.reason = body.code;
+      throw err;
+    }
     if (res.status === 400) throw new ApiError('bad_request', 400);
     if (res.status === 403) throw new ApiError('forbidden', 403, body.message);
     if (res.status === 404) throw new ApiError('not_found', 404);

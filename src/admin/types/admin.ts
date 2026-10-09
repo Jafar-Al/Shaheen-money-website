@@ -76,7 +76,13 @@ export type Permission =
   | 'analytics:export'
   | 'activity:read'
   | 'system:read'
-  | 'security:read';
+  | 'security:read'
+  /** In-app messages, SMS and push notifications to users. */
+  | 'messages:send'
+  /** Money sent from the master wallet to a user. */
+  | 'money:send'
+  /** Refunds of a transaction. */
+  | 'refunds:issue';
 
 export interface AdminIdentity {
   id: string;
@@ -483,7 +489,7 @@ export interface SignInAttempt {
 export interface SecurityEvent {
   id: string;
   at: ISODate;
-  kind: 'session.revoked' | 'role.changed' | 'mfa.failed' | 'account.locked' | 'export.created' | 'new_device';
+  kind: 'session.revoked' | 'role.changed' | 'mfa.failed' | 'account.locked' | 'export.created' | 'new_device' | 'message.sent' | 'money.sent' | 'refund.issued';
   severity: 'info' | 'notice' | 'warning' | 'critical';
   actor: string | null;
   detail: string | null;
@@ -510,6 +516,78 @@ export interface SearchResults {
 }
 
 export type ExportKind = 'users' | 'transactions' | 'connectors' | 'analytics';
+
+// ── Actions (administrators only) ─────────────────────────────────────────
+
+/** How a message reaches people: inside the app, by SMS, or as a push notification. */
+export type Channel = 'in_app' | 'sms' | 'push';
+export type Continent = 'Africa' | 'Asia' | 'Europe' | 'North America' | 'South America' | 'Oceania';
+
+/** Who receives a message: chosen users, or everyone in some countries or continents. */
+export type Audience =
+  | { kind: 'users'; userIds: string[] }
+  | { kind: 'countries'; countries: CountryCode[] }
+  | { kind: 'continents'; continents: Continent[] };
+
+export interface MessageRequest {
+  channel: Channel;
+  audience: Audience;
+  /** In-app and push only (required for push). */
+  title?: string | undefined;
+  body: string;
+}
+
+/** The administrator who acted, passed to the data source with every action. */
+export interface ActionActor {
+  id: string;
+  name: string;
+}
+
+export interface MessageResult {
+  id: string;
+  /** People it was sent to (after the app removes those it cannot reach). */
+  recipients: number;
+  sentAt: ISODate;
+}
+
+/** The company's master wallet, which money sent from the console comes from. */
+export interface MasterWallet {
+  generatedAt: ISODate;
+  balances: Array<{ asset: AssetCode; amount: Decimal; usdValue: Decimal }>;
+}
+
+export interface MoneyTransferRequest {
+  userId: string;
+  asset: AssetCode;
+  amount: Decimal;
+  note?: string | undefined;
+  /** The same key twice is refused: a retried request never pays twice. */
+  idempotencyKey: string;
+}
+
+export interface RefundRequest {
+  transactionId: string;
+  /** Leave out for the full amount. */
+  amount?: Decimal | undefined;
+  reason: string;
+  idempotencyKey: string;
+}
+
+export interface MoneyResult {
+  /** The new transaction's ID. */
+  transactionId: string;
+  status: 'completed' | 'pending';
+  createdAt: ISODate;
+}
+
+/** One action, as the Actions page lists it (from the audit log). */
+export interface ActionRecord {
+  id: string;
+  at: ISODate;
+  kind: 'message' | 'money' | 'refund';
+  actor: string | null;
+  detail: string;
+}
 
 export interface ExportFile {
   filename: string;

@@ -17,8 +17,17 @@
  *    ADMIN_DATA_REQUIREMENTS.md.
  */
 import type {
+  ActionActor,
   ActivityEvent,
   ActivityQuery,
+  Audience,
+  Channel,
+  MasterWallet,
+  MessageRequest,
+  MessageResult,
+  MoneyResult,
+  MoneyTransferRequest,
+  RefundRequest,
   AdminUser,
   AdminUserDetail,
   AssetOverview,
@@ -72,9 +81,21 @@ export interface AdminDataSource {
    * true, which the server sets for roles with users:read_pii.
    */
   search(query: string, options?: { matchEmail?: boolean }): Promise<SearchResults>;
+
+  // ── Actions (administrators only; each one goes through the app's backend) ──
+  /** How many people a message would reach on this channel (for the confirmation). */
+  countAudience(audience: Audience, channel: Channel): Promise<number>;
+  /** Sends an in-app message, SMS or push notification. */
+  sendMessage(request: MessageRequest & { sentBy: ActionActor }): Promise<MessageResult>;
+  /** The master wallet's balances. */
+  getMasterWallet(): Promise<MasterWallet>;
+  /** Sends money from the master wallet to a user. Throw ActionRefusedError for e.g. insufficient funds. */
+  sendMoney(request: MoneyTransferRequest & { sentBy: ActionActor }): Promise<MoneyResult>;
+  /** Refunds a transaction, fully or partly. Throw ActionRefusedError when it cannot be refunded. */
+  issueRefund(request: RefundRequest & { sentBy: ActionActor }): Promise<MoneyResult>;
 }
 
-export { NotConnectedError, SourceUnavailableError } from './errors';
+export { ActionRefusedError, NotConnectedError, SourceUnavailableError } from './errors';
 
 export interface SourceOptions {
   /** Demo only: a state to show (slow, empty, error, degraded), from the Account page. */

@@ -193,6 +193,15 @@ to sign-in (`scripts/postbuild.mjs`), and marks the path `noindex`,
 | `activity:read` | ✓ | ✓ | ✓ | ✓ | |
 | `system:read` | ✓ | ✓ | | ✓ | |
 | `security:read` | ✓ | | ✓ | | |
+| `messages:send` (in-app, SMS, push) | ✓ | | | | |
+| `money:send` (from the master wallet) | ✓ | | | | |
+| `refunds:issue` | ✓ | | | | |
+
+The three actions are the administrator's alone (the owner's decision,
+October 2026: no second approver and no amount limits). Money and refunds
+still ask the administrator for a fresh authenticator code each time, carry
+an idempotency key (the same request is never carried out twice), and are
+written to the audit log.
 
 To change what a role may do, edit this table; the server and the console
 both read it.

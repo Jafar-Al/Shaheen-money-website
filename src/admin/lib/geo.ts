@@ -1,5 +1,5 @@
 import { capitals, cities } from '../../data/network-map';
-import type { CountryCode } from '../types/admin';
+import type { Continent, CountryCode } from '../types/admin';
 
 /**
  * Reference data, not mock data: how the console names a country and where
@@ -42,6 +42,23 @@ export const COUNTRIES: Record<string, CountryRef> = {
 export function countryName(code: CountryCode): string {
   return COUNTRIES[code]?.name ?? code;
 }
+
+/** The continent a country belongs to, for messages sent by continent. */
+const CONTINENT_OF: Record<string, Continent> = {
+  JO: 'Asia',
+  LB: 'Asia',
+  AE: 'Asia',
+  SA: 'Asia',
+  QA: 'Asia',
+  TR: 'Asia',
+  EG: 'Africa',
+  GB: 'Europe',
+  DE: 'Europe',
+  FR: 'Europe',
+  US: 'North America',
+  CA: 'North America',
+};
+export const continentOf = (code: CountryCode): Continent | null => CONTINENT_OF[code] ?? null;
 
 export function regionOf(code: CountryCode): Region {
   return COUNTRIES[code]?.region ?? 'Other';

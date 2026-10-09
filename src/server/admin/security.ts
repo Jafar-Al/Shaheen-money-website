@@ -28,6 +28,9 @@ const EVENT_KIND: Partial<Record<AuditEvent['kind'], SecurityEvent['kind']>> = {
   locked: 'account.locked',
   mfa_failed: 'mfa.failed',
   export: 'export.created',
+  message_sent: 'message.sent',
+  money_sent: 'money.sent',
+  refund_issued: 'refund.issued',
   session_revoked: 'session.revoked',
 };
 

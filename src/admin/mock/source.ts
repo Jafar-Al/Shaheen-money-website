@@ -12,7 +12,8 @@
  * empty, failing and degraded paths so every screen's states can be seen.
  */
 import type { AdminDataSource } from '../../server/admin/data-source';
-import { SourceUnavailableError } from '../../server/admin/data-source';
+import { ActionRefusedError, SourceUnavailableError } from '../../server/admin/data-source';
+import { randomId } from '../../server/admin/crypto';
 import type {
   AdminUserDetail,
   Connector,
@@ -23,7 +24,7 @@ import type {
   SortDir,
   Transaction,
 } from '../types/admin';
-import { countryName } from '../lib/geo';
+import { continentOf, countryName } from '../lib/geo';
 import { activityEvents } from './activity';
 import {
   assetOverview,
@@ -85,6 +86,17 @@ const matches = (q: string | undefined, ...fields: string[]) => {
   const needle = q.trim().toLowerCase();
   return fields.some((f) => f.toLowerCase().includes(needle));
 };
+
+/**
+ * The demo's master wallet and refunds, kept for as long as this server
+ * instance lives. Nothing is ever sent: the balances only move on screen.
+ */
+const demoWallet: Record<'USDC' | 'USDT' | 'EUROC', number> = { USDC: 2_480_000, USDT: 1_150_000, EUROC: 410_000 };
+const EUROC_USD = 1.08;
+const refunded = new Map<string, number>();
+const money = (n: number) => n.toFixed(2);
+/** A transaction ID like the demo world's: txn_ and twelve capitals and digits. */
+const demoTxnId = () => `txn_${randomId(16).replace(/[^A-Za-z0-9]/g, '').slice(0, 12).toUpperCase()}`;
 
 export function createDemoSource(scenarioName?: string): AdminDataSource {
   const scenario: Scenario = isScenario(scenarioName) ? scenarioName : 'normal';
@@ -305,6 +317,67 @@ export function createDemoSource(scenarioName?: string): AdminDataSource {
         transactions: ts.map((t) => ({ id: t.id, type: t.type, status: t.status, amount: t.amount, asset: t.asset, createdAt: t.createdAt })),
         connectors: cs.map((c) => ({ id: c.id, name: c.name, city: c.city, country: c.country, status: c.status })),
       };
+    },
+
+    // ── Actions: simulated. The demo never sends a message or moves money. ──
+    async countAudience(audience) {
+      await gate();
+      if (empty) return 0;
+      const reachable = world().users.filter((u) => u.status !== 'suspended');
+      if (audience.kind === 'users') {
+        const ids = new Set(audience.userIds);
+        return reachable.filter((u) => ids.has(u.id)).length;
+      }
+      if (audience.kind === 'countries') {
+        const cs = new Set(audience.countries);
+        return reachable.filter((u) => cs.has(u.country)).length;
+      }
+      const conts = new Set<string>(audience.continents);
+      return reachable.filter((u) => conts.has(continentOf(u.country) ?? '')).length;
+    },
+
+    async sendMessage(request) {
+      const recipients = await this.countAudience(request.audience, request.channel);
+      if (!recipients) throw new ActionRefusedError('no_recipients', 'Nobody matches this audience, so nothing was sent.');
+      return { id: `msg_${randomId(9)}`, recipients, sentAt: new Date().toISOString() };
+    },
+
+    async getMasterWallet() {
+      await gate();
+      return {
+        generatedAt: new Date(NOW).toISOString(),
+        balances: (['USDC', 'USDT', 'EUROC'] as const).map((asset) => ({
+          asset,
+          amount: money(demoWallet[asset]),
+          usdValue: money(demoWallet[asset] * (asset === 'EUROC' ? EUROC_USD : 1)),
+        })),
+      };
+    },
+
+    async sendMoney(request) {
+      await gate();
+      const user = world().users.find((u) => u.id === request.userId);
+      if (!user) throw new ActionRefusedError('unknown_user', 'There is no user with that ID.');
+      if (user.status === 'suspended') throw new ActionRefusedError('user_suspended', 'This account is suspended and cannot receive money.');
+      const amount = Number(request.amount);
+      if (amount > demoWallet[request.asset]) throw new ActionRefusedError('insufficient_funds', `The master wallet holds only ${money(demoWallet[request.asset])} ${request.asset}.`);
+      demoWallet[request.asset] -= amount;
+      return { transactionId: demoTxnId(), status: 'completed', createdAt: new Date().toISOString() };
+    },
+
+    async issueRefund(request) {
+      await gate();
+      const t = world().txns.find((x) => x.id === request.transactionId);
+      if (!t) throw new ActionRefusedError('unknown_transaction', 'There is no transaction with that ID.');
+      if (t.status !== 'completed') throw new ActionRefusedError('not_refundable', 'Only a completed transaction can be refunded.');
+      const original = Number(t.amount);
+      const already = refunded.get(t.id) ?? 0;
+      const left = original - already;
+      const amount = request.amount === undefined ? left : Number(request.amount);
+      if (left <= 0) throw new ActionRefusedError('already_refunded', 'This transaction has already been refunded in full.');
+      if (amount > left + 1e-9) throw new ActionRefusedError('over_refund', `At most ${money(left)} ${t.asset} is left to refund.`);
+      refunded.set(t.id, already + amount);
+      return { transactionId: demoTxnId(), status: 'completed', createdAt: new Date().toISOString() };
     },
   };
 }

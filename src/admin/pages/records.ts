@@ -61,6 +61,12 @@ export function miniTxnList(list: Transaction[], perspective?: string): HTMLElem
   );
 }
 
+/** Shortcuts from a record to the Actions page (administrators only), already filled in. */
+function quickActions(links: Array<[string, string] | null>): HTMLElement | null {
+  const present = links.filter((l): l is [string, string] => !!l);
+  return present.length ? h('p', { class: 'ops-head-tools ops-quick' }, ...present.map(([label, href]) => h('a', { class: 'ops-btn', href }, label))) : null;
+}
+
 function head(name: string, sub: string, square = false): HTMLElement {
   return h(
     'div',
@@ -81,6 +87,10 @@ function renderUser(u: AdminUserDetail, content: HTMLElement, recent: Transactio
       badge(TONE.user[u.status], USER_STATUS_LABEL[u.status]),
       u.walletStatus ? badge(TONE.wallet[u.walletStatus], `Wallet: ${WALLET_STATUS_LABEL[u.walletStatus]}`) : null,
     ),
+    quickActions([
+      hasPermission('messages:send') ? ['Message', `${routes.actions}?message=${encodeURIComponent(u.id)}#message`] : null,
+      hasPermission('money:send') ? ['Send money', `${routes.actions}?to=${encodeURIComponent(u.id)}#money`] : null,
+    ]),
     section(
       'Profile',
       dl([
@@ -178,6 +188,7 @@ function renderTxn(t: Transaction, content: HTMLElement): void {
     content,
     h('h2', { class: 'ops-drawer-title', id: 'drawer-title' }, `${FLOW_LABEL[t.type]} of ${amount(t.amount, t.asset)}`),
     h('p', { class: 'ops-sub num' }, t.id),
+    quickActions([hasPermission('refunds:issue') && t.status === 'completed' ? ['Refund', `${routes.actions}?refund=${encodeURIComponent(t.id)}#refund`] : null]),
     h('div', { class: 'ops-drawer-sec' }, receipt),
     t.status === 'failed' ? h('p', { class: 'ops-note ops-note-alert' }, t.failureReason ? `Failed: ${t.failureReason}.` : 'This transaction failed.') : null,
   );

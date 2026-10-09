@@ -19,7 +19,7 @@ import { ADMIN_BASE } from '../src/config/admin';
 const admins = readFileSync(new URL('../src/admin/mock/admins.ts', import.meta.url), 'utf8');
 const PASSWORD = admins.match(/MOCK_PASSWORD = '([^']+)'/)![1]!;
 
-const PAGES = ['/', '/users', '/connectors', '/transactions', '/network', '/money-movement', '/assets', '/analytics', '/activity', '/system-health', '/security', '/account'].map((p) =>
+const PAGES = ['/', '/users', '/connectors', '/transactions', '/network', '/money-movement', '/assets', '/analytics', '/activity', '/system-health', '/security', '/account', '/actions'].map((p) =>
   p === '/' ? `${ADMIN_BASE}/` : `${ADMIN_BASE}${p}`,
 );
 

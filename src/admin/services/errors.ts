@@ -16,13 +16,17 @@ export type ApiErrorCode =
   | 'aborted'
   /** The server's data source is not connected to the Shaheen app yet. */
   | 'not_connected'
-  | 'bad_request';
+  | 'bad_request'
+  /** An action the server refused for a reason the admin should read (see `reason` and the message). */
+  | 'refused';
 
 export class ApiError extends Error {
   readonly code: ApiErrorCode;
   readonly status: number;
   /** Whether trying again might work (a retry button is offered). */
   readonly retryable: boolean;
+  /** For a refused action: the server's code (code_required, insufficient_funds, duplicate…). */
+  reason?: string;
 
   constructor(code: ApiErrorCode, status = 0, message?: string) {
     super(message ?? DEFAULT_MESSAGE[code]);
@@ -34,6 +38,7 @@ export class ApiError extends Error {
 }
 
 const DEFAULT_MESSAGE: Record<ApiErrorCode, string> = {
+  refused: 'The action was refused.',
   unauthorized: 'Your session has ended. Sign in again to continue.',
   forbidden: 'Your role does not include access to this information.',
   not_found: 'This record no longer exists, or the link is wrong.',

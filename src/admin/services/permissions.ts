@@ -25,6 +25,9 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     'activity:read',
     'system:read',
     'security:read',
+    'messages:send',
+    'money:send',
+    'refunds:issue',
   ],
   OPERATIONS: [
     'console:access',
@@ -83,6 +86,9 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   'activity:read': 'View activity',
   'system:read': 'View system health',
   'security:read': 'View security',
+  'messages:send': 'Send in-app messages, SMS and push notifications',
+  'money:send': 'Send money from the master wallet',
+  'refunds:issue': 'Issue refunds',
 };
 
 export function can(session: AdminSession | null, permission: Permission): boolean {

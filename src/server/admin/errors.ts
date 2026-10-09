@@ -12,6 +12,19 @@ export class NotConnectedError extends Error {
   }
 }
 
+/**
+ * Thrown by an action the app refuses for a reason the admin should read
+ * (insufficient funds in the master wallet, a transaction that cannot be
+ * refunded, a user who cannot receive money): the API answers 422 with the
+ * code and the message.
+ */
+export class ActionRefusedError extends Error {
+  constructor(readonly code: string, message: string) {
+    super(message);
+    this.name = 'ActionRefusedError';
+  }
+}
+
 /** Thrown for a temporary failure (the database did not answer): the API answers 503, retryable. */
 export class SourceUnavailableError extends Error {
   constructor(message = 'The data source did not answer.') {

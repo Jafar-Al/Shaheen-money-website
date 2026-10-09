@@ -25,6 +25,7 @@ export const routes = {
   health: `${ADMIN_BASE}/system-health`,
   security: `${ADMIN_BASE}/security`,
   account: `${ADMIN_BASE}/account`,
+  actions: `${ADMIN_BASE}/actions`,
 } as const;
 
 export type RouteKey = keyof typeof routes;

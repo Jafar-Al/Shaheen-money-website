@@ -31,6 +31,7 @@ export const NAV: ReadonlyArray<{ group: string; items: NavItem[] }> = [
       { key: 'assets', label: 'Assets', permission: 'assets:read' },
     ],
   },
+  { group: 'Actions', items: [{ key: 'actions', label: 'Actions', permission: 'messages:send' }] },
   {
     group: 'Analytics',
     items: [

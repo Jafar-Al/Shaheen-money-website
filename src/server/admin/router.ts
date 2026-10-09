@@ -34,7 +34,8 @@ import { SCENARIO_COOKIE } from '../../admin/mock/scenario';
 import { signIn } from './auth';
 import { demoAccountsAccepted, accounts } from './accounts';
 import { maskEmail, record } from './audit';
-import { NotConnectedError, SourceUnavailableError, dataSource, type AdminDataSource } from './data-source';
+import { ActionRefusedError, NotConnectedError, SourceUnavailableError, dataSource, type AdminDataSource } from './data-source';
+import { ActionInputError, countAudience, issueRefund, recentActions, sendMessage, sendMoney } from './actions';
 import { exportAnalytics, exportConnectors, exportTransactions, exportUsers } from './exports';
 import { securityOverview } from './security';
 import { client, current, describe, end, rawAddress, refresh, type Current } from './session';
@@ -104,6 +105,8 @@ function query(url: URL) {
 // ── Routes ───────────────────────────────────────────────────────────────
 interface Req {
   ctx: APIContext;
+  /** The JSON body of a POST (already size-checked), or {}. */
+  body: Record<string, unknown>;
   match: RegExpMatchArray;
   me: Current;
   q: ReturnType<typeof query>;
@@ -254,6 +257,14 @@ const routes: Route[] = [
   },
   { method: 'GET', path: /^system-health$/, permission: 'system:read', run: async (r) => (await r.src()).getSystemHealth() },
   { method: 'GET', path: /^security$/, permission: 'security:read', run: (r) => securityOverview(r.me, client(r.ctx.request, r.ctx.clientAddress)) },
+
+  // Actions: administrators only. POSTs, with the Origin required (see handle).
+  { method: 'POST', path: /^actions\/audience$/, permission: 'messages:send', run: async (r) => countAudience(await r.src(), r.body) },
+  { method: 'POST', path: /^actions\/message$/, permission: 'messages:send', run: async (r) => sendMessage(await r.src(), r.me, client(r.ctx.request, r.ctx.clientAddress), r.body) },
+  { method: 'GET', path: /^actions\/wallet$/, permission: 'money:send', run: async (r) => (await r.src()).getMasterWallet() },
+  { method: 'POST', path: /^actions\/money$/, permission: 'money:send', run: async (r) => sendMoney(await r.src(), r.me, client(r.ctx.request, r.ctx.clientAddress), r.body) },
+  { method: 'POST', path: /^actions\/refund$/, permission: 'refunds:issue', run: async (r) => issueRefund(await r.src(), r.me, client(r.ctx.request, r.ctx.clientAddress), r.body) },
+  { method: 'GET', path: /^actions\/recent$/, permission: 'messages:send', run: async () => ({ items: await recentActions() }) },
   {
     method: 'GET',
     path: /^search$/,
@@ -273,11 +284,11 @@ const routes: Route[] = [
 ];
 
 // ── Sign-in routes ───────────────────────────────────────────────────────
-async function readJson(request: Request): Promise<Record<string, unknown> | null> {
-  if (Number(request.headers.get('content-length') ?? 0) > 4096) return null;
+async function readJson(request: Request, max = 4096): Promise<Record<string, unknown> | null> {
+  if (Number(request.headers.get('content-length') ?? 0) > max) return null;
   try {
     const text = await request.text();
-    if (text.length > 4096) return null;
+    if (text.length > max) return null;
     const v = JSON.parse(text) as unknown;
     return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
   } catch {
@@ -348,6 +359,8 @@ export async function handle(ctx: APIContext): Promise<Response> {
   if (request.method === 'POST') {
     const origin = request.headers.get('origin');
     if (origin && origin !== url.origin) return problem(403, 'forbidden');
+    // Actions change things: the browser's Origin must be there, and be this site.
+    if (path.startsWith('actions/') && origin !== url.origin) return problem(403, 'forbidden');
   }
 
   try {
@@ -365,10 +378,17 @@ export async function handle(ctx: APIContext): Promise<Response> {
     if (!me.permissions.includes(route.permission)) return problem(403, 'forbidden', `This needs the “${route.permission}” permission.`);
 
     const q = query(url);
+    let body: Record<string, unknown> = {};
+    if (request.method === 'POST') {
+      const parsed = await readJson(request, 32_768);
+      if (!parsed) return problem(400, 'bad_request', 'The request body is not valid JSON, or is too large.');
+      body = parsed;
+    }
     const scenario = ctx.cookies.get(SCENARIO_COOKIE)?.value;
     let src: Promise<AdminDataSource> | undefined;
     const result = await route.run({
       ctx,
+      body,
       match: path.match(route.path)!,
       me,
       q,
@@ -379,6 +399,8 @@ export async function handle(ctx: APIContext): Promise<Response> {
   } catch (err) {
     if (err instanceof BadRequest) return problem(400, 'bad_request', `“${err.message}” is not a valid value here.`);
     if (err instanceof TooMany) return problem(429, 'rate_limited', 'Too many exports. Try again later.', { 'Retry-After': String(err.retryAfter) });
+    if (err instanceof ActionInputError) return problem(err.status, err.code, err.message);
+    if (err instanceof ActionRefusedError) return problem(422, err.code, err.message);
     if (err instanceof StoreUnavailableError) return problem(503, 'unavailable', 'A security service did not answer. Try again in a moment.');
     if (err instanceof NotFound) return problem(404, 'not_found');
     if (err instanceof NotConnectedError) return problem(503, 'not_connected', err.message);

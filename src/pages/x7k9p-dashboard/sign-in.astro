@@ -49,7 +49,7 @@ import { routes } from '../../admin/config';
           </Slip>
         </div>
 
-        <form class="ledger-form" data-signin novalidate aria-describedby="signin-status">
+        <form class="ledger-form" data-signin method="post" novalidate aria-describedby="signin-status">
           <TextField name="email" label="Work email" type="email" autocomplete="username" inputmode="email" spellcheck="false" required />
           <div class="ops-password">
             <TextField name="password" label="Password" type="password" autocomplete="current-password" required />
@@ -69,7 +69,7 @@ import { routes } from '../../admin/config';
             />
           </div>
           <div class="form-submit">
-            <Button type="submit" variant="solid" data-submit>Sign in</Button>
+            <Button type="submit" variant="solid" data-submit disabled>Sign in</Button>
             <span class="ops-progress" aria-hidden="true"></span>
             <p class="form-status" id="signin-status" data-status aria-live="polite"></p>
           </div>

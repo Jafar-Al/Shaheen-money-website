@@ -7,7 +7,17 @@
 import { randomId } from './crypto';
 import { list, push } from './store';
 
-export type AuditKind = 'sign_in' | 'sign_in_failed' | 'mfa_failed' | 'locked' | 'sign_out' | 'session_revoked' | 'export';
+export type AuditKind =
+  | 'sign_in'
+  | 'sign_in_failed'
+  | 'mfa_failed'
+  | 'locked'
+  | 'sign_out'
+  | 'session_revoked'
+  | 'export'
+  | 'message_sent'
+  | 'money_sent'
+  | 'refund_issued';
 
 export interface AuditEvent {
   id: string;

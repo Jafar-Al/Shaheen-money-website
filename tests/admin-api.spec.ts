@@ -173,3 +173,68 @@ test.describe('permissions, on the server', () => {
     expect(security.events.some((e: { kind: string; detail: string }) => e.kind === 'export.created' && e.detail.includes('connectors'))).toBe(true);
   });
 });
+
+test.describe('actions: messages, money and refunds', () => {
+  const O = { ...H, Origin: 'http://localhost:4322' };
+  const key = () => `k${Date.now()}${Math.random().toString(36).slice(2)}`.slice(0, 40).padEnd(20, 'x');
+
+  test('only an administrator may act, and only from this site', async ({ request, playwright }) => {
+    await signIn(request, 'operations@shaheen.test');
+    expect((await request.post('/api/admin/actions/money', { headers: O, data: { userId: 'usr_x', asset: 'USDC', amount: '1', idempotencyKey: key(), confirm: true } })).status()).toBe(403);
+    expect((await request.post('/api/admin/actions/message', { headers: O, data: {} })).status()).toBe(403);
+    expect((await request.get('/api/admin/actions/wallet', { headers: H })).status()).toBe(403);
+
+    const admin = await playwright.request.newContext({ baseURL: 'http://localhost:4322' });
+    await signIn(admin, 'admin@shaheen.test');
+    // No Origin header: refused before anything runs.
+    expect((await admin.post('/api/admin/actions/message', { headers: H, data: {} })).status()).toBe(403);
+    // Another site's Origin: refused.
+    expect((await admin.post('/api/admin/actions/message', { headers: { ...H, Origin: 'https://evil.example' }, data: {} })).status()).toBe(403);
+    await admin.dispose();
+  });
+
+  test('a message is checked, counted, sent and logged', async ({ request }) => {
+    await signIn(request, 'admin@shaheen.test');
+    const bad = await request.post('/api/admin/actions/message', { headers: O, data: { channel: 'fax', audience: { kind: 'countries', countries: ['JO'] }, body: 'Hi', confirm: true } });
+    expect(bad.status()).toBe(400);
+    const noConfirm = await request.post('/api/admin/actions/message', { headers: O, data: { channel: 'sms', audience: { kind: 'countries', countries: ['JO'] }, body: 'Hi' } });
+    expect(noConfirm.status()).toBe(422);
+    const count = await (await request.post('/api/admin/actions/audience', { headers: O, data: { channel: 'sms', audience: { kind: 'continents', continents: ['Asia'] } } })).json();
+    expect(count.recipients).toBeGreaterThan(0);
+    const ok = await request.post('/api/admin/actions/message', { headers: O, data: { channel: 'push', audience: { kind: 'continents', continents: ['Asia'] }, title: 'Service update', body: 'Hello', confirm: true } });
+    expect(ok.status()).toBe(200);
+    expect((await ok.json()).recipients).toBe(count.recipients);
+    const recent = await (await request.get('/api/admin/actions/recent', { headers: H })).json();
+    expect(recent.items[0].kind).toBe('message');
+  });
+
+  test('money: bad amounts refused, the same request never pays twice', async ({ request }) => {
+    await signIn(request, 'admin@shaheen.test');
+    const user = (await (await request.get('/api/admin/users?status=active&pageSize=1', { headers: H })).json()).items[0];
+    for (const amount of ['-5', '0', '1e9', '12.1234567', 'ten']) {
+      expect((await request.post('/api/admin/actions/money', { headers: O, data: { userId: user.id, asset: 'USDC', amount, idempotencyKey: key(), confirm: true } })).status()).toBe(400);
+    }
+    const k = key();
+    const body = { userId: user.id, asset: 'USDC', amount: '25.50', note: 'Goodwill', idempotencyKey: k, confirm: true };
+    const first = await request.post('/api/admin/actions/money', { headers: O, data: body });
+    expect(first.status()).toBe(200);
+    expect((await first.json()).transactionId).toMatch(/^txn_/);
+    const again = await request.post('/api/admin/actions/money', { headers: O, data: body });
+    expect(again.status()).toBe(409);
+    const security = await (await request.get('/api/admin/security', { headers: H })).json();
+    expect(security.events.some((e: { kind: string }) => e.kind === 'money.sent')).toBe(true);
+  });
+
+  test('refunds: only real, completed transactions, never more than was paid', async ({ request }) => {
+    await signIn(request, 'admin@shaheen.test');
+    const unknown = await request.post('/api/admin/actions/refund', { headers: O, data: { transactionId: 'txn_NOPE', reason: 'Complaint', idempotencyKey: key(), confirm: true } });
+    expect(unknown.status()).toBe(422);
+    const t = (await (await request.get('/api/admin/transactions?status=completed&pageSize=1', { headers: H })).json()).items[0];
+    const tooMuch = await request.post('/api/admin/actions/refund', { headers: O, data: { transactionId: t.id, amount: String(Number(t.amount) + 1000), reason: 'Complaint', idempotencyKey: key(), confirm: true } });
+    expect(tooMuch.status()).toBe(422);
+    const ok = await request.post('/api/admin/actions/refund', { headers: O, data: { transactionId: t.id, reason: 'Complaint #4411', idempotencyKey: key(), confirm: true } });
+    expect(ok.status()).toBe(200);
+    const twice = await request.post('/api/admin/actions/refund', { headers: O, data: { transactionId: t.id, reason: 'Again', idempotencyKey: key(), confirm: true } });
+    expect(twice.status()).toBe(422);
+  });
+});

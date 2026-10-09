@@ -1,0 +1,155 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import OpsShell from '../../components/admin/OpsShell.astro';
+import PageHead from '../../components/admin/PageHead.astro';
+import Section from '../../components/admin/Section.astro';
+import Segmented from '../../components/admin/Segmented.astro';
+import TextField from '../../components/forms/TextField.astro';
+import Stamp from '../../components/ui/Stamp.astro';
+import { COUNTRIES } from '../../admin/lib/geo';
+
+/**
+ * 08 · Actions: in-app messages, SMS and push notifications to users, money
+ * from the master wallet, and refunds. Administrators only: the page is in no
+ * other role's menu, and the server refuses every action without the
+ * permission (src/server/admin/actions.ts). Every action is confirmed in one
+ * dialog that says exactly what will happen; money and refunds also ask for
+ * a fresh authenticator code.
+ */
+const CONTINENTS = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania'];
+const countries = Object.entries(COUNTRIES).sort((a, b) => a[1].name.localeCompare(b[1].name));
+---
+
+<AdminLayout title="Actions">
+  <OpsShell active="actions" crumb="Actions">
+    <PageHead n="08" label="Actions" title="Reach users, *move money*." lead="Messages, SMS and push notifications to users, money from the master wallet, and refunds. Every action is confirmed and written to the audit log." />
+
+    <div class="ops-note ops-demo-note" data-mock-only hidden>
+      <Stamp locale="en" kind="mock" tilt={-2} />
+      <p>Demo: nothing is sent and no money moves. Every action is simulated, and still written to the audit log.</p>
+    </div>
+
+    <Section id="message" kicker="Messages" title="Reach *users*." lead="An in-app message, an SMS or a push notification, to chosen users or to everyone in some countries or continents.">
+      <form class="ops-action" data-form="message" method="post" novalidate>
+        <div class="ops-action-row">
+          <span class="label">Channel</span>
+          <Segmented name="channel" label="Channel" words options={[{ value: 'in_app', label: 'In-app' }, { value: 'sms', label: 'SMS' }, { value: 'push', label: 'Push' }]} value="in_app" />
+        </div>
+        <div class="ops-action-row">
+          <span class="label">Send to</span>
+          <Segmented name="audience" label="Send to" words options={[{ value: 'users', label: 'Chosen users' }, { value: 'countries', label: 'Countries' }, { value: 'continents', label: 'Continents' }]} value="users" />
+        </div>
+
+        <div class="ops-picker" data-picker="message" data-aud="users">
+          <TextField name="message-user" label="Find users" hint="Type a name or a user ID, then pick from the list. Up to 500 users." autocomplete="off" spellcheck="false" />
+          <ul class="ops-pick-list" data-results></ul>
+          <ul class="ops-chips" data-chips aria-label="Chosen users"></ul>
+        </div>
+        <fieldset class="ops-checks" data-aud="countries" hidden>
+          <legend class="label">Countries</legend>
+          <div class="ops-checks-grid">
+            {
+              countries.map(([code, c]) => (
+                <label class="ops-check">
+                  <input type="checkbox" name="country" value={code} />
+                  <span>{c.name}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+        <fieldset class="ops-checks" data-aud="continents" hidden>
+          <legend class="label">Continents</legend>
+          <div class="ops-checks-grid">
+            {
+              CONTINENTS.map((c) => (
+                <label class="ops-check">
+                  <input type="checkbox" name="continent" value={c} />
+                  <span>{c}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <div data-title-field>
+          <TextField name="message-title" label="Title" hint="Shown above the message. Required for push notifications." maxlength={80} autocomplete="off" />
+        </div>
+        <TextField name="message-body" label="Message" multiline rows={4} maxlength={1000} hint="Plain text." autocomplete="off" />
+        <p class="micro ops-count" data-chars></p>
+
+        <div class="ops-action-submit">
+          <button type="submit" class="ops-btn ops-btn-solid">Review and send</button>
+          <p class="ops-sub" data-reach aria-live="polite"></p>
+        </div>
+      </form>
+    </Section>
+
+    <div class="ops-cols ops-cols-2">
+      <Section id="money" kicker="Money" title="Send *money*." lead="From the master wallet to one user. Confirmed with your authenticator code.">
+        <dl class="ops-dl ops-wallet" data-wallet aria-live="polite">
+          <div><dt>Master wallet</dt><dd class="ops-sub">Loading the balances…</dd></div>
+        </dl>
+        <form class="ops-action" data-form="money" method="post" novalidate>
+          <div class="ops-picker" data-picker="money">
+            <TextField name="money-user" label="Recipient" hint="Type a name or a user ID, then pick from the list." autocomplete="off" spellcheck="false" />
+            <ul class="ops-pick-list" data-results></ul>
+            <ul class="ops-chips" data-chips aria-label="Recipient"></ul>
+          </div>
+          <div class="field">
+            <label class="field-label label" for="f-money-asset">Asset</label>
+            <select class="ops-select" id="f-money-asset" name="money-asset">
+              <option value="USDC">USDC</option>
+              <option value="USDT">USDT</option>
+              <option value="EUROC">EUROC</option>
+            </select>
+          </div>
+          <TextField name="money-amount" label="Amount" inputmode="decimal" autocomplete="off" hint="For example 250 or 99.50." />
+          <TextField name="money-note" label="Note" optionalLabel="(optional)" maxlength={200} autocomplete="off" hint="Why it is sent. Kept in the audit log." />
+          <div class="ops-action-submit">
+            <button type="submit" class="ops-btn ops-btn-solid">Review and send</button>
+          </div>
+        </form>
+      </Section>
+
+      <Section id="refund" kicker="Refunds" title="Issue a *refund*." lead="To the sender of a completed transaction, in full or in part. Confirmed with your authenticator code.">
+        <form class="ops-action" data-form="refund" method="post" novalidate>
+          <div class="ops-find">
+            <TextField name="refund-txn" label="Transaction ID" autocomplete="off" spellcheck="false" hint="From the receipt, e.g. txn_…" />
+            <button type="button" class="ops-btn" data-find-txn>Find</button>
+          </div>
+          <dl class="ops-dl" data-txn hidden></dl>
+          <TextField name="refund-amount" label="Amount" optionalLabel="(leave empty for the full amount)" inputmode="decimal" autocomplete="off" />
+          <TextField name="refund-reason" label="Reason" multiline rows={3} maxlength={300} hint="For example: the complaint and its reference. Kept in the audit log." autocomplete="off" />
+          <div class="ops-action-submit">
+            <button type="submit" class="ops-btn ops-btn-solid">Review and refund</button>
+          </div>
+        </form>
+      </Section>
+    </div>
+
+    <Section id="recent" kicker="Log" title="Recent *actions*." lead="Every message, transfer and refund, newest first. The full trail is on the Security page.">
+      <div data-recent><p class="ops-sub">Loading…</p></div>
+    </Section>
+
+    <dialog class="ops-confirm" data-confirm aria-labelledby="confirm-title">
+      <form method="dialog" class="ops-confirm-body" novalidate>
+        <p class="micro" data-confirm-kicker>Confirm</p>
+        <h2 class="ops-drawer-title" id="confirm-title" data-confirm-title></h2>
+        <dl class="ops-dl" data-confirm-lines></dl>
+        <div data-confirm-code hidden>
+          <TextField name="confirm-code" label="Authenticator code" hint="The 6-digit code your authenticator app shows now." inputmode="numeric" autocomplete="one-time-code" maxlength={7} spellcheck="false" />
+        </div>
+        <p class="form-status ops-confirm-status" data-confirm-status role="alert"></p>
+        <div class="ops-confirm-actions">
+          <button type="button" class="ops-btn" data-confirm-cancel>Cancel</button>
+          <button type="button" class="ops-btn ops-btn-solid" data-confirm-ok>Confirm</button>
+        </div>
+      </form>
+    </dialog>
+  </OpsShell>
+</AdminLayout>
+
+<script>
+  import '../../admin/pages/actions';
+</script>

@@ -352,6 +352,41 @@ Up to five each of `users` (`id, name, email, country, status`),
 matches: the router leaves out the groups the role may not read and masks
 emails.
 
+## The five actions (administrators only)
+
+The Actions page (`/x7k9p-dashboard/actions`) sends in-app messages, SMS and
+push notifications to users, money from the company's master wallet, and
+refunds. The console already does everything around them
+(`src/server/admin/actions.ts`): the permission check (ADMIN only), every
+field validated, a confirmation, a fresh authenticator code for money and
+refunds, an idempotency key, and the audit log. What is left is the sending
+itself, in five functions of `shaheen-source.ts`.
+
+**These five never write to the database from the console.** They call the
+Shaheen app's own backend: the service that holds the wallet keys, the SMS
+and push providers and the ledger, and that applies the app's own rules. Give
+the console its own credential for that backend, pass `sentBy` and
+`idempotencyKey` through, and let the backend refuse a key it has already
+seen.
+
+| Function | Route | What it must do |
+| --- | --- | --- |
+| `countAudience(audience, channel)` | `POST /api/admin/actions/audience` | How many people the message would reach (users who can receive this channel). |
+| `sendMessage(request)` | `POST /api/admin/actions/message` | Deliver it: in-app inbox, SMS provider or push service. Return `{ id, recipients, sentAt }`. |
+| `getMasterWallet()` | `GET /api/admin/actions/wallet` | The master wallet's balance per asset, with its dollar value. |
+| `sendMoney(request)` | `POST /api/admin/actions/money` | Move `amount` of `asset` from the master wallet to `userId`. Return the new transaction's ID. |
+| `issueRefund(request)` | `POST /api/admin/actions/refund` | Refund a completed transaction to its sender, in full (`amount` missing) or in part. |
+
+An audience is `{ kind: 'users', userIds }`, `{ kind: 'countries',
+countries }` (ISO codes) or `{ kind: 'continents', continents }` (Africa,
+Asia, Europe, North America, South America, Oceania).
+
+When the app refuses an action for a reason the admin should read, throw
+`new ActionRefusedError(code, message)` (for example `insufficient_funds`,
+`unknown_user`, `not_refundable`, `over_refund`): the page shows the
+message. The demo source (`src/admin/mock/source.ts`) implements all five
+on generated data and never sends anything.
+
 ## Connecting, step by step
 
 1. Write the functions in `src/server/admin/shaheen-source.ts`, starting

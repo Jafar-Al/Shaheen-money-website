@@ -145,6 +145,10 @@ form.addEventListener('submit', async (e) => {
   }
 });
 
+// The button ships disabled: before this script runs, a click would post the
+// form as a page instead of signing in through the API.
+submit.disabled = false;
+
 for (const input of [email, password, code]) input.addEventListener('input', () => fieldError(input, null));
 // A different account may not have a second factor: start that step again.
 email.addEventListener('change', () => {
