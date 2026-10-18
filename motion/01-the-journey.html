@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Shaheen Money — The journey</title>
+    <style>
+      @font-face {
+        font-family: 'Instrument Sans';
+        src: url('../src/assets/fonts/instrument-sans-latin-wght.woff2') format('woff2');
+        font-weight: 100 900;
+        font-display: block;
+      }
+      @font-face {
+        font-family: 'Inter';
+        src: url('../src/assets/fonts/inter-latin-wght.woff2') format('woff2');
+        font-weight: 100 900;
+        font-display: block;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans Arabic';
+        src: url('../src/assets/fonts/ibm-plex-sans-arabic-core-700.woff2') format('woff2');
+        font-weight: 700;
+        font-display: block;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { inline-size: 1920px; block-size: 1080px; overflow: hidden; background: #071138; }
+
+      /* Brand colours, used the way the design system allows them:
+         cyan only on navy, brand blue only on white, white on navy. */
+      :root {
+        --navy: #071138;
+        --navy-800: #0c1a4d;
+        --navy-600: #142a6e;
+        --blue: #1400ff;
+        --cyan: #00e1ff;
+        --white: #ffffff;
+      }
+
+      .stage {
+        position: relative; inline-size: 1920px; block-size: 1080px; overflow: hidden;
+        background:
+          radial-gradient(62% 56% at 22% 18%, #142a6e 0%, rgba(20, 42, 110, 0) 62%),
+          radial-gradient(58% 54% at 86% 88%, #0c1a4d 0%, rgba(12, 26, 77, 0) 60%),
+          #071138;
+      }
+      svg.field { position: absolute; inset: 0; }
+
+      .grain {
+        position: absolute; inset: 0; pointer-events: none;
+        opacity: 0.34; mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+        background-size: 180px 180px;
+      }
+
+      .caption {
+        position: absolute;
+        inset-block-start: 96px;
+        inset-inline: 0;
+        text-align: center;
+        font-family: 'Instrument Sans', sans-serif;
+        font-weight: 700;
+        font-size: 52px;
+        letter-spacing: -0.02em;
+        color: #fff;
+      }
+      .caption-ar {
+        position: absolute;
+        inset-block-start: 166px;
+        inset-inline: 0;
+        text-align: center;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+        font-size: 30px;
+        direction: rtl;
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .word {
+        position: absolute; inset-inline: 0; inset-block-start: 640px; text-align: center;
+        font-family: 'Instrument Sans', sans-serif; font-weight: 700; font-size: 86px;
+        letter-spacing: -0.035em; color: #fff;
+      }
+      .word .money { color: var(--cyan); }
+      .tag {
+        position: absolute; inset-inline: 0; inset-block-start: 764px; text-align: center;
+        font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 34px;
+        direction: rtl; color: rgba(255, 255, 255, 0.74);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <svg class="field" viewBox="0 0 1920 1080">
+        <defs>
+          <radialGradient id="headGlow">
+            <stop offset="0" stop-color="#00e1ff" stop-opacity="0.85" />
+            <stop offset="0.4" stop-color="#00e1ff" stop-opacity="0.28" />
+            <stop offset="1" stop-color="#00e1ff" stop-opacity="0" />
+          </radialGradient>
+        </defs>
+
+        <!-- The route the money takes. One line, drawn once, left to right. -->
+        <path id="trackDim" fill="none" stroke="#00e1ff" stroke-opacity="0.15" stroke-width="6" stroke-linecap="round" />
+        <path id="trackDrawn" fill="none" stroke="#00e1ff" stroke-opacity="0.72" stroke-width="6" stroke-linecap="round" />
+        <path id="trackHot" fill="none" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round" />
+
+        <g id="stations"></g>
+
+        <circle id="headGlowDot" fill="url(#headGlow)" r="92" />
+        <circle id="headDot" fill="#ffffff" r="11" />
+
+        <!-- Everything collapses into this at the end: four steps, one app. -->
+        <g id="finale">
+          <circle id="finaleDisc" cx="960" cy="452" r="0" fill="#ffffff" />
+          <g id="finaleMark"><path id="falcon" fill="#071138" /></g>
+        </g>
+      </svg>
+
+      <div class="caption" id="capEn">Your money. As cash. In your hand.</div>
+      <div class="caption-ar" id="capAr">فلوسك كاش بإيدك.</div>
+
+      <div class="word" id="word">Shaheen <span class="money">Money</span></div>
+      <div class="tag" id="tag">أربع خطوات. تطبيق واحد.</div>
+
+      <div class="grain"></div>
+    </div>
+
+    <script type="module">
+      import { FALCON_PATH } from './lib/falcon.js';
+      import { brandEaseOut, clamp, easeIn, easeInOut, easeOut, easeOutBack, el, lerp, mix, span } from './lib/scene.js';
+
+      /*
+       * This film has a job: in ten seconds, silently, show what the app
+       * actually does. So there is exactly one moving thing — the money —
+       * and every other movement on screen is a consequence of it arriving
+       * somewhere. Nothing moves to look busy.
+       *
+       * The route is drawn as one unbroken line because that is the claim:
+       * from a wage abroad to cash in a hand is one journey, not four
+       * products.
+       */
+      const STEPS = [
+        {
+          at: [352, 640],
+          en: 'Receive from abroad',
+          ar: 'استقبل من برّا',
+          icon: '<path d="M12 3.5v11M7.5 10l4.5 4.5 4.5-4.5"/><path d="M4 15.5v3A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-3"/>',
+        },
+        {
+          at: [772, 432],
+          en: 'Hold it in dollars',
+          ar: 'احتفظ فيها بالدولار',
+          icon: '<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a1 1 0 0 1 1 1v2.5"/><rect x="4" y="7.5" width="16" height="12" rx="2.5"/><path d="M16 13.5h.2"/>',
+        },
+        {
+          at: [1176, 656],
+          en: 'Send or pay',
+          ar: 'ابعت أو ادفع',
+          icon: '<path d="M20.5 3.5 10 14M20.5 3.5 14 20.5l-4-6.5-6.5-4 17-6.5z"/>',
+        },
+        {
+          at: [1596, 430],
+          en: 'Take it out as cash',
+          ar: 'اسحبها كاش',
+          icon: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 9.5v.2M17.5 14.3v.2"/>',
+        },
+      ];
+
+      /* A smooth line through the four stops, off frame at both ends. */
+      const via = [[-120, 720], ...STEPS.map((s) => s.at), [2040, 372]];
+      const d = [`M${via[0][0]} ${via[0][1]}`];
+      for (let i = 0; i < via.length - 1; i++) {
+        const p0 = via[Math.max(0, i - 1)];
+        const p1 = via[i];
+        const p2 = via[i + 1];
+        const p3 = via[Math.min(via.length - 1, i + 2)];
+        // Catmull-Rom through the stops, converted to a cubic.
+        const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+        const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+        d.push(`C${c1[0]} ${c1[1]} ${c2[0]} ${c2[1]} ${p2[0]} ${p2[1]}`);
+      }
+      const PATH = d.join(' ');
+      for (const id of ['trackDim', 'trackDrawn', 'trackHot']) el(id).setAttribute('d', PATH);
+
+      const track = el('trackDim');
+      const TOTAL = track.getTotalLength();
+
+      /* Where each stop falls along the line, so a stop can light up at the
+         exact moment the money reaches it rather than on a guessed cue. */
+      const SAMPLES = 1400;
+      for (const step of STEPS) {
+        let best = 0;
+        let bestD = Infinity;
+        for (let i = 0; i <= SAMPLES; i++) {
+          const L = (i / SAMPLES) * TOTAL;
+          const p = track.getPointAtLength(L);
+          const dd = (p.x - step.at[0]) ** 2 + (p.y - step.at[1]) ** 2;
+          if (dd < bestD) {
+            bestD = dd;
+            best = L;
+          }
+        }
+        step.length = best;
+        step.progress = best / TOTAL;
+      }
+
+      /* Stations: a white disc, a brand-blue icon on it, and a ring that
+         pulses once on arrival. Blue on white is the only place brand blue
+         is legible; cyan lives on the navy. */
+      el('stations').innerHTML = STEPS.map(
+        (s, i) => `
+        <g id="st${i}">
+          <circle id="stRing${i}" cx="${s.at[0]}" cy="${s.at[1]}" fill="none" stroke="#00e1ff" stroke-width="3" />
+          <circle id="stDisc${i}" cx="${s.at[0]}" cy="${s.at[1]}" r="58" fill="#ffffff" />
+          <g id="stIcon${i}" fill="none" stroke="#1400ff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${s.icon}</g>
+          <text id="stEn${i}" x="${s.at[0]}" y="${s.at[1] + 116}" text-anchor="middle"
+                font-family="Instrument Sans, sans-serif" font-size="34" font-weight="700" fill="#ffffff">${s.en}</text>
+          <text id="stAr${i}" x="${s.at[0]}" y="${s.at[1] + 158}" text-anchor="middle" direction="rtl"
+                font-family="IBM Plex Sans Arabic, sans-serif" font-size="27" fill="rgba(255,255,255,0.7)">${s.ar}</text>
+        </g>`,
+      ).join('');
+
+      el('falcon').setAttribute('d', FALCON_PATH);
+      const bb = el('falcon').getBBox();
+      const MARK = 240;
+      const markScale = MARK / bb.height;
+      el('finaleMark').setAttribute(
+        'transform',
+        `translate(${960 - (bb.x + bb.width / 2) * markScale} ${452 - (bb.y + bb.height / 2) * markScale}) scale(${markScale})`,
+      );
+
+      const RUN_FROM = 0.75;
+      const RUN_TO = 7.0;
+      const MERGE = 7.15;
+
+      window.SCENE = { title: 'The journey', duration: 10 };
+
+      window.renderFrame = (t) => {
+        /* ── The money moves. Everything else answers to it. ─────────── */
+        const run = easeInOut(span(t, RUN_FROM, RUN_TO));
+        const head = run * TOTAL;
+        const p = track.getPointAtLength(Math.min(head, TOTAL));
+        const merged = easeInOut(span(t, MERGE, 8.15));
+
+        el('trackDim').style.opacity = String(mix(0, 1, span(t, 0.3, 1.0)) * (1 - merged));
+        el('trackDrawn').setAttribute('stroke-dasharray', `${TOTAL}`);
+        el('trackDrawn').setAttribute('stroke-dashoffset', String(TOTAL - head));
+        el('trackDrawn').style.opacity = String(1 - merged);
+
+        // A bright length of line just behind the money: you read speed
+        // from it, which is the one thing a still frame cannot show.
+        const TAIL = 210;
+        el('trackHot').setAttribute('stroke-dasharray', `${TAIL} ${TOTAL * 2}`);
+        el('trackHot').setAttribute('stroke-dashoffset', String(TAIL - head));
+        el('trackHot').style.opacity = String((run > 0 && run < 1 ? 0.95 : 0) * (1 - merged));
+
+        const carrying = run > 0 && run < 1 ? 1 : 0;
+        for (const [id, r] of [['headDot', 11], ['headGlowDot', 92]]) {
+          el(id).setAttribute('cx', String(p.x));
+          el(id).setAttribute('cy', String(p.y));
+          el(id).setAttribute('r', String(r));
+          el(id).style.opacity = String(carrying * (1 - merged));
+        }
+
+        /* ── Each stop lights as the money reaches it, and not before ── */
+        STEPS.forEach((s, i) => {
+          const reached = clamp((run - s.progress) / 0.055);
+          const pop = easeOutBack(reached, 1.5);
+          const ring = clamp((run - s.progress) / 0.1);
+
+          el(`stDisc${i}`).setAttribute('r', String(58 * pop));
+          el(`stIcon${i}`).setAttribute(
+            'transform',
+            `translate(${s.at[0]} ${s.at[1]}) scale(${2.5 * pop}) translate(-12 -12)`,
+          );
+          el(`stIcon${i}`).style.opacity = String(reached);
+
+          el(`stRing${i}`).setAttribute('r', String(lerp(58, 132, easeOut(ring))));
+          el(`stRing${i}`).style.opacity = String((1 - ring) * 0.85 * (ring > 0 ? 1 : 0));
+
+          // Labels stay up once earned: by the end all four are readable at
+          // once, which is the summary the film exists to leave behind.
+          const label = brandEaseOut(clamp((run - s.progress) / 0.07));
+          el(`stEn${i}`).style.opacity = String(label);
+          el(`stAr${i}`).style.opacity = String(label * 0.92);
+          el(`stEn${i}`).setAttribute('transform', `translate(0 ${lerp(16, 0, label)})`);
+          el(`stAr${i}`).setAttribute('transform', `translate(0 ${lerp(20, 0, label)})`);
+
+          /* ── Then the four collapse into one. Four steps, one app. ─── */
+          const toCentre = easeInOut(span(t, MERGE + i * 0.045, 8.2 + i * 0.045));
+          const dx = (960 - s.at[0]) * toCentre;
+          const dy = (452 - s.at[1]) * toCentre;
+          el(`st${i}`).setAttribute('transform', `translate(${dx} ${dy}) scale(${lerp(1, 0.5, toCentre)})`);
+          el(`st${i}`).style.transformOrigin = `${s.at[0]}px ${s.at[1]}px`;
+          el(`st${i}`).style.opacity = String(1 - clamp((toCentre - 0.72) / 0.28));
+        });
+
+        /* ── The one thing they add up to ───────────────────────────── */
+        const disc = easeOutBack(span(t, 8.0, 8.8), 1.25);
+        el('finaleDisc').setAttribute('r', String(Math.max(0, 196 * disc)));
+        el('finaleMark').style.opacity = String(mix(0, 1, span(t, 8.35, 8.95)));
+        el('finale').style.opacity = String(disc > 0 ? 1 : 0);
+
+        /* ── The running headline, one line per step ────────────────── */
+        // The promise the four steps go on to prove. It is not the current
+        // step's name: that is already set under the station, and a caption
+        // that repeats a label is noise, not emphasis.
+        const capIn = brandEaseOut(span(t, 0.4, 1.3));
+        const capArIn = brandEaseOut(span(t, 0.62, 1.5));
+        const capOut = easeInOut(span(t, MERGE - 0.5, MERGE + 0.25));
+        el('capEn').style.opacity = String(capIn * (1 - capOut));
+        el('capAr').style.opacity = String(capArIn * (1 - capOut));
+        el('capEn').style.transform = `translateY(${lerp(20, 0, capIn)}px)`;
+        el('capAr').style.transform = `translateY(${lerp(20, 0, capArIn)}px)`;
+
+        /* ── Sign off ───────────────────────────────────────────────── */
+        const nameIn = brandEaseOut(span(t, 8.75, 9.45));
+        el('word').style.opacity = String(nameIn);
+        el('word').style.transform = `translateY(${lerp(30, 0, nameIn)}px)`;
+        const tagIn = brandEaseOut(span(t, 9.0, 9.7));
+        el('tag').style.opacity = String(tagIn);
+        el('tag').style.transform = `translateY(${lerp(22, 0, tagIn)}px)`;
+
+        document.body.style.filter = `brightness(${mix(0, 1, span(t, 0, 0.35)) * (1 - span(t, 9.85, 10))})`;
+      };
+
+      window.renderFrame(0);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Shaheen Money — Pour</title>
+    <style>
+      @font-face {
+        font-family: 'Instrument Sans';
+        src: url('../src/assets/fonts/instrument-sans-latin-wght.woff2') format('woff2');
+        font-weight: 100 900;
+        font-display: block;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans Arabic';
+        src: url('../src/assets/fonts/ibm-plex-sans-arabic-core-700.woff2') format('woff2');
+        font-weight: 700;
+        font-display: block;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { inline-size: 1920px; block-size: 1080px; overflow: hidden; background: #071138; }
+      .stage {
+        position: relative; inline-size: 1920px; block-size: 1080px; overflow: hidden;
+        background:
+          radial-gradient(62% 56% at 24% 16%, #142a6e 0%, rgba(20, 42, 110, 0) 62%),
+          radial-gradient(56% 52% at 84% 90%, #0c1a4d 0%, rgba(12, 26, 77, 0) 58%),
+          #071138;
+      }
+      svg.field { position: absolute; inset: 0; }
+
+      .grain {
+        position: absolute; inset: 0; pointer-events: none;
+        opacity: 0.34; mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+        background-size: 180px 180px;
+      }
+
+      .word {
+        position: absolute; inset-inline: 0; inset-block-start: 806px; text-align: center;
+        font-family: 'Instrument Sans', sans-serif; font-weight: 700; font-size: 82px;
+        letter-spacing: -0.035em; color: #ffffff; padding-inline: 120px;
+      }
+      .word .money { color: #00e1ff; }
+      .tag {
+        position: absolute; inset-inline: 0; inset-block-start: 922px; text-align: center;
+        font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 34px;
+        direction: rtl; color: rgba(255, 255, 255, 0.74);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <svg class="field" viewBox="0 0 1920 1080">
+        <defs>
+          <!--
+            The gooey filter: blur everything, then crush the alpha ramp back
+            to hard edges. Two blobs that overlap after the blur come out of
+            the other side as one shape with a proper meniscus between them.
+            This is what makes separate circles behave like a liquid — and
+            it runs on the GPU, unlike a per-pixel metaball field.
+          -->
+          <filter id="goo" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="21" result="blur" />
+            <feColorMatrix
+              in="blur"
+              mode="matrix"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 28 -13"
+              result="goo"
+            />
+            <feBlend in="SourceGraphic" in2="goo" />
+          </filter>
+
+          <linearGradient id="molten" x1="0" y1="0" x2="0.4" y2="1">
+            <stop offset="0" stop-color="#d8faff" />
+            <stop offset="0.45" stop-color="#00e1ff" />
+            <stop offset="1" stop-color="#0083a8" />
+          </linearGradient>
+
+          <!-- The falcon, used as a vessel. -->
+          <clipPath id="vessel" clipPathUnits="userSpaceOnUse">
+            <path id="vesselPath" />
+          </clipPath>
+        </defs>
+
+        <!-- The mouth it pours out of -->
+        <g id="spout">
+          <circle id="spoutHole" fill="#071138" />
+          <circle id="spoutRing" fill="none" stroke="#ffffff" stroke-width="5" />
+        </g>
+
+        <!-- The pour itself -->
+        <g id="stream" filter="url(#goo)" fill="url(#molten)"></g>
+
+        <!-- The falcon filling up -->
+        <g id="vesselGroup">
+          <path id="vesselOutline" fill="none" stroke="#ffffff" stroke-width="2.5" />
+          <g clip-path="url(#vessel)">
+            <path id="level" fill="url(#molten)" />
+          </g>
+          <path id="vesselSolid" fill="#00e1ff" />
+        </g>
+      </svg>
+
+      <div class="word" id="word">One Wallet. <span class="money">Endless Possibilities.</span></div>
+      <div class="tag" id="tag">محفظة واحدة. وكل خياراتك بين إيديك.</div>
+      <div class="grain"></div>
+    </div>
+
+    <script type="module">
+      import { FALCON_PATH } from './lib/falcon.js';
+      import { brandEaseOut, clamp, easeIn, easeInOut, easeOut, el, lerp, mix, seeded, span } from './lib/scene.js';
+
+      /*
+       * The falcon is the vessel. It is centred on its own ink rather than
+       * on its 240-unit viewBox: the mark does not sit in the middle of its
+       * own box, so centring the box leaves it visibly off to one side
+       * under a centred wordmark. Measure, then place.
+       */
+      const SCALE = 2.7;
+      const CENTRE = [960, 470];
+
+      for (const id of ['vesselPath', 'vesselOutline', 'vesselSolid']) {
+        el(id).setAttribute('d', FALCON_PATH);
+      }
+      const bb = el('vesselSolid').getBBox();
+      const VESSEL = {
+        x: CENTRE[0] - (bb.x + bb.width / 2) * SCALE,
+        y: CENTRE[1] - (bb.y + bb.height / 2) * SCALE,
+        w: bb.width * SCALE,
+        h: bb.height * SCALE,
+      };
+      // Top and bottom of the ink, which is what the liquid level rides between.
+      VESSEL.top = CENTRE[1] - (bb.height / 2) * SCALE;
+      VESSEL.bottom = CENTRE[1] + (bb.height / 2) * SCALE;
+
+      const vesselTransform = `translate(${VESSEL.x} ${VESSEL.y}) scale(${SCALE})`;
+      for (const id of ['vesselPath', 'vesselOutline', 'vesselSolid']) {
+        el(id).setAttribute('transform', vesselTransform);
+      }
+
+      const SPOUT = [258, 152];
+      // Deliberately inside the silhouette: the blobs are absorbed at the
+      // lip rather than stopping in mid-air short of it.
+      const MOUTH = [CENTRE[0] - VESSEL.w * 0.14, VESSEL.top + VESSEL.h * 0.16];
+
+      /*
+       * The pour is a chain of blobs walking one arc. Each is offset a
+       * little along it and jittered off it, so the column has weight and
+       * wobble instead of reading as beads on a wire. The jitter is seeded,
+       * never Math.random: a film has to render the same twice.
+       */
+      const DROPS = 30;
+      const rand = seeded(20260929);
+      const drops = Array.from({ length: DROPS }, (_, i) => ({
+        offset: i / DROPS,
+        r: lerp(16, 31, rand()),
+        wobble: (rand() - 0.5) * 42,
+        phase: rand() * Math.PI * 2,
+        speed: lerp(0.85, 1.15, rand()),
+      }));
+
+      el('stream').innerHTML = drops.map(() => '<circle />').join('');
+      const blobs = [...el('stream').children];
+
+      /** The arc from the spout to the falcon's mouth. */
+      function pourPath(p) {
+        const k = clamp(p);
+        const x = lerp(SPOUT[0], MOUTH[0], k);
+        // Falls away from the spout, then swings up into the falcon.
+        const sag = Math.sin(k * Math.PI) * 250;
+        const y = lerp(SPOUT[1], MOUTH[1], k) + sag;
+        return { x, y };
+      }
+
+      window.SCENE = { title: 'Pour', duration: 8 };
+
+      /*
+       * The scene was choreographed against a longer clock. Rather than
+       * move every cue by hand, time is scaled once on the way in: the
+       * film keeps its shape exactly and simply plays through faster.
+       * 10s of choreography in 8s of screen time.
+       */
+      const TIME_SCALE = 10 / 8;
+
+      window.renderFrame = (rawT) => {
+        const t = rawT * TIME_SCALE;
+        /* 1. The spout opens. */
+        const open = brandEaseOut(span(t, 0.25, 1.0));
+        const shut = easeInOut(span(t, 7.0, 7.7));
+        const sr = lerp(0, 74, open) * (1 - shut);
+        el('spoutHole').setAttribute('cx', String(SPOUT[0]));
+        el('spoutHole').setAttribute('cy', String(SPOUT[1]));
+        el('spoutHole').setAttribute('r', String(Math.max(0, sr)));
+        el('spoutRing').setAttribute('cx', String(SPOUT[0]));
+        el('spoutRing').setAttribute('cy', String(SPOUT[1]));
+        el('spoutRing').setAttribute('r', String(Math.max(0, sr + 15)));
+        el('spoutRing').style.opacity = String(open * (1 - shut) * 0.85);
+
+        /* 2. The pour. Blobs leave the spout, arc across, and are taken by
+              the falcon as they reach its mouth. */
+        const flow = t * 0.46;
+        const pouring = span(t, 0.7, 1.4) * (1 - span(t, 6.6, 7.2));
+        blobs.forEach((b, i) => {
+          const d = drops[i];
+          const p = (flow * d.speed - d.offset) % 1;
+          const along = p < 0 ? p + 1 : p;
+          const at = pourPath(along);
+          // Wobble across the direction of travel, strongest mid-fall.
+          const sway = Math.sin(t * 3.1 + d.phase) * d.wobble * Math.sin(along * Math.PI);
+          b.setAttribute('cx', String(at.x + sway * 0.4));
+          b.setAttribute('cy', String(at.y + sway));
+          // Stretches thin at speed, gathers at both ends.
+          const fat = 0.55 + 0.45 * Math.sin(along * Math.PI);
+          b.setAttribute('r', String(d.r * fat));
+          // Fades in at the lip and is absorbed at the mouth.
+          const born = clamp(along / 0.08);
+          const taken = 1 - clamp((along - 0.93) / 0.07);
+          b.style.opacity = String(born * taken * pouring);
+        });
+
+        /* 3. The falcon fills. A liquid line rises inside it, with a
+              surface that is never quite flat. */
+        const fill = easeInOut(span(t, 1.6, 6.9));
+        const outline = mix(0, 1, span(t, 0.9, 1.7)) * (1 - span(t, 7.2, 7.9));
+        el('vesselOutline').style.opacity = String(outline * 0.5);
+
+        const left = CENTRE[0] - VESSEL.w / 2 - 60;
+        const right = CENTRE[0] + VESSEL.w / 2 + 60;
+        const floor = VESSEL.bottom + 80;
+        const top = lerp(VESSEL.bottom + 10, VESSEL.top - 10, fill);
+        const amp = lerp(18, 3, fill);
+        const wave = [];
+        for (let x = left; x <= right; x += 22) {
+          const k = (x - left) / (right - left);
+          wave.push(`${x} ${top + Math.sin(k * 7 + t * 4.2) * amp + Math.sin(k * 3.3 - t * 2.6) * amp * 0.6}`);
+        }
+        el('level').setAttribute('d', `M${left} ${floor} L${wave.join(' L')} L${right} ${floor} Z`);
+        el('level').style.opacity = String(fill > 0 ? 1 : 0);
+
+        /* 4. Full: the liquid settles into the mark itself. */
+        const settled = easeInOut(span(t, 7.0, 7.9));
+        el('vesselSolid').style.opacity = String(settled);
+        el('vesselGroup').setAttribute(
+          'transform',
+          `translate(${960} ${540}) scale(${lerp(1, 0.86, easeInOut(span(t, 7.4, 8.4)))}) translate(${-960} ${-540})`,
+        );
+
+        /* 5. The name. */
+        const nameIn = brandEaseOut(span(t, 8.1, 9.0));
+        el('word').style.opacity = String(nameIn);
+        el('word').style.transform = `translateY(${lerp(34, 0, nameIn)}px)`;
+        const tagIn = brandEaseOut(span(t, 8.45, 9.4));
+        el('tag').style.opacity = String(tagIn);
+        el('tag').style.transform = `translateY(${lerp(22, 0, tagIn)}px)`;
+
+        document.body.style.filter = `brightness(${mix(0, 1, span(t, 0, 0.4)) * (1 - span(t, 9.84, 10))})`;
+      };
+
+      window.renderFrame(0);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+---
+import { icons, type IconName } from './icons';
+
+interface Props {
+  name: IconName;
+  size?: number;
+  class?: string;
+  /** Accessible name. Omit for decorative icons next to visible text. */
+  label?: string;
+  /** Mirror in RTL: for directional glyphs such as arrows. */
+  directional?: boolean;
+}
+
+const { name, size = 20, class: className, label, directional = false } = Astro.props;
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="butt"
+  stroke-linejoin="miter"
+  focusable="false"
+  class:list={['shrink-0', directional && 'rtl:-scale-x-100', className]}
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  set:html={icons[name]}
+/>

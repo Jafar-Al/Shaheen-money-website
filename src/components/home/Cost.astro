@@ -1,0 +1,187 @@
+---
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
+import Slip from '../ui/Slip.astro';
+import Gap from '../ui/Gap.astro';
+import SourceNote from '../ui/SourceNote.astro';
+import { home } from '../../copy/home';
+import { facts } from '../../data/facts';
+import { problemStats } from '../../data/stats';
+import { formatAsOf } from '../../lib/format';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * 03 — What it costs: zero commission.
+ *
+ * One claim, as a receipt: receiving, sending and paying each print as
+ * "No fee", dated by their source. That is all the company charges today,
+ * and the receipt says that any other charge would be listed here first.
+ * For scale, one sourced figure: what sending money across a border costs
+ * on average, worldwide. No calculator, no comparison table.
+ *
+ * Renders only from src/data/facts.ts, with a source and a date (audit
+ * P-08). Id "pricing" keeps old links working.
+ */
+interface Props {
+  locale: Locale;
+  n: number;
+}
+const { locale, n } = Astro.props;
+const t = home[locale].cost;
+const schedule = facts.pricing.schedule;
+const benchmark = problemStats.find((s) => s.id === 'global-cost');
+---
+
+<section id="pricing" class="cost t-night grain cv-auto" data-temp="night" aria-labelledby="cost-title">
+  <div class="page rhythm cost-grid">
+    <header class="cost-head">
+      <Chapter n={n} label={t.label} />
+      <h2 id="cost-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
+      <p class="lead">{t.lead}</p>
+      {
+        benchmark && (
+          <div class="cost-bench">
+            <p>
+              {t.benchmark} <span class="num cost-bench-figure">{benchmark.display}</span>.
+            </p>
+            <SourceNote source={benchmark.source} locale={locale} />
+          </div>
+        )
+      }
+    </header>
+
+    {
+      schedule ? (
+        <Slip
+          as="section"
+          no={t.scheduleTitle}
+          meta={formatAsOf(schedule.source.asOf, locale)}
+          class="cost-receipt"
+          labelledby="cost-receipt-title"
+        >
+          <h3 id="cost-receipt-title" class="sr-only">
+            {t.scheduleTitle}
+          </h3>
+          <table class="receipt" data-reveal>
+            <caption class="sr-only">{t.scheduleTitle}</caption>
+            <thead class="sr-only">
+              <tr>
+                <th scope="col">{t.item}</th>
+                <th scope="col">{t.fee}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {schedule.value.map((row) => (
+                <tr class="receipt-row" data-reveal-child>
+                  <th scope="row" class="receipt-item">
+                    {row.item[locale]}
+                    {row.note && <span class="receipt-sub">{row.note[locale]}</span>}
+                  </th>
+                  <td class="receipt-fee font-display">{row.fee[locale]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p class="receipt-note">{t.scheduleNote}</p>
+          <SourceNote source={schedule.source} locale={locale} class="receipt-source" />
+        </Slip>
+      ) : (
+        <Gap need="Fee schedule: every fee a customer can be charged, with the date it applies from (audit A.5 #5)." />
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .cost {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .cost-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: clamp(2.5rem, 5vw, 4rem);
+    align-items: center;
+    padding-block: var(--section);
+  }
+  .cost-head {
+    grid-column: 1 / span 6;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .cost-head h2 {
+    max-inline-size: 12ch;
+  }
+  .cost-bench {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-block-start: 1.25rem;
+    border-block-start: 1px solid var(--line);
+    color: var(--fg-2);
+  }
+  .cost-bench-figure {
+    font-size: 1.25em;
+    color: var(--fg);
+  }
+
+  /* ── The receipt ─────────────────────────────────────────────────── */
+  .cost-grid :global(.cost-receipt) {
+    grid-column: 8 / -1;
+    rotate: 1.2deg;
+  }
+  .receipt {
+    inline-size: 100%;
+    border-collapse: collapse;
+  }
+  .receipt-row {
+    border-block-end: 1px dashed var(--line-strong);
+  }
+  .receipt-item {
+    padding-block: 1.25rem;
+    font-weight: 400;
+    text-align: start;
+    color: var(--fg-2);
+  }
+  .receipt-sub {
+    display: block;
+    font-size: var(--text-body-s);
+  }
+  .receipt-fee {
+    padding-block: 1.25rem;
+    padding-inline-start: 1rem;
+    font-size: var(--text-h3);
+    line-height: 1;
+    text-align: end;
+    white-space: nowrap;
+  }
+  :global(:lang(ar)) .receipt-fee {
+    font-weight: 500;
+  }
+  /* Print: each row arrives in a few hard steps, top to bottom. */
+  .receipt :global([data-reveal-child]) {
+    transition-timing-function: steps(4, end) !important;
+    transition-duration: 0.36s !important;
+  }
+  .receipt-note {
+    margin-block-start: 1.25rem;
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .cost-receipt :global(.receipt-source) {
+    margin-block-start: 1rem;
+  }
+
+  @media (width < 64rem) {
+    .cost-head,
+    .cost-grid :global(.cost-receipt) {
+      grid-column: 1 / -1;
+    }
+    .cost-grid :global(.cost-receipt) {
+      justify-self: center;
+      inline-size: min(100%, 28rem);
+    }
+  }
+</style>

@@ -1,0 +1,67 @@
+---
+import { figureHTML } from '../../lib/figure';
+import SourceNote from './SourceNote.astro';
+import FootnoteRef from './FootnoteRef.astro';
+import { common } from '../../copy/common';
+import type { Locale } from '../../i18n/config';
+import type { Sourced } from '../../data/types';
+
+/**
+ * A statistic set as a figure: huge Geist Mono with tabular numerals,
+ * counting up once (to the exact value) when its group lands, its label in
+ * the text face, and its source as a numbered mono footnote directly under
+ * it. The `stat` prop is Sourced<number>, so a number cannot be rendered
+ * here without a source and a date.
+ */
+interface Props {
+  stat: Sourced<number>;
+  /** The formatted figure, e.g. "6.36%". */
+  display: string;
+  label: string;
+  locale: Locale;
+  n: number;
+  class?: string;
+}
+
+const { stat, display, label, locale, n, class: className } = Astro.props;
+const t = common[locale].ui;
+---
+
+<figure class:list={['figure', className]} data-reveal>
+  <p class="figure-num num">
+    <span class="sr-only">{display}</span>
+    <span aria-hidden="true" data-count={display} data-count-punct set:html={figureHTML(display)} /><FootnoteRef n={n} label={t.source} />
+  </p>
+  <figcaption class="figure-label">{label}</figcaption>
+  <SourceNote source={stat.source} locale={locale} n={n} class="figure-source" />
+</figure>
+
+<style>
+  .figure {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 0;
+  }
+  .figure-num {
+    display: flex;
+    align-items: flex-start;
+    font-size: var(--text-figure);
+    line-height: var(--lh-figure);
+    letter-spacing: var(--ls-figure);
+    color: var(--fg);
+    white-space: nowrap;
+  }
+  /* The footnote marker rides the figure's cap height, not its baseline. */
+  .figure-num :global(.fnref) {
+    margin-block-start: 0.4em;
+    font-size: 0.75rem;
+    letter-spacing: 0;
+  }
+  .figure-label {
+    max-inline-size: 30ch;
+    font-size: var(--text-body-l);
+    line-height: var(--lh-body-l);
+    color: var(--fg);
+  }
+</style>

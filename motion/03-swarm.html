@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Shaheen Money — Swarm</title>
+    <style>
+      @font-face {
+        font-family: 'Instrument Sans';
+        src: url('../src/assets/fonts/instrument-sans-latin-wght.woff2') format('woff2');
+        font-weight: 100 900;
+        font-display: block;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans Arabic';
+        src: url('../src/assets/fonts/ibm-plex-sans-arabic-core-700.woff2') format('woff2');
+        font-weight: 700;
+        font-display: block;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { inline-size: 1920px; block-size: 1080px; overflow: hidden; background: #071138; }
+      .stage {
+        position: relative; inline-size: 1920px; block-size: 1080px; overflow: hidden;
+        background:
+          radial-gradient(66% 58% at 50% 44%, #142a6e 0%, #0c1a4d 54%, #071138 100%);
+      }
+      canvas { position: absolute; inset: 0; }
+
+      .grain {
+        position: absolute; inset: 0; pointer-events: none;
+        opacity: 0.32; mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+        background-size: 180px 180px;
+      }
+
+      .word {
+        position: absolute; inset-inline: 0; inset-block-start: 724px; text-align: center;
+        font-family: 'Instrument Sans', sans-serif; font-weight: 700; font-size: 68px; line-height: 1.12;
+        letter-spacing: -0.035em; color: #ffffff;
+      }
+      .word .money { color: #00e1ff; }
+      .tag {
+        position: absolute; inset-inline: 0; inset-block-start: 920px; text-align: center;
+        font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 32px;
+        direction: rtl; color: rgba(255, 255, 255, 0.74);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <canvas id="c" width="1920" height="1080"></canvas>
+      <div class="word" id="word">Money Without Borders.<br /><span class="money">Access Without Limits.</span></div>
+      <div class="tag" id="tag">أموالك بلا حدود. وصولك بلا قيود.</div>
+      <div class="grain"></div>
+    </div>
+
+    <script type="module">
+      import { FALCON_PATH } from './lib/falcon.js';
+      import { brandEaseOut, clamp, easeIn, easeInOut, easeOut, el, lerp, mix, seeded, span } from './lib/scene.js';
+
+      const ctx = el('c').getContext('2d');
+
+      /*
+       * The falcon's own ink decides where every particle belongs.
+       *
+       * The mark is rasterised once into an offscreen canvas, and the
+       * particles' home positions are sampled from the pixels that came
+       * back opaque. That means the swarm resolves into the real mark, to
+       * the pixel — not into a hand-placed approximation of it, and it
+       * follows automatically if the brand file ever changes.
+       */
+      const SAMPLE = 420;
+      const off = new OffscreenCanvas(SAMPLE, SAMPLE);
+      const octx = off.getContext('2d', { willReadFrequently: true });
+      octx.scale(SAMPLE / 240, SAMPLE / 240);
+      octx.fill(new Path2D(FALCON_PATH));
+
+      const pixels = octx.getImageData(0, 0, SAMPLE, SAMPLE).data;
+      const ink = [];
+      for (let y = 0; y < SAMPLE; y += 1) {
+        for (let x = 0; x < SAMPLE; x += 1) {
+          if (pixels[(y * SAMPLE + x) * 4 + 3] > 200) ink.push([x, y]);
+        }
+      }
+
+      const rand = seeded(20260929);
+      const COUNT = 3200;
+
+      // Centre the mark on its ink, not on its box.
+      let minX = SAMPLE, maxX = 0, minY = SAMPLE, maxY = 0;
+      for (const [x, y] of ink) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+      const inkW = maxX - minX;
+      const inkH = maxY - minY;
+
+      const MARK = { cx: 960, cy: 430, scale: 640 / inkH };
+      const toStage = ([x, y], s, cx, cy) => [
+        cx + (x - (minX + inkW / 2)) * s,
+        cy + (y - (minY + inkH / 2)) * s,
+      ];
+
+      /*
+       * Three states per particle, and the film is a walk between them:
+       *   nebula  scattered across the frame, drifting
+       *   mark    its place in the falcon
+       *   river   swept into a current that crosses the frame
+       */
+      const P = [];
+      for (let i = 0; i < COUNT; i++) {
+        const sample = ink[Math.floor(rand() * ink.length)];
+        const [hx, hy] = toStage(sample, MARK.scale, MARK.cx, MARK.cy);
+
+        const angle = rand() * Math.PI * 2;
+        const radius = 520 + rand() * 900;
+
+        P.push({
+          hx,
+          hy,
+          // nebula
+          nx: 960 + Math.cos(angle) * radius * 1.35,
+          ny: 540 + Math.sin(angle) * radius * 0.72,
+          // river: a band flowing left to right, height keyed to its home
+          ry: 540 + (hy - MARK.cy) * 0.42 + (rand() - 0.5) * 180,
+          rx: rand(),
+          // character
+          size: lerp(1.1, 3.0, rand() ** 2),
+          hue: rand(),
+          phase: rand() * Math.PI * 2,
+          drift: lerp(0.4, 1.5, rand()),
+          delay: rand() * 0.34,
+        });
+      }
+
+      /** Brand palette: deep cyan through cyan to white, on navy. */
+      const TINT = [
+        [0, 145, 200],
+        [0, 225, 255],
+        [150, 240, 255],
+        [255, 255, 255],
+      ];
+      function tint(h, alpha) {
+        const f = clamp(h) * (TINT.length - 1);
+        const i = Math.min(TINT.length - 2, Math.floor(f));
+        const k = f - i;
+        const a = TINT[i];
+        const b = TINT[i + 1];
+        return `rgba(${Math.round(lerp(a[0], b[0], k))}, ${Math.round(lerp(a[1], b[1], k))}, ${Math.round(lerp(a[2], b[2], k))}, ${alpha})`;
+      }
+
+      window.SCENE = { title: 'Swarm', duration: 8 };
+
+      /*
+       * The scene was choreographed against a longer clock. Rather than
+       * move every cue by hand, time is scaled once on the way in: the
+       * film keeps its shape exactly and simply plays through faster.
+       * 10s of choreography in 8s of screen time.
+       */
+      const TIME_SCALE = 10 / 8;
+
+      window.renderFrame = (rawT) => {
+        const t = rawT * TIME_SCALE;
+        ctx.clearRect(0, 0, 1920, 1080);
+        // Additive, so where the swarm is dense it burns bright and the
+        // mark reads as light rather than as a stencil.
+        ctx.globalCompositeOperation = 'lighter';
+
+        for (const p of P) {
+          // 1. scatter → mark
+          const gather = easeInOut(span(t - p.delay, 1.1, 3.4));
+          // 2. mark → river
+          const scatter = easeIn(span(t - p.delay, 4.7, 5.9));
+          // 3. river → mark again, smaller, for the end card
+          const reform = easeOut(span(t - p.delay, 6.9, 8.4));
+
+          const wander = Math.sin(t * 0.9 + p.phase) * 26 * p.drift;
+
+          // nebula
+          let x = p.nx + wander;
+          let y = p.ny + Math.cos(t * 0.7 + p.phase) * 20 * p.drift;
+
+          // into the mark
+          x = lerp(x, p.hx + Math.sin(t * 2.1 + p.phase) * 2.4, gather);
+          y = lerp(y, p.hy + Math.cos(t * 1.9 + p.phase) * 2.4, gather);
+
+          // swept into the current
+          const flow = ((p.rx + (t - 4.7) * 0.42) % 1 + 1) % 1;
+          const rx = -240 + flow * 2400;
+          const ry = p.ry + Math.sin(flow * Math.PI * 3 + p.phase) * 46;
+          x = lerp(x, rx, scatter);
+          y = lerp(y, ry, scatter);
+
+          // and back, tighter
+          const [fx, fy] = [
+            960 + (p.hx - MARK.cx) * 0.62,
+            420 + (p.hy - MARK.cy) * 0.62,
+          ];
+          x = lerp(x, fx + Math.sin(t * 2.4 + p.phase) * 1.6, reform);
+          y = lerp(y, fy + Math.cos(t * 2.2 + p.phase) * 1.6, reform);
+
+          // Brighter and tighter the more it belongs somewhere.
+          const belonging = Math.max(gather * (1 - scatter), reform);
+          const alpha = lerp(0.3, 0.95, belonging) * mix(0, 1, span(t, 0, 0.7));
+          const size = p.size * lerp(1, 1.5, belonging) * lerp(1, 0.8, reform);
+
+          ctx.fillStyle = tint(p.hue * 0.55 + belonging * 0.45, alpha);
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.globalCompositeOperation = 'source-over';
+
+        /* The name arrives once the swarm has settled. */
+        const nameIn = brandEaseOut(span(t, 8.3, 9.2));
+        el('word').style.opacity = String(nameIn);
+        el('word').style.transform = `translateY(${lerp(32, 0, nameIn)}px)`;
+        const tagIn = brandEaseOut(span(t, 8.6, 9.5));
+        el('tag').style.opacity = String(tagIn);
+        el('tag').style.transform = `translateY(${lerp(22, 0, tagIn)}px)`;
+
+        document.body.style.filter = `brightness(${mix(0, 1, span(t, 0, 0.4)) * (1 - span(t, 9.84, 10))})`;
+      };
+
+      window.renderFrame(0);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,189 @@
+---
+// In the browser: src/scripts/home/film.ts (loaded once by the homepage).
+import Chapter from '../ui/Chapter.astro';
+import Emph from '../ui/Emph.astro';
+import Ledger from '../ui/Ledger.astro';
+import SourceNote from '../ui/SourceNote.astro';
+import Gap from '../ui/Gap.astro';
+import Film from '../media/Film.astro';
+import { home } from '../../copy/home';
+import { common } from '../../copy/common';
+import { facts } from '../../data/facts';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * 01 — How it works: four steps, one app.
+ *
+ * Two things, side by side: the four steps in words (the page's text
+ * alternative to the film) and the owner's ten-second film that plays them.
+ * Nothing pins, nothing scrubs; the film plays by itself while it is on
+ * screen. Below, what a digital dollar is, closed until asked for: the full
+ * sourced paragraph (src/data/facts.ts) stays in the page for anyone who
+ * wants it, without putting a wall of text in the way of everyone who does
+ * not.
+ */
+interface Props {
+  locale: Locale;
+  n: number;
+}
+const { locale, n } = Astro.props;
+const t = home[locale].steps;
+const film = home[locale].film;
+const ui = common[locale].ui;
+const dollar = facts.digitalDollar;
+---
+
+<section id="how" class="how t-night cv-auto" data-temp="night" aria-labelledby="how-title">
+  <div class="page rhythm how-grid">
+    <header class="how-head">
+      <Chapter n={n} label={t.label} />
+      <h2 id="how-title" class="text-display-l font-display"><Emph text={t.title} /></h2>
+      <p class="lead">{t.lead}</p>
+    </header>
+
+    <div class="how-steps">
+      <Ledger items={t.items} titleFace="sans" />
+    </div>
+
+    <Film
+      class="how-film"
+      src="/media/shaheen-money-film.mp4"
+      poster="/media/shaheen-money-film-poster.webp"
+      alt={film.alt}
+      play={film.play}
+      pause={film.pause}
+    />
+
+    {
+      dollar ? (
+        <details class="how-dollar">
+          <summary class="how-dollar-summary">
+            <span class="font-display">{t.dollarTitle}</span>
+            <span class="how-dollar-mark" aria-hidden="true"></span>
+          </summary>
+          <div class="how-dollar-body">
+            <p class="label how-dollar-kicker">{ui.note}</p>
+            <p class="how-dollar-text">{dollar.value[locale]}</p>
+            <SourceNote source={dollar.source} locale={locale} />
+          </div>
+        </details>
+      ) : (
+        <Gap need="What a digital dollar is and what backs it, in one paragraph, in both languages (audit B.2)." />
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .how {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: clamp(2.5rem, 5vw, 4rem);
+    align-items: start;
+    padding-block: var(--section);
+  }
+  .how-head {
+    grid-column: 1 / span 5;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .how-head h2 {
+    max-inline-size: 11ch;
+  }
+  .how-steps {
+    grid-column: 1 / span 5;
+    grid-row: 2;
+  }
+  .how-grid :global(.how-film) {
+    grid-column: 7 / -1;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  /* What a digital dollar is: a closed disclosure, one hairline. */
+  .how-dollar {
+    grid-column: 1 / span 8;
+    border-block: 1px solid var(--line);
+  }
+  .how-dollar-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-block-size: 3.5rem;
+    padding-block: 0.75rem;
+    font-size: var(--text-h4);
+    line-height: var(--lh-h4);
+    cursor: pointer;
+    list-style: none;
+  }
+  .how-dollar-summary::-webkit-details-marker {
+    display: none;
+  }
+  /* A plus that turns into a minus: two hairlines. */
+  .how-dollar-mark {
+    position: relative;
+    flex: none;
+    inline-size: 1rem;
+    block-size: 1rem;
+  }
+  .how-dollar-mark::before,
+  .how-dollar-mark::after {
+    content: '';
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline: 0;
+    block-size: 1.5px;
+    background-color: currentColor;
+    transition: rotate var(--motion-standard) var(--ease-out);
+  }
+  .how-dollar-mark::after {
+    rotate: 90deg;
+  }
+  .how-dollar[open] .how-dollar-mark::after {
+    rotate: 0deg;
+  }
+  .how-dollar-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-block: 0.5rem 1.5rem;
+  }
+  .how-dollar-kicker {
+    color: var(--accent);
+  }
+  .how-dollar-text {
+    max-inline-size: var(--measure);
+    color: var(--fg-2);
+  }
+
+  @media (width < 64rem) {
+    .how-head,
+    .how-steps,
+    .how-grid :global(.how-film),
+    .how-dollar {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    /* On a phone: the film right after the headline, then the steps. */
+    .how-grid :global(.how-film) {
+      order: 1;
+    }
+    .how-head {
+      order: 0;
+    }
+    .how-steps {
+      order: 2;
+    }
+    .how-dollar {
+      order: 3;
+    }
+  }
+</style>

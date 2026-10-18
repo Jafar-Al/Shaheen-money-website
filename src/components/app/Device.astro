@@ -1,0 +1,151 @@
+---
+import Photo from '../media/Photo.astro';
+import Stamp from '../ui/Stamp.astro';
+import { common } from '../../copy/common';
+import iosHome from '../../assets/app/screen-ios-home.webp';
+import androidHome from '../../assets/app/screen-android-home.webp';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * The app as it is: the owner's own renders of the home screen on iPhone and
+ * on Android, cropped to the screen (src/assets/app/) and set in the site's
+ * handset: a matte frame, thin, no gloss, no reflections. One phone, or the
+ * pair (iPhone in front, Android behind) where the page says "iPhone and
+ * Android". On a precise pointer the pair leans with it a few pixels.
+ * Stamped Illustrative: the balance on the screen is an example.
+ */
+interface Props {
+  locale: Locale;
+  /** iPhone and Android together. */
+  pair?: boolean;
+  class?: string;
+}
+const { locale, pair = false, class: className } = Astro.props;
+const ui = common[locale].ui;
+---
+
+<figure class:list={['device-wrap', pair && 'device-wrap-pair', className]}>
+  <div class="device-stage" data-parallax="-8">
+    {
+      pair && (
+        <div class="device device-android">
+          <div class="device-screen">
+            <Photo src={androidHome} alt={ui.screenAndroid} width={290} sizes="(width < 48rem) 15rem, 18rem" />
+          </div>
+        </div>
+      )
+    }
+    <div class="device device-ios">
+      <div class="device-screen">
+        <Photo src={iosHome} alt={ui.screenIos} width={336} sizes="(width < 48rem) 17rem, 21rem" />
+      </div>
+    </div>
+    <Stamp locale={locale} kind="illustrative" tilt={-4} class="device-stamp" />
+  </div>
+  <figcaption class="device-caption label">{ui.illustrativeHint}</figcaption>
+</figure>
+
+<style>
+  .device-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 0;
+  }
+  .device-stage {
+    position: relative;
+    inline-size: min(100%, 21rem);
+    transition: translate 1.2s var(--ease-out);
+  }
+  /* A physical object: its radius is a handset's, stated once, here. */
+  .device {
+    padding: 0.55rem;
+    border-radius: 2.9rem;
+    background-color: #0d1322;
+    outline: 1px solid rgb(255 255 255 / 0.12);
+    outline-offset: -1px;
+  }
+  .device-ios {
+    position: relative;
+    z-index: 1;
+    rotate: 3deg;
+  }
+  /* The screens keep their own corners: the crops are 718 × 1522 (iPhone,
+     88px corners) and 709 × 1519 (Android, 45px). */
+  .device-screen {
+    overflow: clip;
+    aspect-ratio: 718 / 1522;
+    border-radius: 12.3% / 5.8%;
+    background-color: var(--color-app-blue);
+  }
+  .device-android .device-screen {
+    aspect-ratio: 709 / 1519;
+    border-radius: 6.4% / 3%;
+  }
+  .device-screen :global(picture),
+  .device-screen :global(img) {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  .device-screen :global(img) {
+    object-fit: cover;
+  }
+
+  /* The pair: Android a step behind, to the reading-start side. It starts
+     30% of a stage before the iPhone, so the pair is 1.3 stages wide: the
+     stage takes at most 68% of the figure and moves 30% of itself toward
+     the end, and the two phones fit any figure, a 320px phone's included. */
+  .device-wrap-pair .device-stage {
+    inline-size: min(68%, 21rem);
+    margin-inline-start: calc(min(68%, 21rem) * 0.3);
+  }
+  .device-wrap-pair .device-stamp {
+    inset-inline-end: -0.75rem;
+  }
+  .device-android {
+    position: absolute;
+    inset-block-start: 9%;
+    inset-inline-start: -30%;
+    inline-size: 86%;
+    border-radius: 2.2rem;
+    rotate: -5deg;
+  }
+  :global([dir='rtl']) .device-ios {
+    rotate: -3deg;
+  }
+  :global([dir='rtl']) .device-android {
+    rotate: 5deg;
+  }
+
+  .device-stamp {
+    position: absolute;
+    z-index: 2;
+    inset-block-start: 1.5rem;
+    inset-inline-end: -1.75rem;
+    background-color: var(--bg);
+  }
+  .device-caption {
+    max-inline-size: 26ch;
+    text-align: center;
+    color: var(--fg-2);
+  }
+  @media (width < 48rem) {
+    .device-stage {
+      inline-size: min(100%, 17rem);
+    }
+    .device-ios {
+      rotate: 0deg;
+    }
+    :global([dir='rtl']) .device-ios {
+      rotate: 0deg;
+    }
+  }
+  @media (forced-colors: active) {
+    .device {
+      forced-color-adjust: none;
+      outline: 1px solid CanvasText;
+    }
+  }
+</style>

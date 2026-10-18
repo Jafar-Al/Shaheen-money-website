@@ -1,0 +1,94 @@
+---
+/**
+ * A ledger: numbered rows between hairlines. Replaces checkmark lists and
+ * bordered cards wherever the content is a list of statements.
+ *
+ *   <Ledger items={[{ title, body }]} />             numbered 01, 02 …
+ *   <Ledger items={…} numbered={false} as="ul" />    plain rows
+ *
+ * `value` puts a figure at the row's end ("No fee", "$5").
+ */
+interface Item {
+  title: string;
+  body?: string;
+  value?: string;
+}
+interface Props {
+  items: Item[];
+  numbered?: boolean;
+  as?: 'ol' | 'ul';
+  /** Title in the display face (default) or the text face. */
+  titleFace?: 'display' | 'sans';
+  class?: string;
+}
+const { items, numbered = true, as: Tag = 'ol', titleFace = 'display', class: className } = Astro.props;
+---
+
+<Tag class:list={['ledger', className]} data-reveal>
+  {
+    items.map((item, i) => (
+      <li class:list={['ledger-row', !numbered && 'ledger-row-plain']} data-reveal-child>
+        {numbered && <span class="ledger-n num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>}
+        <span class="ledger-text">
+          <span class:list={['ledger-title', titleFace === 'display' ? 'ledger-title-display' : 'ledger-title-sans']}>
+            {item.title}
+          </span>
+          {item.body && <span class="ledger-body">{item.body}</span>}
+        </span>
+        {item.value && <span class="ledger-value num">{item.value}</span>}
+      </li>
+    ))
+  }
+</Tag>
+
+<style>
+  .ledger {
+    display: flex;
+    flex-direction: column;
+    border-block-start: 1px solid var(--line);
+  }
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    gap: 0.25rem 1rem;
+    align-items: baseline;
+    padding-block: 1.25rem;
+    border-block-end: 1px solid var(--line);
+  }
+  .ledger-row-plain {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .ledger-n {
+    font-size: var(--text-label);
+    color: var(--accent);
+  }
+  .ledger-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .ledger-title-display {
+    font-family: var(--font-display);
+    font-size: var(--text-h4);
+    line-height: var(--lh-h4);
+  }
+  :global(:lang(ar)) .ledger-title-display {
+    font-weight: 500;
+  }
+  .ledger-title-sans {
+    font-size: var(--text-body);
+    line-height: var(--lh-body);
+    font-weight: 600;
+  }
+  .ledger-body {
+    max-inline-size: var(--measure);
+    font-size: var(--text-body);
+    line-height: var(--lh-body);
+    color: var(--fg-2);
+  }
+  .ledger-value {
+    font-size: var(--text-body);
+    color: var(--fg);
+    text-align: end;
+  }
+</style>

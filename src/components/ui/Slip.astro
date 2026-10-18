@@ -1,0 +1,93 @@
+---
+/**
+ * The only "card" in the system, and only where the content is a real
+ * document: a receipt, a cash code, a fee statement, a help note, a safety
+ * note, a form summary. Everywhere else, rules and white space.
+ *
+ * Paper on either temperature (it is a physical object), perforated along
+ * the top and bottom, with a mono header row and the one shadow the system
+ * allows. Content inside is always set on paper: it carries .t-paper.
+ */
+interface Props {
+  /** Left of the header row, e.g. "No. 01" or "Cash out". */
+  no?: string;
+  /** Right of the header row, e.g. a date. */
+  meta?: string;
+  /** The meta is data (coordinates, a code): keep it in mono, left to right. */
+  metaData?: boolean;
+  as?: 'div' | 'aside' | 'section' | 'figure';
+  labelledby?: string;
+  class?: string;
+  paperClass?: string;
+  [key: `data-${string}`]: string | undefined;
+}
+const { no, meta, metaData = false, as: Tag = 'div', labelledby, class: className, paperClass, ...rest } = Astro.props;
+---
+
+<Tag class:list={['slip', className]} aria-labelledby={labelledby} data-slip {...rest}>
+  <div class:list={['slip-paper t-paper', paperClass]}>
+    {
+      (no || meta) && (
+        <div class="slip-head micro">
+          {no && <span>{no}</span>}
+          {meta && (
+            <span class:list={['slip-meta', metaData && 'num']} lang={metaData ? 'en' : undefined}>
+              {meta}
+            </span>
+          )}
+        </div>
+      )
+    }
+    <slot />
+  </div>
+</Tag>
+
+<style>
+  .slip {
+    /* The paper shadow, as a filter so it follows the perforated edge. */
+    filter: drop-shadow(0 1px 0 rgb(7 17 56 / 0.08)) drop-shadow(0 16px 14px rgb(7 17 56 / 0.2));
+  }
+  .slip-paper {
+    --perf: 12px;
+    --bite: 3.25px;
+    position: relative;
+    padding: calc(1.5rem + 6px) clamp(1.25rem, 3vw, 2rem) calc(1.75rem + 6px);
+    background-color: var(--color-paper-50);
+    color: var(--fg);
+    mask:
+      radial-gradient(circle at 50% 0, #0000 var(--bite), #000 calc(var(--bite) + 0.5px)) top / var(--perf) 7px repeat-x,
+      linear-gradient(#000 0 0) center / 100% calc(100% - 14px) no-repeat,
+      radial-gradient(circle at 50% 100%, #0000 var(--bite), #000 calc(var(--bite) + 0.5px)) bottom / var(--perf) 7px repeat-x;
+  }
+  .slip-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block-end: 0.875rem;
+    margin-block-end: 1.25rem;
+    border-block-end: 1px dashed var(--line-strong);
+    color: var(--fg-2);
+  }
+  .slip-meta {
+    text-align: end;
+  }
+
+  @media (forced-colors: active) {
+    .slip {
+      filter: none;
+    }
+    .slip-paper {
+      mask: none;
+      border: 1px solid CanvasText;
+    }
+  }
+  @media print {
+    .slip {
+      filter: none;
+    }
+    .slip-paper {
+      mask: none;
+      border: 1px solid #000;
+    }
+  }
+</style>

@@ -1,0 +1,63 @@
+---
+import { showGaps } from '../../lib/gaps';
+
+/**
+ * Marks where a fact or piece of content is missing (src/data/facts.ts and
+ * friends). Production never renders it: an empty slot removes its
+ * section instead of shipping a placeholder.
+ *
+ * In development it is a small inline marker that stays hidden until the
+ * reviewer asks for it, from the one corner badge (DevGaps.astro) or with
+ * `?todo=1` in the address, so the design can be judged as a visitor sees
+ * it. Every unresolved item is also listed at build time (integrations/
+ * content-gaps.mjs) and by `npm run check:launch`.
+ */
+interface Props {
+  /** What is needed, in plain words. */
+  need: string;
+  /** Where to add it. */
+  where?: string;
+  class?: string;
+}
+
+const { need, where = 'src/data/facts.ts', class: className } = Astro.props;
+---
+
+{
+  showGaps && (
+    <span data-gap role="note" lang="en" dir="ltr" class:list={['gap', className]}>
+      <span class="gap-tag">todo</span>
+      <span>{need}</span>
+      <code>{where}</code>
+    </span>
+  )
+}
+
+<style>
+  .gap {
+    display: none;
+    flex-direction: column;
+    gap: 0.25rem;
+    max-inline-size: 40ch;
+    padding: 0.5rem 0.75rem;
+    border: 1px dashed var(--color-amber);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--color-amber) 10%, transparent);
+    color: var(--fg);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    text-align: start;
+  }
+  :global(html[data-todo]) .gap {
+    display: inline-flex;
+  }
+  .gap-tag {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--cash);
+  }
+  code {
+    opacity: 0.75;
+  }
+</style>

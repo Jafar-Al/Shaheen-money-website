@@ -1,0 +1,160 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/ui/PageHero.astro';
+import TextLink from '../../components/ui/TextLink.astro';
+import Slip from '../../components/ui/Slip.astro';
+import SocialLinks from '../../components/site/SocialLinks.astro';
+import FormShell from '../../components/forms/FormShell.astro';
+import TextField from '../../components/forms/TextField.astro';
+import ConsentField from '../../components/forms/ConsentField.astro';
+import { contactPage, formMessages } from '../../copy/support';
+import { common } from '../../copy/common';
+import { contact } from '../../config/site';
+import { facts } from '../../data/facts';
+import { href, localeStaticPaths, type Locale } from '../../i18n/config';
+
+/**
+ * Contact: a ledger form (same fields, validation and endpoint as before),
+ * the topic as ticket rows, and beside it every other way to reach us.
+ */
+export const getStaticPaths = localeStaticPaths;
+const locale = Astro.params.locale as Locale;
+const t = contactPage[locale];
+const m = formMessages[locale];
+const address = facts.company.registeredAddress?.[locale];
+const office = facts.company.office?.value;
+---
+
+<BaseLayout locale={locale} path="/contact" title={t.meta.title} description={t.meta.description}>
+  <PageHero locale={locale} title={t.title} lead={t.lead} crumbs={[{ label: common[locale].nav.contact.title }]} seed="contact" />
+
+  <section class="t-paper grain contact" data-temp="paper">
+    <div class="page rhythm contact-grid">
+      <div class="contact-form">
+        <FormShell action="/api/forms/contact" locale={locale} submitLabel={t.submit} successId="contact-success">
+          <fieldset class="field" data-field="topic">
+            <legend class="field-label label">{t.topic}</legend>
+            <div class="tickets">
+              {
+                Object.entries(t.topics).map(([value, label], i) => (
+                  <label class="ticket">
+                    <input type="radio" name="topic" value={value} required={i === 0} checked={i === 0} />
+                    <span class="ticket-n num" aria-hidden="true">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span class="ticket-text">{label}</span>
+                  </label>
+                ))
+              }
+            </div>
+            <p class="field-hint">
+              {t.connectorNote} <a href={href(locale, 'businessApply')} class="ink-link">{t.connectorLink}</a>
+            </p>
+            <p id="f-topic-error" class="field-error" data-error hidden><span data-error-text></span></p>
+          </fieldset>
+          <TextField name="name" label={t.name} autocomplete="name" required maxlength={120} />
+          <TextField name="email" label={t.email} type="email" autocomplete="email" dir="ltr" required maxlength={254} />
+          <TextField name="message" label={t.message} hint={t.messageHint} multiline rows={6} required maxlength={3000} />
+          <ConsentField before={t.consentBefore} linkLabel={m.privacyLink} href={href(locale, 'privacy')} />
+        </FormShell>
+
+        <div id="contact-success" hidden role="status">
+          <Slip no={t.success.title}>
+            <h2 tabindex="-1" class="contact-success-title font-display">{t.success.title}</h2>
+            <p class="contact-success-body">{t.success.body}</p>
+            <TextLink href={href(locale, 'home')}>{t.success.next}</TextLink>
+          </Slip>
+        </div>
+      </div>
+
+      <aside class="contact-aside">
+        <section class="contact-block">
+          <h2 class="label contact-label">{t.emailTitle}</h2>
+          <a href={`mailto:${contact.email}`} class="contact-email font-display" dir="ltr">{contact.email}</a>
+          {address && <p class="contact-meta">{address}</p>}
+          {
+            office && (
+              <p class="contact-meta">
+                <bdi dir="ltr">{office.address}</bdi>
+                <br />
+                <a href={`tel:${office.phone.replace(/[^+\d]/g, '')}`} class="ink-link num" dir="ltr">
+                  {office.phone}
+                </a>
+              </p>
+            )
+          }
+        </section>
+        <section class="contact-block">
+          <h2 class="label contact-label">{t.channelsTitle}</h2>
+          <SocialLinks locale={locale} />
+        </section>
+        <Slip as="section" no={t.securityTitle} class="contact-security">
+          <p class="contact-meta">{t.securityBody}</p>
+          <TextLink href={href(locale, 'security')}>{common[locale].nav.security}</TextLink>
+        </Slip>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .contact {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 4rem;
+    align-items: start;
+  }
+  .contact-form {
+    grid-column: 1 / span 7;
+  }
+  .contact-aside {
+    grid-column: 9 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 2.75rem;
+  }
+  @media (width >= 64rem) {
+    .contact-aside {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 2rem);
+    }
+  }
+  .contact-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .contact-label {
+    color: var(--fg-2);
+  }
+  .contact-email {
+    font-size: var(--text-h4);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    text-decoration-color: var(--line-strong);
+    overflow-wrap: anywhere;
+  }
+  .contact-meta {
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .contact-success-title {
+    font-size: var(--text-h3);
+    outline: none;
+  }
+  .contact-success-body {
+    margin-block: 0.75rem 1rem;
+  }
+  @media (width < 64rem) {
+    .contact-form,
+    .contact-aside {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

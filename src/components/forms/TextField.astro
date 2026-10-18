@@ -1,0 +1,58 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+/**
+ * A ledger field: a mono label above, an underline to write on, the hint
+ * beneath, and an error that replaces the hint with an icon, words and the
+ * error colour (never colour alone). Always a visible label, never a
+ * placeholder standing in for one (audit O.4 "Inputs").
+ */
+type Props = {
+  name: string;
+  label: string;
+  hint?: string;
+  optionalLabel?: string;
+  multiline?: boolean;
+  rows?: number;
+} & Omit<HTMLAttributes<'input'>, 'name'>;
+
+const { name, label, hint, optionalLabel, multiline = false, rows = 5, required, class: className, ...rest } = Astro.props;
+const id = `f-${name}`;
+const describedBy = [hint && `${id}-hint`, `${id}-error`].filter(Boolean).join(' ');
+---
+
+<div class:list={['field', className]} data-field={name}>
+  <label for={id} class="field-label label">
+    {label}
+    {!required && optionalLabel && <span class="field-optional"> {optionalLabel}</span>}
+  </label>
+  {
+    multiline ? (
+      <textarea
+        id={id}
+        name={name}
+        rows={rows}
+        required={required}
+        aria-describedby={describedBy}
+        class="field-control field-area"
+        {...(rest as HTMLAttributes<'textarea'>)}
+      />
+    ) : (
+      <input id={id} name={name} required={required} aria-describedby={describedBy} class="field-control" {...rest} />
+    )
+  }
+  {
+    hint && (
+      <p id={`${id}-hint`} class="field-hint" data-hint>
+        {hint}
+      </p>
+    )
+  }
+  <p id={`${id}-error`} class="field-error" data-error hidden>
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+      <path d="M12 3.5 21 19.5H3z"></path>
+      <path d="M12 9.5v4.5M12 16.5v.5"></path>
+    </svg>
+    <span data-error-text></span>
+  </p>
+</div>

@@ -1,0 +1,53 @@
+---
+import Slip from './Slip.astro';
+
+/**
+ * The page a form lands on without JavaScript (sent, received, could not be
+ * sent): one paper slip under the header, saying what happened and what
+ * comes next. Never indexed.
+ */
+interface Props {
+  title: string;
+  body: string;
+  kind?: 'done' | 'error';
+}
+const { title, body, kind = 'done' } = Astro.props;
+---
+
+<section class="result under-header t-paper grain" data-temp="paper">
+  <div class="page result-inner">
+    <Slip no={title} class:list={['result-slip', kind === 'error' && 'result-error']}>
+      <h1 class="result-title font-display">{title}</h1>
+      <p class="result-body">{body}</p>
+      <slot />
+    </Slip>
+  </div>
+</section>
+
+<style>
+  .result {
+    background-color: var(--bg);
+    color: var(--fg);
+    min-block-size: 70svh;
+  }
+  .result-inner {
+    display: grid;
+    place-items: center;
+    padding-block: calc(var(--header-h) + 5rem) var(--section);
+  }
+  .result :global(.result-slip) {
+    inline-size: min(100%, 34rem);
+    rotate: -1deg;
+  }
+  .result-title {
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+  }
+  .result :global(.result-error) .result-title {
+    color: var(--color-error);
+  }
+  .result-body {
+    margin-block: 1rem 1.5rem;
+    font-size: var(--text-body-l);
+  }
+</style>

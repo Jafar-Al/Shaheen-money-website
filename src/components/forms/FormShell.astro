@@ -1,0 +1,78 @@
+---
+import { PUBLIC_TURNSTILE_SITE_KEY } from 'astro:env/client';
+import Icon from '../ui/Icon.astro';
+import { formMessages } from '../../copy/support';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * Shared form frame (threat model B3, audit L.5 #4–8):
+ *  · posts to a server endpoint that validates everything again;
+ *  · works without JavaScript (native validation, redirect to a result page);
+ *  · with JavaScript: inline, localised errors, an error summary, a busy
+ *    state, and an in-page success panel (src/scripts/forms.ts);
+ *  · a honeypot and a render timestamp for cheap bot filtering, plus
+ *    Cloudflare Turnstile when PUBLIC_TURNSTILE_SITE_KEY is set.
+ * Set as a ledger: underlined fields, mono labels, one solid pill to send.
+ */
+interface Props {
+  action: string;
+  locale: Locale;
+  submitLabel: string;
+  successId: string;
+}
+
+const { action, locale, submitLabel, successId } = Astro.props;
+const m = formMessages[locale];
+
+if (PUBLIC_TURNSTILE_SITE_KEY) {
+  Astro.csp?.insertScriptResource('https://challenges.cloudflare.com');
+  Astro.csp?.insertDirective('frame-src https://challenges.cloudflare.com');
+}
+---
+
+<form
+  method="post"
+  action={action}
+  class="ledger-form"
+  data-enhanced-form
+  data-success={successId}
+  data-msg-required={m.required}
+  data-msg-email={m.email}
+  data-msg-phone={m.phone}
+  data-msg-too-long={m.tooLong}
+  data-msg-consent={m.consent}
+  data-msg-summary={m.summary}
+  data-msg-network={m.network}
+  data-msg-server={m.server}
+  data-msg-rate-limited={m.rateLimited}
+  data-msg-unavailable={m.unavailable}
+  data-msg-sending={m.sending}
+>
+  <div data-form-summary role="alert" tabindex="-1" hidden class="form-summary"></div>
+
+  <input type="hidden" name="locale" value={locale} />
+  <input type="hidden" name="ts" value="" data-ts />
+  <!-- Honeypot: invisible to people and screen readers; bots fill it. -->
+  <div class="sr-only" aria-hidden="true">
+    <label for="f-website">Website</label>
+    <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+  </div>
+
+  <slot />
+
+  {PUBLIC_TURNSTILE_SITE_KEY && <div class="cf-turnstile" data-sitekey={PUBLIC_TURNSTILE_SITE_KEY} data-language={locale}></div>}
+
+  <div class="form-submit">
+    <button type="submit" data-btn="solid" class="btn btn-solid" data-submit>
+      <span class="btn-label" data-submit-label>{submitLabel}</span>
+      <span class="btn-mark" aria-hidden="true"><Icon name="arrow-right" size={18} directional class="btn-arrow btn-arrow-forward" /></span>
+    </button>
+    <p data-form-status role="status" class="form-status"></p>
+  </div>
+</form>
+
+{PUBLIC_TURNSTILE_SITE_KEY && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+
+<script>
+  import '../../scripts/forms';
+</script>

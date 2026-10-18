@@ -1,0 +1,332 @@
+---
+// In the browser: src/scripts/header.ts (part of BaseLayout's one script).
+import Logo from './Logo.astro';
+import LocaleSwitch from './LocaleSwitch.astro';
+import Icon from '../ui/Icon.astro';
+import { common } from '../../copy/common';
+import { href, pages, pathWithoutLocale, type Locale, type PageKey } from '../../i18n/config';
+import { downloadPath } from '../../config/download';
+
+/**
+ * Four destinations and one action.
+ *
+ * Every destination is a plain link: no menu JavaScript on a desktop, no
+ * focus trap to get wrong. The phone gets a full-screen sheet: large links
+ * in the display face, and the language switch and the download action in
+ * the thumb zone at the bottom.
+ *
+ * Temperature follows the chapter under it (src/scripts/header.ts):
+ * transparent over the top of the page, then solid Night or solid Paper with
+ * a hairline, whichever the section beneath is. The call to action is the
+ * temperature's inverse pill, never blue.
+ */
+interface Props {
+  locale: Locale;
+  localeHrefs: Record<Locale, string>;
+  /** Temperature of the top of the page. */
+  temp?: 'night' | 'paper';
+}
+
+const { locale, localeHrefs, temp = 'paper' } = Astro.props;
+const t = common[locale].nav;
+const current = pathWithoutLocale(Astro.url.pathname);
+/** `/business/apply` keeps Business marked as the current section. */
+const isWithin = (key: PageKey) => current === pages[key] || current.startsWith(`${pages[key]}/`);
+
+const links: Array<{ key: PageKey; label: string; desc: string }> = [
+  { key: 'about', label: t.about.title, desc: t.about.desc },
+  { key: 'business', label: t.business.title, desc: t.business.desc },
+  { key: 'blog', label: t.blog.title, desc: t.blog.desc },
+  { key: 'contact', label: t.contact.title, desc: t.contact.desc },
+];
+---
+
+<header data-site-header data-top={temp} class:list={['site-header', `t-${temp}`]}>
+  <div class="page header-row">
+    <a href={href(locale, 'home')} aria-label={common[locale].homeLabel} class="header-home">
+      <Logo />
+    </a>
+
+    <nav data-nav="desktop" aria-label={t.label} class="header-nav">
+      <ul>
+        {
+          links.map((item) => (
+            <li>
+              <a href={href(locale, item.key)} class="nav-link" aria-current={isWithin(item.key) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <LocaleSwitch locale={locale} hrefs={localeHrefs} class="header-lang" />
+      <a href={downloadPath(locale)} class="header-cta" data-smart-download data-fallback={href(locale, 'getApp')} data-btn="solid">
+        {t.getApp}
+      </a>
+      <button
+        type="button"
+        class="menu-toggle"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        aria-label={t.openMenu}
+        data-label-open={t.openMenu}
+        data-label-close={t.closeMenu}
+        data-menu-toggle
+      >
+        <Icon name="menu" size={24} class="icon-open" />
+        <Icon name="close" size={24} class="icon-close" />
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="mobile-menu t-night" hidden>
+    <nav data-nav="mobile" aria-label={t.label} class="page mobile-nav">
+      <ol>
+        {
+          links.map((item, i) => (
+            <li class="mobile-item">
+              <a href={href(locale, item.key)} class="mobile-link" aria-current={isWithin(item.key) ? 'page' : undefined}>
+                <span class="mobile-n num" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span class="mobile-label">{item.label}</span>
+                <span class="mobile-desc">{item.desc}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+    <div class="page mobile-thumb">
+      <LocaleSwitch locale={locale} hrefs={localeHrefs} />
+      <a href={downloadPath(locale)} class="mobile-cta" data-smart-download data-fallback={href(locale, 'getApp')} data-btn="solid">{t.getApp}</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 50;
+    color: var(--fg);
+    background-color: transparent;
+    border-block-end: 1px solid transparent;
+    transition:
+      background-color var(--motion-hover) var(--ease-hover),
+      border-color var(--motion-hover) var(--ease-hover),
+      color var(--motion-hover) var(--ease-hover);
+  }
+  .site-header[data-scrolled] {
+    background-color: var(--bg);
+    border-block-end-color: var(--line);
+  }
+  .header-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    block-size: var(--header-h);
+  }
+  .header-home {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--target-min);
+    margin-inline-start: -2px;
+  }
+
+  .header-nav {
+    display: none;
+    margin-inline-start: 1.5rem;
+  }
+  .header-nav ul {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--target-min);
+    padding-inline: 0.875rem;
+    font-size: var(--text-nav);
+    line-height: var(--lh-nav);
+    font-weight: 500;
+    color: var(--fg-2);
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    background-position: 50% calc(100% - 10px);
+    transition:
+      color var(--motion-hover) var(--ease-hover),
+      background-size var(--motion-standard) var(--ease-out);
+  }
+  .nav-link:hover,
+  .nav-link[aria-current='page'] {
+    color: var(--fg);
+    background-size: calc(100% - 1.75rem) 1px;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-inline-start: auto;
+  }
+  .header-lang {
+    display: none;
+  }
+  .header-cta {
+    display: none;
+    align-items: center;
+    min-block-size: 2.75rem;
+    padding-inline: 1.25rem;
+    border-radius: var(--radius-full);
+    background-color: var(--inverse-bg);
+    color: var(--inverse-fg);
+    font-size: var(--text-button);
+    line-height: var(--lh-button);
+    font-weight: 600;
+    white-space: nowrap;
+    transition: scale var(--motion-micro) var(--ease-out);
+  }
+  .header-cta:active {
+    scale: 0.98;
+  }
+  @media (width >= 30rem) {
+    .header-cta {
+      display: inline-flex;
+    }
+  }
+  @media (width >= 48rem) {
+    .header-lang {
+      display: inline-grid;
+    }
+  }
+  @media (width >= 64rem) {
+    .header-nav {
+      display: block;
+    }
+    .menu-toggle {
+      display: none !important;
+    }
+  }
+
+  .menu-toggle {
+    display: inline-grid;
+    place-items: center;
+    inline-size: var(--target-min);
+    block-size: var(--target-min);
+    margin-inline-end: -0.75rem;
+    color: inherit;
+  }
+  .menu-toggle .icon-close,
+  .menu-toggle[aria-expanded='true'] .icon-open {
+    display: none;
+  }
+  .menu-toggle[aria-expanded='true'] .icon-close {
+    display: block;
+  }
+
+  /* ── The phone's sheet ─────────────────────────────────────────────── */
+  .site-header:has(.mobile-menu:not([hidden])) {
+    background-color: var(--color-night-900);
+    color: var(--color-chalk);
+    border-block-end-color: var(--color-night-line);
+  }
+  .mobile-menu {
+    position: fixed;
+    inset-inline: 0;
+    inset-block: var(--header-h) 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  @media (width >= 64rem) {
+    .mobile-menu {
+      display: none !important;
+    }
+  }
+  .mobile-nav ol {
+    display: flex;
+    flex-direction: column;
+    padding-block: 1.5rem;
+  }
+  .mobile-item {
+    border-block-end: 1px solid var(--line);
+    opacity: 0;
+    translate: calc(16px * var(--dir)) 0;
+    animation: sheet-in var(--motion-standard) var(--ease-out) forwards;
+  }
+  .mobile-item:nth-child(2) {
+    animation-delay: 50ms;
+  }
+  .mobile-item:nth-child(3) {
+    animation-delay: 100ms;
+  }
+  .mobile-item:nth-child(4) {
+    animation-delay: 150ms;
+  }
+  @keyframes sheet-in {
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+  .mobile-link {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0.25rem 0.5rem;
+    min-block-size: 4.5rem;
+    padding-block: 1.125rem;
+  }
+  .mobile-n {
+    font-size: var(--text-label);
+    color: var(--accent);
+  }
+  .mobile-label {
+    font-family: var(--font-display);
+    font-size: var(--text-display-m);
+    line-height: var(--lh-display-m);
+  }
+  :global(:lang(ar)) .mobile-label {
+    font-weight: 500;
+  }
+  .mobile-desc {
+    grid-column: 2;
+    font-size: var(--text-body-s);
+    color: var(--fg-2);
+  }
+  .mobile-thumb {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-block: 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+    border-block-start: 1px solid var(--line);
+  }
+  .mobile-cta {
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 3.25rem;
+    border-radius: var(--radius-full);
+    background-color: var(--inverse-bg);
+    color: var(--inverse-fg);
+    font-weight: 600;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-item {
+      opacity: 1;
+      translate: none;
+      animation: none;
+    }
+  }
+</style>

@@ -1,0 +1,87 @@
+---
+import BrandIcon from '../ui/BrandIcon.astro';
+import { stores } from '../../config/site';
+import { common } from '../../copy/common';
+import type { Locale } from '../../i18n/config';
+
+/**
+ * Both store links as one grouped unit (audit P-10), drawn as hairline
+ * tickets in the temperature's ink. On an iPhone or iPad only the App Store
+ * shows, on Android only Google Play (html[data-platform], set before first
+ * paint); on a computer, both. Hrefs come only from src/config/site.ts;
+ * scripts/check-dist.mjs verifies every rendered store link against that
+ * allow-list (threat model A6).
+ */
+interface Props {
+  locale: Locale;
+  class?: string;
+}
+
+const { locale, class: className } = Astro.props;
+const t = common[locale].stores;
+---
+
+<div role="group" aria-label={t.group} class:list={['badges', className]}>
+  <a href={stores.ios} class="badge" data-store="ios" data-btn="store">
+    <BrandIcon name="apple" size={22} />
+    <span class="badge-text">
+      <span class="badge-kicker">{t.ios.kicker}</span>
+      <span class="badge-name" lang="en">{t.ios.name}</span>
+    </span>
+  </a>
+  <a href={stores.android} class="badge" data-store="android" data-btn="store">
+    <BrandIcon name="googleplay" size={20} />
+    <span class="badge-text">
+      <span class="badge-kicker">{t.android.kicker}</span>
+      <span class="badge-name" lang="en">{t.android.name}</span>
+    </span>
+  </a>
+</div>
+
+<style>
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-block-size: 3.5rem;
+    padding-inline: 1rem 1.25rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    color: var(--fg);
+    transition:
+      border-color var(--motion-hover) var(--ease-hover),
+      background-color var(--motion-hover) var(--ease-hover);
+  }
+  .badge:hover {
+    border-color: var(--fg);
+    background-color: color-mix(in srgb, var(--fg) 6%, transparent);
+  }
+  :global(html[data-platform='ios']) .badge[data-store='android'],
+  :global(html[data-platform='android']) .badge[data-store='ios'] {
+    display: none;
+  }
+  .badge-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .badge-kicker {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    color: var(--fg-2);
+  }
+  .badge-name {
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.1;
+    font-weight: 600;
+  }
+  :global(:lang(ar)) .badge-name {
+    font-family: var(--font-plex-arabic), var(--font-sans);
+  }
+</style>

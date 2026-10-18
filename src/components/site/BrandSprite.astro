@@ -1,0 +1,16 @@
+---
+import falcon from '../../assets/brand/falcon.svg?raw';
+
+/**
+ * The falcon path, defined once per page. Every Logo references it with
+ * <use href="#falcon-mark">, so the ~10 KB path is not repeated for the dark
+ * header, light header and footer lockups.
+ */
+const d = falcon.match(/ d="([^"]+)"/)?.[1] ?? '';
+---
+
+<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" class="absolute size-0 overflow-hidden">
+  <symbol id="falcon-mark" viewBox="0 0 240 240">
+    <path d={d} fill="currentColor"></path>
+  </symbol>
+</svg>

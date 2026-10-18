@@ -1,0 +1,104 @@
+---
+import { common } from '../../copy/common';
+import { formatAsOf } from '../../lib/format';
+import type { Locale } from '../../i18n/config';
+import type { Source } from '../../data/types';
+
+/**
+ * "1  Source: World Bank, Remittance Prices Worldwide · Q3 2025"
+ *
+ * A numbered footnote in fixed mono, always visible (never behind a hover),
+ * directly under the figure it supports. `n` makes it the target of a
+ * FootnoteRef ("#source-n") next to the figure.
+ */
+interface Props {
+  source: Source;
+  locale: Locale;
+  n?: number;
+  /** Prefix for the id when a page has two figures with the same number. */
+  idPrefix?: string;
+  class?: string;
+}
+
+const { source, locale, n, idPrefix = 'source', class: className } = Astro.props;
+const t = common[locale].ui;
+const when = source.period?.[locale] ?? formatAsOf(source.asOf, locale);
+const note = source.note?.[locale];
+---
+
+<p class:list={['source', className]} id={n ? `${idPrefix}-${n}` : undefined}>
+  {n && <span class="source-n num" aria-hidden="true">{n}</span>}
+  <span class="source-text">
+    <span class="source-kicker">{t.source}:</span>
+    {
+      source.url ? (
+        <a href={source.url} target="_blank" rel="noopener noreferrer" class="source-link">
+          {source.name[locale]}
+          <span class="sr-only">{t.opensNewTab}</span>
+        </a>
+      ) : (
+        <span>{source.name[locale]}</span>
+      )
+    }
+    <span aria-hidden="true"> · </span>
+    <span>{when}</span>
+    {note && <span class="source-note">{note}</span>}
+  </span>
+</p>
+
+<style>
+  .source {
+    display: flex;
+    gap: 0.625rem;
+    align-items: baseline;
+    max-inline-size: 48ch;
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    line-height: 1.55;
+    color: var(--fg-2);
+    scroll-margin-block-start: calc(var(--header-h) + 3rem);
+  }
+  .source:target {
+    color: var(--fg);
+  }
+  .source-n {
+    flex: none;
+    min-inline-size: 1.25rem;
+    padding-block: 0.05rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-full);
+    font-size: 0.625rem;
+    line-height: 1.3;
+    text-align: center;
+    color: var(--accent);
+  }
+  .source-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  :global(:lang(ar)) .source-kicker {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    text-transform: none;
+  }
+  .source-link {
+    color: var(--fg);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    text-decoration-color: var(--line-strong);
+  }
+  .source-link:hover {
+    text-decoration-color: currentColor;
+  }
+  .source-note {
+    display: block;
+    margin-block-start: 0.25rem;
+    color: var(--fg-3);
+  }
+  /* Arabic words inside a mono line are set in Plex (the mono stack falls
+     through to it); keep them from inheriting mono metrics. */
+  :global(:lang(ar)) .source {
+    line-height: 1.8;
+  }
+</style>

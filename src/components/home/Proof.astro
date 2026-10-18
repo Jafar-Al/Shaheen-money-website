@@ -1,0 +1,144 @@
+---
+import Chapter from '../ui/Chapter.astro';
+import TextLink from '../ui/TextLink.astro';
+import SourceNote from '../ui/SourceNote.astro';
+import Gap from '../ui/Gap.astro';
+import Plate from '../ui/Plate.astro';
+import { common } from '../../copy/common';
+import { home } from '../../copy/home';
+import { facts } from '../../data/facts';
+import { formatDate, formatNumber } from '../../lib/format';
+import { href, type Locale } from '../../i18n/config';
+
+/**
+ * Third-party evidence only (audit P-09): consented, attributed voices and
+ * real store ratings with counts and a date. Two genuine voices beat six
+ * invented ones.
+ *
+ * Until src/data/facts.ts carries any, the section is simply not there: no
+ * heading, no empty frame, no filler strip (the strip above every page
+ * already says the money is self-custodial and links to the security page).
+ */
+interface Props {
+  locale: Locale;
+  /** Chapter number, used only when there are voices to show. */
+  n: number;
+}
+const { locale, n } = Astro.props;
+const t = home[locale].proof;
+const c = common[locale];
+const ratings = [
+  facts.ratings.ios && { store: 'App Store', r: facts.ratings.ios },
+  facts.ratings.android && { store: 'Google Play', r: facts.ratings.android },
+].filter((x) => Boolean(x)) as Array<{ store: string; r: NonNullable<typeof facts.ratings.ios> }>;
+const voices = facts.testimonials.slice(0, 2);
+const hasVoices = voices.length > 0 || ratings.length > 0;
+
+---
+
+{
+  hasVoices ? (
+    <section class="voices t-paper grain cv-auto" data-temp="paper" aria-labelledby="voices-title">
+      <div class="page rhythm voices-grid">
+        <header class="voices-head">
+          <Chapter n={n} label={t.label} />
+          <h2 id="voices-title" class="text-display-m font-display">
+            {t.title}
+          </h2>
+        </header>
+        {voices.map((q) => (
+          <figure class="voice">
+            {q.photo && <Plate src={q.photo} alt={q.name} width={160} class="voice-photo" />}
+            <blockquote class="voice-quote font-display">“{q.quote[locale]}”</blockquote>
+            <figcaption class="voice-by">
+              <span class="label">{q.name}</span>
+              <span class="label voice-where">{q.location[locale]}</span>
+              <span class="micro voice-consent">
+                <time datetime={q.consentRecordedOn}>{formatDate(new Date(q.consentRecordedOn), locale)}</time>
+              </span>
+            </figcaption>
+          </figure>
+        ))}
+        {ratings.length > 0 && (
+          <div class="voices-ratings">
+            <h3 class="label">{t.ratingsTitle}</h3>
+            {ratings.map(({ store, r }) => (
+              <div class="rating">
+                <p class="rating-score num">{formatNumber(r.value.score, locale, 1)}</p>
+                <p class="rating-store">
+                  {store} · <span class="num">{formatNumber(r.value.count, locale)}</span> {c.trust.reviews}
+                </p>
+                <SourceNote source={r.source} locale={locale} />
+              </div>
+            ))}
+          </div>
+        )}
+        <TextLink href={href(locale, 'security')}>{t.securityCta}</TextLink>
+      </div>
+    </section>
+  ) : (
+    <Gap need="Two or three consented testimonials (name, photo, location, consent date) and store ratings with review counts and a date. Until then the section does not render." />
+  )
+}
+
+<style>
+  .voices {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .voices-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 3.5rem;
+  }
+  .voices-head {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .voice {
+    grid-column: span 6;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin: 0;
+  }
+  .voice-quote {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+  }
+  .voice-by {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    color: var(--fg-2);
+  }
+  .voice-consent {
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-full);
+  }
+  .voices-ratings {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem 4rem;
+    padding-block-start: 2rem;
+    border-block-start: 1px solid var(--line);
+  }
+  .voices-ratings h3 {
+    flex-basis: 100%;
+    color: var(--fg-2);
+  }
+  .rating-score {
+    font-size: var(--text-display-m);
+    line-height: 1;
+  }
+  @media (width < 48rem) {
+    .voice {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

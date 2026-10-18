@@ -1,0 +1,191 @@
+---
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PageHero from '../../../components/ui/PageHero.astro';
+import Slip from '../../../components/ui/Slip.astro';
+import Gap from '../../../components/ui/Gap.astro';
+import { common } from '../../../copy/common';
+import { legalPage } from '../../../copy/misc';
+import { contact } from '../../../config/site';
+import { formatDate } from '../../../lib/format';
+import { locales, type Locale } from '../../../i18n/config';
+
+type Doc = 'privacy' | 'terms' | 'cookies';
+
+// getStaticPaths runs in its own scope: it can only use imports.
+export function getStaticPaths() {
+  return locales.flatMap((locale) => (['privacy', 'terms', 'cookies'] as const).map((doc) => ({ params: { locale, doc } })));
+}
+
+/**
+ * Legal documents, set for reading: the version and effective date in mono,
+ * a table of contents that stays in view on a wide screen, and a calm
+ * long-form measure. Published as they are (no legal-review status is
+ * shown); an Arabic page whose document is still English says so.
+ */
+const locale = Astro.params.locale as Locale;
+const doc = Astro.params.doc as Doc;
+const f = common[locale].footer;
+const t = legalPage[locale];
+const titles: Record<Doc, string> = { privacy: f.privacy, terms: f.terms, cookies: f.cookies };
+
+const entry = await getEntry('legal', `${locale}/${doc}`);
+const rendered = entry ? await render(entry) : null;
+// An Arabic page whose document has not been translated yet: the text is
+// set as English (left to right), under the Arabic title and a short note.
+const english = locale === 'ar' && Boolean(entry) && !/[؀-ۿ]/.test(entry?.body ?? '');
+const title = english ? titles[doc] : (entry?.data.title ?? titles[doc]);
+// The contents list is ours: the documents' own lists point at anchors
+// that were never generated, so they are hidden below. Numbers are set in
+// mono here, so a heading's own "1. " is dropped.
+const toc = (rendered?.headings ?? [])
+  .filter((h) => h.depth === 2 && h.slug !== 'table-of-contents')
+  .map((h) => ({ slug: h.slug, text: h.text.replace(/^\d+\.\s*/, '') }));
+---
+
+<BaseLayout
+  locale={locale}
+  path={`/legal/${doc}`}
+  title={`${title} — Shaheen Money`}
+  description={t.descriptions[doc]}
+  noindex={!entry}
+>
+  <PageHero locale={locale} title={title} crumbs={[{ label: f.legal }, { label: title }]} seed={`legal-${doc}`} size="m">
+    {
+      entry && (
+        <p class="micro legal-meta">
+          {t.version} <span class="num">{entry.data.version}</span> · {t.effective}{' '}
+          <time datetime={entry.data.effectiveFrom.toISOString().slice(0, 10)}>{formatDate(entry.data.effectiveFrom, locale)}</time>
+        </p>
+      )
+    }
+    {
+      english && (
+        <p class="legal-lang">{t.englishOnly}</p>
+      )
+    }
+  </PageHero>
+
+  <section class="t-paper grain legal" data-temp="paper">
+    <div class="page rhythm legal-grid" lang={english ? 'en' : undefined} dir={english ? 'ltr' : undefined}>
+      {
+        toc.length > 0 && (
+          <nav class="legal-toc" aria-label={title}>
+            <ol>
+              {toc.map((h, i) => (
+                <li>
+                  <a href={`#${h.slug}`} class="legal-toc-link">
+                    <span class="num">{String(i + 1).padStart(2, '0')}</span>
+                    <span>{h.text}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )
+      }
+      <div class="legal-main">
+        {
+          rendered ? (
+            <div class="prose reading">
+              <rendered.Content />
+            </div>
+          ) : (
+            <div class="legal-pending">
+              <Slip no={title}>
+                <p>
+                  {t.pending}{' '}
+                  <a href={`mailto:${contact.email}`} class="ink-link" dir="ltr">
+                    {contact.email}
+                  </a>
+                </p>
+              </Slip>
+              <Gap
+                need={`${titles[doc]} (${locale}). Migrate the current document with \`npm run import:legacy\`.`}
+                where={`src/content/legal/${locale}/${doc}.md`}
+              />
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .legal {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+  .legal-meta {
+    color: var(--fg-2);
+  }
+  .legal-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: 3rem;
+    align-items: start;
+  }
+  .legal-toc {
+    grid-column: 1 / span 3;
+    font-size: var(--text-body-s);
+  }
+  @media (width >= 64rem) {
+    .legal-toc {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 2rem);
+      max-block-size: calc(100vh - var(--header-h) - 4rem);
+      overflow-y: auto;
+    }
+  }
+  .legal-toc ol {
+    border-block-start: 1px solid var(--line);
+  }
+  .legal-toc-link {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding-block: 0.625rem;
+    border-block-end: 1px solid var(--line);
+    color: var(--fg-2);
+  }
+  .legal-toc-link .num {
+    font-size: var(--text-label);
+    color: var(--accent);
+    padding-block-start: 0.15rem;
+  }
+  .legal-toc-link:hover {
+    color: var(--fg);
+  }
+  .legal-main {
+    grid-column: 5 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .legal-grid > .legal-main:first-child {
+    grid-column: 1 / -1;
+  }
+  .legal-lang {
+    color: var(--fg-2);
+  }
+  /* The document's own contents list, replaced by .legal-toc. */
+  .legal-main :global(#table-of-contents),
+  .legal-main :global(#table-of-contents + ol),
+  .legal-main :global(#table-of-contents + ul) {
+    display: none;
+  }
+  .legal-pending {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-inline-size: 36rem;
+  }
+  @media (width < 64rem) {
+    .legal-toc,
+    .legal-main {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

@@ -1,0 +1,53 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import Icon from './Icon.astro';
+
+/**
+ * One component for every button-shaped control.
+ *
+ *   solid  the one primary action on a screen: paper fill on Night, ink
+ *          fill on Paper (the temperature's inverse), never blue
+ *   line   an alternative action: a hairline outline in the text colour
+ *
+ * A 52px pill with the label and an arrow held in a small circle at the
+ * inline end. On a precise pointer the circle fills and the arrow leans
+ * forward, the whole control leans toward the pointer (≤6px, magnetic),
+ * and a press settles it to .98. The arrow mirrors in Arabic.
+ */
+type Arrow = 'forward' | 'down' | 'external' | 'none';
+type Props = {
+  href?: string;
+  variant?: 'solid' | 'line';
+  arrow?: Arrow;
+  type?: 'button' | 'submit';
+  /** Full width below the small breakpoint, for thumb-zone stacks. */
+  block?: boolean;
+  class?: string;
+} & Omit<HTMLAttributes<'a'> & HTMLAttributes<'button'>, 'class' | 'type'>;
+
+const { href, variant = 'solid', arrow = 'forward', type = 'button', block = false, class: className, ...rest } = Astro.props;
+const Tag = href ? 'a' : 'button';
+const icon = { forward: 'arrow-right', down: 'arrow-down', external: 'arrow-up-right', none: null }[arrow] as
+  | 'arrow-right'
+  | 'arrow-down'
+  | 'arrow-up-right'
+  | null;
+---
+
+<Tag
+  href={href}
+  type={href ? undefined : type}
+  class:list={['btn', `btn-${variant}`, block && 'btn-block', !icon && 'btn-plain', className]}
+  data-btn={variant}
+  data-magnetic
+  {...rest}
+>
+  <span class="btn-label"><slot /></span>
+  {
+    icon && (
+      <span class="btn-mark" aria-hidden="true">
+        <Icon name={icon} size={18} directional={arrow === 'forward'} class:list={['btn-arrow', `btn-arrow-${arrow}`]} />
+      </span>
+    )
+  }
+</Tag>

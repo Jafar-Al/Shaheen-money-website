@@ -1,0 +1,53 @@
+---
+import BrandIcon from '../ui/BrandIcon.astro';
+import { socials } from '../../config/site';
+import { common } from '../../copy/common';
+import type { Locale } from '../../i18n/config';
+
+/** Six official channels: 44×44 targets with 8px separation (audit P-11). */
+interface Props {
+  locale: Locale;
+  class?: string;
+}
+const { locale, class: className } = Astro.props;
+const t = common[locale];
+---
+
+<ul class:list={['socials', className]} aria-label={t.footer.social}>
+  {
+    socials.map((s) => (
+      <li>
+        <a href={s.href} target="_blank" rel="noopener noreferrer" class="social">
+          <BrandIcon name={s.network} size={18} />
+          <span class="sr-only">
+            {s.label} {t.ui.opensNewTab}
+          </span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .socials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .social {
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-full);
+    color: var(--fg-2);
+    transition:
+      color var(--motion-hover) var(--ease-hover),
+      border-color var(--motion-hover) var(--ease-hover);
+  }
+  .social:hover {
+    color: var(--fg);
+    border-color: var(--line-strong);
+  }
+</style>

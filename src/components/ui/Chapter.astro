@@ -1,0 +1,41 @@
+---
+/**
+ * A chapter mark: "01 — Why", set as a folio, not an eyebrow. The homepage
+ * is one story in numbered chapters (the hero counts them: "01/09"), so the
+ * number carries information the reader uses: where they are in it.
+ *
+ * Western digits in mono in both locales; the Arabic label is set in the UI
+ * face, semibold, with a hairline instead of the Latin dash.
+ */
+interface Props {
+  n: number;
+  label: string;
+  class?: string;
+}
+const { n, label, class: className } = Astro.props;
+---
+
+<p class:list={['chapter', className]}>
+  <span class="chapter-n num">{String(n).padStart(2, '0')}</span>
+  <span class="chapter-rule" aria-hidden="true"></span>
+  <span class="label chapter-label">{label}</span>
+</p>
+
+<style>
+  .chapter {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--fg-2);
+  }
+  .chapter-n {
+    font-size: var(--text-label);
+    line-height: 1;
+    color: var(--accent);
+  }
+  .chapter-rule {
+    inline-size: 2.5rem;
+    block-size: 1px;
+    background-color: var(--line-strong);
+  }
+</style>

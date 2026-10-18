@@ -1,0 +1,13 @@
+---
+/**
+ * Structured data. `<` is escaped so no string in the data can close the
+ * script element. Data blocks are not executed, so CSP does not apply.
+ */
+interface Props {
+  data: Record<string, unknown> | Record<string, unknown>[];
+}
+const { data } = Astro.props;
+const json = JSON.stringify(data).replace(/</g, '\\u003c');
+---
+
+<script type="application/ld+json" is:inline set:html={json} />
