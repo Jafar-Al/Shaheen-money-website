@@ -123,13 +123,15 @@ pixel. See `motion/README.md`.
 
 ## Before launch
 
-Run `npm run check:launch`. Today its one blocker is form delivery on Vercel: `FORMS_WEBHOOK_URL` (+ `FORMS_WEBHOOK_SECRET`) and/or `RESEND_API_KEY` + `FORMS_EMAIL_TO` + `FORMS_EMAIL_FROM`. The rest of its list is recommended (verified countries, minimum cash-out, the Connector commission, ratings, testimonials).
+Run `npm run check:launch`. Today its one blocker is form delivery on Vercel ([DEPLOYMENT.md](DEPLOYMENT.md), step 3): `FORMS_WEBHOOK_URL` (+ `FORMS_WEBHOOK_SECRET`) and/or `RESEND_API_KEY` + `FORMS_EMAIL_TO` + `FORMS_EMAIL_FROM`. The rest of its list is recommended (verified countries, minimum cash-out, the Connector commission, ratings, testimonials).
 
 Not on that list: an Arabic translation of the privacy policy and terms. Until there is one, the Arabic pages show the English text, marked as English.
 
 Recommended: Upstash Redis for shared rate limits, Cloudflare Turnstile on the forms, real photography and ratings, and a vector master of the falcon (the current SVG is traced from the 239 px PNG).
 
 ## Deploying on Vercel
+
+**Step by step, including the forms and every service: [DEPLOYMENT.md](DEPLOYMENT.md).**
 
 Import the repository; the Astro preset runs `npm run build`, which also writes the security headers and the `/download` routing into `.vercel/output/config.json` (`scripts/postbuild.mjs`). Preview deployments are automatically `noindex`. Every legacy URL (`/about`, `/home-arabic`, `/privacy-policy-ar`, `/blog/<slug>` …) redirects into the new tree (`src/config/redirects.mjs`).
 
